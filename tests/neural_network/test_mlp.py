@@ -68,3 +68,22 @@ def test_forward_linear():
     zs, activations = model._forward(X)
     np.testing.assert_allclose(activations[-1], [[-5.0], [-6.0]])
     
+def test_predict_linear():
+    model = MLPRegressor(hidden_layer_sizes=())
+    model.weights_ = [np.array([[2.0], [3.0]])]
+    model.biases_ = [np.array([1.0])]
+    X = np.array([[1.0, 1.0], [2.0, 0.0]])
+    y_pred = model.predict(X)
+    np.testing.assert_allclose(y_pred, [6.0, 5.0])
+    assert y_pred.shape == (2,)
+    
+def test_predict_with_hidden_layer():
+    model = MLPRegressor(hidden_layer_sizes=(3,))
+    model.weights_ = [
+        np.array([[1.0, -1.0, 0.0], [2.0, 1.0, 1.0]]),
+        np.array([[1.0], [1.0], [1.0]])     
+    ]
+    model.biases_ = [np.array([0.0, -3.0, 0.0]), np.array([0.5])]
+    X = np.array([[1.0, 2.0]])
+    y_pred = model.predict(X)
+    np.testing.assert_allclose(y_pred, [7.5])

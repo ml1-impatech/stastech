@@ -133,7 +133,8 @@ class MLPRegressor(BaseEstimator, RegressorMixin):
         raise NotImplementedError
 
     def predict(self, X):
-        raise NotImplementedError
+        _, activations = self._forward(X)
+        return activations[-1][:, 0]
 
     def _forward(self, X):
         func, _ = ACTIVATIONS[self.activation]
