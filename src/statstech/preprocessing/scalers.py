@@ -61,7 +61,10 @@ class StandardScaler(BaseEstimator, TransformerMixin):
         # 3. trocar desvio zero por 1
         # 4. guardar mean_, scale_ e n_features_in_
         # 5. devolver self
-        raise NotImplementedError
+        self.mean_ = np.mean(X, axis=0)
+        self.scale_ = np.std(X, axis=0)
+        self.n_features_in_ = X.shape[1]
+        return self
 
     def transform(self, X: np.ndarray) -> np.ndarray:
         """Aplica a padronização usando a média e o desvio do ``fit``.
