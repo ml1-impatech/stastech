@@ -71,4 +71,58 @@ def test_fit_convergence_criterion():
 
     assert len(model.loss_history_) == 2
 
+def test_gradient_finite_difference():
+    X = np.array([
+        [1.0, 2.0],
+        [2.0, 1.0],
+        [4.0, 5.0],
+        [5.0, 4.0],
+        [8.0, 9.0],
+        [9.0, 8.0]
+    ])
+    y = np.array([0, 0, 1, 1, 2, 2])
+
+    model = LogisticRegression(max_iter=100)
+    model.fit(X, y)
+
+    X_scaled = (X - model.mean_) / model.std_
+    Y = np.zeros((len(y), len(model.classes_)))
+
+    for i in range(len(y)):
+        Y[i, model.classes_ == y[i]] = 1
+
+    coef = np.zeros(model.coef_.shape)
+    intercept = np.zeros(model.intercept_.shape)
+
+    _, gradient, _ = model._loss_and_gradient(X_scaled, Y, coef, intercept)
+
+    # pertubação p/ o cálculo numérico
+    h = 1e-5
+
+    numerical_gradient = np.zeros(coef.shape)
+
+    for i in range(coef.shape[0]):
+        for j in range(coef.shape[1]):
+            coef_incr = coef.copy()
+            coef_decr = coef.copy()
+
+            coef_incr[i, j] += h 
+            coef_decr[i, j] -= h 
+
+            loss_incr, _, _ = model._loss_and_gradient(X_scaled, Y, coef_incr, intercept)
+            loss_decr, _, _ = model._loss_and_gradient(X_scaled, Y, coef_decr, intercept)
+
+            numerical_gradient[i, j] = ( loss_incr - loss_decr) / (2 * h)
+
+    differ = np.abs(gradient - numerical_gradient)
+
+    for i in range(differ.shape[0]):
+        for j in range(differ.shape[1]):
+            assert differ[i, j] < 1e-5
+            
+
+
+
+    
+
 
