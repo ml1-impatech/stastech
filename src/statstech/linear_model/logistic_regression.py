@@ -173,4 +173,23 @@ class LogisticRegression(BaseEstimator, ClassifierMixin):
 
         return prob
 
+def predict(self, X):
+    prob = self.predict_proba(X)
+    predictions = np.zeros(len(X), dtype = int)
+
+    for i in range(len(X)):
+        bigger = prob[i, 0]
+        index = 0 
+
+        for j in range(1, len(self.classes_)):
+            if prob[i, j] > bigger:
+                bigger = prob[i, j]
+                index = j 
+
+        predictions[i] = index
+
+    return self.classes_[predictions]
+        
+
+
    
