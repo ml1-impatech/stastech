@@ -89,7 +89,7 @@ class StandardScaler(BaseEstimator, TransformerMixin):
         # 2. validar X e conferir o número de colunas
         # 3. aplicar (X - mean_) / scale_, respeitando with_mean e with_std
         # 4. devolver o array novo
-        raise NotImplementedError
+        return (X - self.mean_) / self.scale_
 
     def inverse_transform(self, X: np.ndarray) -> np.ndarray:
         """Desfaz a padronização, voltando às unidades originais.
