@@ -222,6 +222,126 @@ def test_predict_format():
     assert predictions.shape == (len(X), )
 
 
+def test_predict_high_accuracy_separated_data():
+    X = np.array([
+        [1.0, 1.0],
+        [1.0, 2.0],
+        [2.0, 1.0],
+        [5.0, 5.0],
+        [5.0, 6.0],
+        [6.0, 5.0],
+        [9.0, 9.0],
+        [9.0, 10.0],
+        [10.0, 9.0]
+    ])
+    y = np.array([0, 0, 0, 1, 1, 1, 2, 2, 2])
+
+    model = LogisticRegression(max_iter=1000)
+    model.fit(X, y)
+
+    predictions = model.predict(X)
+
+    correct = 0
+
+    for i in range(len(y)):
+        if predictions[i] == y[i]:
+            correct += 1
+
+    accuracy = correct/ len(y)
+
+    assert accuracy >= 0.9
+
+def test_predict_choose_highest_probability():
+    X = np.array([
+        [1.0, 1.0],
+        [1.0, 2.0],
+        [2.0, 1.0],
+        [5.0, 5.0],
+        [5.0, 6.0],
+        [6.0, 5.0],
+        [9.0, 9.0],
+        [9.0, 10.0],
+        [10.0, 9.0]
+    ])
+    y = np.array([0, 0, 0, 1, 1, 1, 2, 2, 2])
+
+    model = LogisticRegression(max_iter=1000)
+    model.fit(X, y)
+
+    probabilities = model.predict_proba(X)
+    predictions = model.predict(X)
+
+    for i in range(len(X)):
+        index = 0 
+
+        for j in range(1, len(model.classes_)):
+            if probabilities[i, j] > probabilities[i, index]:
+                index = j 
+
+        assert predictions[i] == model.classes_[index]
+
+def test_fit_intercept_false():
+    X = np.array([
+        [1.0, 1.0],
+        [1.0, 2.0],
+        [2.0, 1.0],
+        [5.0, 5.0],
+        [5.0, 6.0],
+        [6.0, 5.0],
+        [9.0, 9.0],
+        [9.0, 10.0],
+        [10.0, 9.0]
+    ])
+    y = np.array([0, 0, 0, 1, 1, 1, 2, 2, 2])
+
+    model = LogisticRegression(max_iter = 1000, fit_intercept = False)
+    model.fit(X, y)    
+
+    predictions = model.predict(X)
+
+    assert predictions.shape == y.shape
+    assert np.any(model.coef_ != 0)
+
+
+def test_regularization_l2():
+    X = np.array([
+        [1.0, 2.0],
+        [2.0, 1.0],
+        [2.0, 3.0],
+        [4.0, 5.0],
+        [5.0, 4.0],
+        [5.0, 6.0],
+        [8.0, 9.0],
+        [9.0, 8.0],
+        [9.0, 10.0]
+    ])
+    y = np.array([0, 0, 0, 1, 1, 1, 2, 2, 2])
+
+    model_without_l2 = LogisticRegression(
+        max_iter=1000,
+        lambda_=0
+    )
+    model_with_l2 = LogisticRegression(
+        max_iter=1000,
+        lambda_=1
+    )
+
+    model_without_l2.fit(X, y)
+    model_with_l2.fit(X, y)
+
+    diff = 0
+
+    for i in range(model_without_l2.coef_.shape[0]):
+        for j in range(model_without_l2.coef_.shape[1]):
+            if model_without_l2.coef_[i, j] != model_with_l2.coef_[i, j]:
+                diff += 1
+
+    assert diff > 0
+
+
+
+   
+
 
 
 
