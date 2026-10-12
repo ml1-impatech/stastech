@@ -184,6 +184,47 @@ def test_predict_proba_format():
 
     assert prob.shape == (len(X), len(model.classes_))
 
+def test_predict_text_labels():
+    X = np.array([
+        [1.0, 2.0],
+        [2.0, 1.0],
+        [4.0, 5.0],
+        [5.0, 4.0],
+        [8.0, 9.0],
+        [9.0, 8.0]
+    ])
+    y = np.array(["não", "não", "sim", "sim", "talvez", "talvez"])
+
+    model = LogisticRegression(max_iter=1000)
+    model.fit(X, y)
+
+    predictions = model.predict(X)
+
+    for i in range(len(predictions)):
+        assert predictions[i] in model.classes_
+
+def test_predict_format():
+    X = np.array([
+        [1.0, 2.0],
+        [2.0, 1.0],
+        [4.0, 5.0],
+        [5.0, 4.0],
+        [8.0, 9.0],
+        [9.0, 8.0]
+    ])
+    y = np.array([0, 0, 1, 1, 2, 2])
+
+    model = LogisticRegression(max_iter = 100)
+    model.fit(X, y)
+
+    predictions = model.predict(X)
+
+    assert predictions.shape == (len(X), )
+
+
+
+
+
 
             
 
