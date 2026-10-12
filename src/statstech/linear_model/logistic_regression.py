@@ -63,37 +63,24 @@ class LogisticRegression(BaseEstimator, ClassifierMixin):
         self.std_ = np.std(X, axis=0)
         self.coef_ = np.zeros((p,K))
     
-        if self.fit_intercept == True:
+        if self.fit_intercept:
             self.intercept_ = np.zeros(K)
 
-        y_indices = np.zeros(len(y), dtype = int)
-
-        for i in range(len(y)):
-            for j in range(K):
-                if y[i] == self.classes_[j]:
-                    y_indices[i] = j
-                    break
+        y_indices = np.searchsorted(self.classes_, y)
 
         Y = np.zeros((n, K))
-
-        for i in range(n):
-            Y[i, y_indices[i]] = 1  
+        Y[np.arange(n), y_indices] = 1
 
         # evita divisão por zero na hora de padronizar
-        for j in range(p):
-            if self.std_[j] == 0:
-                self.std_[j] = 1
-        
+        self.std_[self.std_ == 0] = 1
+
         # padroniza as variáveis de entrada
         X = (X - self.mean_) / self.std_
 
         self.loss_history_ = []
      
         for iter in range(self.max_iter):
-            if self.fit_intercept:
-                intercept = self.intercept_
-            else:
-                intercept = None
+            intercept = self.intercept_ if self.fit_intercept else None
 
             loss, gradient, intercept_gradient = self._loss_and_gradient(X, Y, self.coef_, intercept)
 
@@ -108,12 +95,11 @@ class LogisticRegression(BaseEstimator, ClassifierMixin):
                 self.loss_history_.append(loss)
 
             # atualiza os coeficientes
-            if self.fit_intercept == True:
-                self.intercept_ = (self.intercept_ - self.learning_rate * intercept_gradient)
+            if self.fit_intercept:
+                self.intercept_ -= self.learning_rate * intercept_gradient
 
             # atualiza os coeficientes
-            new_coef = self.coef_ - self.learning_rate * gradient
-            self.coef_ = new_coef
+            self.coef_ -= self.learning_rate * gradient
 
         return self
 
