@@ -59,3 +59,12 @@ def test_init_weights_biases():
     model._init_weights(5, np.random.default_rng(0))
     for b in model.biases_:
         np.testing.assert_allclose(b, 0)
+
+def test_forward_linear():
+    model = MLPRegressor(hidden_layer_sizes=())
+    model.weights_ = [np.array([[2.0], [3.0]])]
+    model.biases_ = [np.array([-10.0])]
+    X = np.array([[1.0, 1.0], [2.0, 0.0]])
+    zs, activations = model._forward(X)
+    np.testing.assert_allclose(activations[-1], [[-5.0], [-6.0]])
+    

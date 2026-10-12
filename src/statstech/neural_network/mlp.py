@@ -89,10 +89,10 @@ class MLPRegressor(BaseEstimator, RegressorMixin):
         Taxa de aprendizado utilizada para a atualização dos pesos via
         gradiente descendente.
     max_iter : int, default=200
-        Número máximo de épocas de treinamento.
+        Número de épocas de treinamento.
     batch_size : int, default=32
         Tamanho dos mini-batches para o treinamento.
-    random_state : int, RandomState instance or None, default=None
+    random_state : int or None, default=None
         Semente para o gerador de números aleatórios.
 
     Attributes
@@ -136,7 +136,19 @@ class MLPRegressor(BaseEstimator, RegressorMixin):
         raise NotImplementedError
 
     def _forward(self, X):
-        raise NotImplementedError
+        func, _ = ACTIVATIONS[self.activation]
+        a = X
+        zs = []
+        activations = [X]
+        for i, (W,b) in enumerate(zip(self.weights_, self.biases_)):
+            z = a @ W + b
+            if i == len(self.weights_) - 1: 
+                a = identity(z)
+            else: 
+                a = func(z)
+            zs.append(z)
+            activations.append(a)
+        return zs, activations
 
     def _backward(self, X, y, activations):
         raise NotImplementedError
