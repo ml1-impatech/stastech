@@ -114,50 +114,12 @@ class LogisticRegression(BaseEstimator, ClassifierMixin):
         self.loss_history_ = []
      
         for iter in range(self.max_iter):
-
-            if self.fit_intercept == True:
-                z = X @ self.coef_ + self.intercept_
+            if self.fit_intercept:
+                intercept = self.intercept_
             else:
-                z = X @ self.coef_
+                intercept = None
 
-            # evita problemas numéricos ao calcular a exponencial (inf)
-            for i in range(n):
-                maior = z[i,0]
-
-                for j in range(1, K):
-                    if z[i,j] > maior:
-                        maior = z[i,j]
-
-                for j in range(K):
-                    z[i,j] = z[i,j] - maior
-
-            exp_z = np.exp(z)
-            P = np.zeros((n, K))
-
-            for i in range(n):
-                total = 0 
-
-                for j in range(K):
-                    total = total + exp_z[i,j]
-
-                for j in range(K):
-                    P[i,j] = exp_z[i,j] / total
-
-            # evita logaritmo de zero
-            P = np.clip(P, 1e-15, 1.0)
-
-            loss = 0
-
-            for i in range(n):
-                for j in range(K):
-                    loss = loss - Y[i,j] * np.log(P[i,j])
-
-            loss = loss/n
-
-            # regularização
-            if self.lambda_ > 0:
-                L2 = (self.lambda_ / (2*n)) * np.sum(self.coef_ ** 2)
-                loss = loss + L2
+            loss, gradient, intercept_gradient = self._loss_and_gradient(X, Y, self.coef_, intercept)
 
             # critério de convergência 
             if len(self.loss_history_) > 0:
@@ -169,16 +131,11 @@ class LogisticRegression(BaseEstimator, ClassifierMixin):
             else:
                 self.loss_history_.append(loss)
 
-            gradient = ( X.T @ (P - Y) )/n 
-
-            # regularização
-            if self.lambda_ > 0:
-                gradient = gradient + (self.lambda_ / n) * self.coef_
-            
+            # atualiza os coeficientes
             if self.fit_intercept == True:
-                intercept_gradient = np.mean(P - Y, axis = 0)
-                self.intercept_ = self.intercept_ - self.learning_rate * intercept_gradient
+                self.intercept_ = (self.intercept_ - self.learning_rate * intercept_gradient)
 
+            # atualiza os coeficientes
             new_coef = self.coef_ - self.learning_rate * gradient
             self.coef_ = new_coef
 
