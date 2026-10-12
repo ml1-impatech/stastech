@@ -22,55 +22,31 @@ class LogisticRegression(BaseEstimator, ClassifierMixin):
     # função auxiliar para facilitar os testes do gradiente 
     def _loss_and_gradient(self, X, Y, coef, intercept):
         n = X.shape[0]
-        K = Y.shape[1]
         
-        if self.fit_intercept == True:
+        if self.fit_intercept:
             z = X @ coef + intercept
         else:
             z = X @ coef
 
-        for i in range(n):
-            maior = z[i,0]
-
-            for j in range(1, K):
-                if z[i,j] > maior:
-                    maior = z[i,j]
-
-            for j in range(K):
-                z[i,j] = z[i,j] - maior
+        z = z - np.max(z, axis=1, keepdims=True)
 
         exp_z = np.exp(z)
-        P = np.zeros((n, K))
-
-        for i in range(n):
-            total = 0 
-
-            for j in range(K):
-                total = total + exp_z[i,j]
-
-            for j in range(K):
-                P[i,j] = exp_z[i,j] / total
+        P = exp_z / np.sum(exp_z, axis=1, keepdims=True)
 
         P = np.clip(P, 1e-15, 1.0)
 
-        loss = 0
-
-        for i in range(n):
-            for j in range(K):
-                loss = loss - Y[i,j] * np.log(P[i,j])
-
-        loss = loss/n
+        loss = -np.sum(Y * np.log(P)) / n
 
         if self.lambda_ > 0:
             L2 = (self.lambda_ / (2*n)) * np.sum(coef ** 2)
             loss = loss + L2
 
-        gradient = ( X.T @ (P - Y) )/n 
+        gradient = ( X.T @ (P - Y) ) / n 
     
         if self.lambda_ > 0:
             gradient = gradient + (self.lambda_ / n) * coef
         
-        if self.fit_intercept == True:
+        if self.fit_intercept:
             intercept_gradient = np.mean(P - Y, axis = 0)
         else:
             intercept_gradient = None
