@@ -119,6 +119,72 @@ def test_gradient_finite_difference():
     for i in range(differ.shape[0]):
         for j in range(differ.shape[1]):
             assert differ[i, j] < 1e-5
+
+def test_predict_proba_interval():
+    X = np.array([
+             [1.0, 2.0],
+             [2.0, 1.0],
+             [4.0, 5.0],
+             [5.0, 4.0],
+             [8.0, 9.0],
+             [9.0, 8.0]
+    ])
+    y = np.array([0, 0, 1, 1, 2, 2])
+
+    model = LogisticRegression(max_iter=100)
+    model.fit(X, y)
+
+    prob = model.predict_proba(X)
+
+    for i in range(len(prob)):
+        for j in range(len(model.classes_)):
+            assert prob[i, j] >= 0
+            assert prob[i, j] <= 1
+
+def test_predict_proba_sum_one():
+    X = np.array([
+        [1.0, 2.0],
+        [2.0, 1.0],
+        [4.0, 5.0],
+        [5.0, 4.0],
+        [8.0, 9.0],
+        [9.0, 8.0]
+    ])
+    y = np.array([0, 0, 1, 1, 2, 2])
+
+    model = LogisticRegression(max_iter=100)
+    model.fit(X, y)
+
+    prob = model.predict_proba(X)
+
+    for i in range(len(prob)):
+        total = 0 
+
+        for j in range(len(model.classes_)):
+            total += prob[i, j]
+
+        assert abs(total - 1) < 1e-10
+
+
+def test_predict_proba_format():
+    X = np.array([
+        [1.0, 2.0],
+        [2.0, 1.0],
+        [4.0, 5.0],
+        [5.0, 4.0],
+        [8.0, 9.0],
+        [9.0, 8.0]
+    ])
+    y = np.array([0, 0, 1, 1, 2, 2])
+
+    model = LogisticRegression(max_iter=100)
+    model.fit(X, y)
+
+    prob = model.predict_proba(X)
+
+    assert prob.shape == (len(X), len(model.classes_))
+
+
             
 
 
