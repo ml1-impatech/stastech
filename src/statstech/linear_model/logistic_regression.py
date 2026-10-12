@@ -106,32 +106,16 @@ class LogisticRegression(BaseEstimator, ClassifierMixin):
     def predict_proba(self, X):
         X = (X - self.mean_) / self.std_
 
-        if self.fit_intercept == True:
+        if self.fit_intercept:
             z = X @ self.coef_ + self.intercept_
         else:
             z = X @ self.coef_
 
         # evita que a exponencial exploda
-        for i in range(len(z)):
-            bigger = z[i, 0]
-            for j in range(1, len(self.classes_)):
-                if z[i,j] > bigger:
-                   bigger = z[i, j]
-
-            for j in range(len(self.classes_)):
-                z[i, j] = z[i, j] - bigger
+        z = z - np.max(z, axis=1, keepdims=True)
 
         exp_z = np.exp(z)
-        prob = np.zeros(exp_z.shape)
-
-        for i in range(len(exp_z)):
-            total = 0
-
-            for j in range(len(self.classes_)):
-                total += exp_z[i, j]
-
-            for j in range(len(self.classes_)):
-                prob[i, j] = exp_z[i, j] / total
+        prob = exp_z / np.sum(exp_z, axis=1, keepdims=True)
 
         return prob
 
