@@ -1,3 +1,5 @@
+from collections.abc import Callable
+
 def confusion_matrix(y_true: list[float], y_pred: list[float], classes: list[int]) -> list[list[int]]:
     """Calculate the Confusion Matrix for a classification problem.
     
@@ -132,31 +134,156 @@ def FN(c_matrix: list[list[int]], class_k: int) -> int:
             true_negatives += c_matrix[class_k][j]
     return true_negatives
 
-def precision_score(c_matrix, class_k):
+def precision_score(c_matrix: list[list[int]], class_k: int) -> float:
+    """Calculate the precision score of a confusion matrix.
+
+    Parameters
+    ----------
+    c_matrix: list[list[int]]
+        A square matrix of shape (n_classes, n_classes), where each element in position 
+        [i][j] represents the number of observations whose actual class is i and predicted
+        class is j.
+    class_k: int
+        The index of the class for which the precision score will be calculated.
+
+    Returns
+    -------
+    tp/(tp+fp): float
+        The ratio of true positives to all observations predicted as class_k. It indicates
+        how often the classifier is correct when predicting the class_k.
+    
+    Raises
+    ------
+    ValueError
+        If tp+fp equals to zero, causing zero divisiong error.
+    """
     tp = TP(c_matrix, class_k)
     fp = FP(c_matrix, class_k)
-    return tp/(tp+fp)
+    if tp+fp != 0:
+        return tp/(tp+fp)
+    else:
+        raise ValueError("tp + fp must no be equal to 0")
+    
+def recall_score(c_matrix: list[list[int]], class_k: int) -> float:
+    """Calculate the recall score of a confusion matrix.
 
-def recall_score(c_matrix, class_k):
+    Parameters
+    ----------
+    c_matrix: list[list[int]]
+        A square matrix of shape (n_classes, n_classes), where each element in position 
+        [i][j] represents the number of observations whose actual class is i and predicted
+        class is j.
+    class_k: int
+        The index of the class for which the recall score will be calculated.
+
+    Returns
+    -------
+    tp/(tp+fn): float
+        The propotion of True positives to all observations that were actually positives. It 
+        indicates how well the classifier identifies observationgs belonging to class_k.
+    
+    Raises
+    ------
+    ValueError
+        If tp+fn equals to zero, causing zero divisiong error.
+    """
     tp = TP(c_matrix, class_k)
     fn = FN(c_matrix, class_k)
-    return tp/(tp+fn)
+    if tp+fn != 0:
+        return tp/(tp+fn)
+    else:
+        raise ValueError("tp + fn must not be equal to 0")
 
-def specifity_score(c_matrix, class_k):
+def specifity_score(c_matrix: list[list[int]], class_k: int) -> float:
+    """Calculate the specifity score of a confusion matrix.
+
+    Parameters
+    ----------
+    c_matrix: list[list[int]]
+        A square matrix of shape (n_classes, n_classes), where each element in position 
+        [i][j] represents the number of observations whose actual class is i and predicted
+        class is j.
+    class_k: int
+        The index of the class for which the specifity score will be calculated.
+
+    Returns
+    -------
+    tn/(tn+fp): float
+        The ratio of True Negatives to all observations that were actually negatives. It 
+        indicates how well the classifier identifies observationgs that do not belong to class_k.
+    
+    Raises
+    ------
+    ValueError
+        If tp+fp equals to zero, causing zero divisiong error.        
+    """    
     tn = TN(c_matrix, class_k)
     fp = FP(c_matrix, class_k)
-    return tn/(tn+fp)
+    if tn+fp != 0:
+        return tn/(tn+fp)
+    else: 
+        raise ValueError("tn + fp must not be equal to 0")
 
-def f1_score(c_matrix, class_k):
+def f1_score(c_matrix: list[list[int]], class_k: int) -> float:
+    """Calculate the f1 score of a confusion matrix.
+
+    Parameters
+    ----------
+    c_matrix: list[list[int]]
+        A square matrix of shape (n_classes, n_classes), where each element in position 
+        [i][j] represents the number of observations whose actual class is i and predicted
+        class is j.
+    class_k: int
+        The index of the class for which the f1 score will be calculated.
+
+    Returns
+    -------
+    tp*2/(2*tp+fn+fp): float
+        The f1 score, which is the harmonic mean of precision and recall. It balances the two
+        metrics into a single score.
+    
+    Raises
+    ------
+    ValueError
+        If tp+fp equals to zero, causing zero divisiong error.
+    """    
     tp = TP(c_matrix, class_k)
     fp = FP(c_matrix, class_k)
     fn = FN(c_matrix, class_k)
-    return 2*tp/(2*tp + fn + fp)
+    if 2*tp + fn + fp != 0:
+        return 2*tp/(2*tp + fn + fp)
+    else: 
+        raise ValueError("")
 
-def total_metric(c_matrix: list[list[int]], metric) -> float:
+def macro_metric(c_matrix: list[list[int]], metric: Callable[[list[list[int]], int], float]) -> float:
+    """Calculate the macro-avarege of a specific metric of a confusion matrix.
+
+    Parameters
+    ----------
+    c_matrix: list[list[int]]
+        A square matrix of shape (n_classes, n_classes), where each element in position 
+        [i][j] represents the number of observations whose actual class is i and predicted
+        class is j.
+    metric: callable
+        The metric which will be utilised for calculatic its macro.
+
+    Returns
+    -------
+    t_metric: float
+        The arithmetic mean of the metric scores calculated for each class.
+    
+    Raises
+    ------
+    ValueError
+        If there is ValueError for every class in c_matrix, causing undefined metric 
+        for every iteration in the "for".
+    """    
     t_metric = 0
     n_classes = len(c_matrix)
     for i in range(n_classes):
-        t_metric += metric(c_matrix, i)
+        try:
+            t_metric += metric(c_matrix, i)
+        except ValueError:
+            continue 
     t_metric /= n_classes
     return t_metric
