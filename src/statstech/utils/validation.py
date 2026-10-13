@@ -15,7 +15,16 @@ def check_array(X):
     return X
 
 def check_X_y(X, y):
-    pass
+    X = check_array(X)
+    y = np.asarray(y)
+    n = y.ndim
+    if n != 1:
+        raise ValueError('y não é 1D')
+    if X.shape[0] != y.shape[0]:
+        raise ValueError('X e y tem tamanhos diferentes')
+    if not np.isfinite(y).all():
+        raise ValueError('y contém Nan ou algum valor infinito')
+    return X, y
 
 def check_is_fitted(X):
     pass
