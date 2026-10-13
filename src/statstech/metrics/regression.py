@@ -132,3 +132,31 @@ def FN(c_matrix: list[list[int]], class_k: int) -> int:
             true_negatives += c_matrix[class_k][j]
     return true_negatives
 
+def precision_score(c_matrix, class_k):
+    tp = TP(c_matrix, class_k)
+    fp = FP(c_matrix, class_k)
+    return tp/(tp+fp)
+
+def recall_score(c_matrix, class_k):
+    tp = TP(c_matrix, class_k)
+    fn = FN(c_matrix, class_k)
+    return tp/(tp+fn)
+
+def specifity_score(c_matrix, class_k):
+    tn = TN(c_matrix, class_k)
+    fp = FP(c_matrix, class_k)
+    return tn/(tn+fp)
+
+def f1_score(c_matrix, class_k):
+    tp = TP(c_matrix, class_k)
+    fp = FP(c_matrix, class_k)
+    fn = FN(c_matrix, class_k)
+    return 2*tp/(2*tp + fn + fp)
+
+def total_metric(c_matrix: list[list[int]], metric) -> float:
+    t_metric = 0
+    n_classes = len(c_matrix)
+    for i in range(n_classes):
+        t_metric += metric(c_matrix, i)
+    t_metric /= n_classes
+    return t_metric
