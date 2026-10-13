@@ -1,3 +1,6 @@
+import numpy as np
+from base import BaseEstimator
+
 class PolinomialFeatures(BaseEstimator):
     def __init__(self, degree = 2, include_bias = False):
         pass
