@@ -1,7 +1,7 @@
 def RSS(x: list[list[float]], y: list[float], f) -> float:
     """Calculates the Residual Sum of Squares
     
-    Computres the sum of the squared differences between the actual
+    Computes the sum of the squared differences between the actual
     target values and the values predicted by the function f.
     
     Parameters
@@ -43,7 +43,7 @@ def RSS(x: list[list[float]], y: list[float], f) -> float:
 def MSE(x: list[list[float]], y: list[float], f) -> float:
     """Calculates the Mean Squared Error (MSE).
     
-    Computres the RSS and divides it by the number of observations,
+    Computes the RSS and divides it by the number of observations,
     obtaining the avarege of the squared prediction errors.
     
     Parameters
@@ -75,7 +75,7 @@ def MSE(x: list[list[float]], y: list[float], f) -> float:
 def MAE(x: list[list[float]], y: list[float], f) -> float:
     """Calculates the Mean Absolute Error (MAE).
     
-    Computres the avarege of absolute diffences between the values,
+    Computes the avarege of absolute diffences between the values,
     predicted by the function f and the actual target values.
     
     Parameters
@@ -116,7 +116,7 @@ def MAE(x: list[list[float]], y: list[float], f) -> float:
 def RMSE(x: list[list[float]], y: list[float], f) -> float:
     """Calculates the Root Mean Absoltue Error (MAE).
     
-    Computres the square root MSE, expressing the prediction error
+    Computes the square root MSE, expressing the prediction error
     in the same unit of measurement as the actual predicted values.
     
     Parameters
