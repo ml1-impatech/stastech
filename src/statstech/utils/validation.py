@@ -1,6 +1,7 @@
 import numpy as np
 
 def check_array(X):
+    ''' Verifica de X é um array 2D e converte para array se for lista'''
     X = np.asarray(X)
     n = X.ndim
     if n == 1:
@@ -15,6 +16,10 @@ def check_array(X):
     return X
 
 def check_X_y(X, y):
+    ''' 
+    Verifica se X é um array 2D, se y é um array 1D e se têm o mesmo tamanho.
+    Converte para array se for lista 
+    '''
     X = check_array(X)
     y = np.asarray(y)
     n = y.ndim
@@ -26,5 +31,8 @@ def check_X_y(X, y):
         raise ValueError('y contém Nan ou algum valor infinito')
     return X, y
 
-def check_is_fitted(X):
-    pass
+def check_is_fitted(model, attributes):
+    ''' Verifica se o modelo foi treinado'''
+    for attribute in attributes:
+        if not hasattr(model, attributes[attribute]):
+            raise ValueError('Não foi treinado')
