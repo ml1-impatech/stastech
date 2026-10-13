@@ -63,6 +63,7 @@ class StandardScaler(BaseEstimator, TransformerMixin):
         # 5. devolver self
         self.mean_ = np.mean(X, axis=0)
         self.scale_ = np.std(X, axis=0)
+        self.scale_ = np.where(self.scale_ == 0, 1.0, self.scale_)
         self.n_features_in_ = X.shape[1]
         return self
 

@@ -28,3 +28,12 @@ def test_inverse_transform_recupera_original(X):
     X_scaled = scaler.transform(X)
     X_recovered = scaler.inverse_transform(X_scaled)
     np.testing.assert_allclose(X_recovered, X)
+
+def test_coluna_constante_sem_nan():
+    X = np.array([[5.0, 1.0], 
+                  [5.0, 2.0], 
+                  [5.0, 3.0]])
+    scaler = StandardScaler()
+    resultado = scaler.fit_transform(X)    
+    assert np.isfinite(resultado).all()
+    np.testing.assert_allclose(resultado[:, 0], 0)
