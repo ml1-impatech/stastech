@@ -1,4 +1,5 @@
 import numpy as np 
+import pytest
 
 from statstech.linear_model.logistic_regression import LogisticRegression
 
@@ -337,6 +338,161 @@ def test_regularization_l2():
                 diff += 1
 
     assert diff > 0
+
+def test_learning_rate_invalid():
+    with pytest.raises(ValueError, match = "learning_rate deve ser positivo e finito"):
+        LogisticRegression(learning_rate = 0)
+
+def test_max_iter_invalid():
+    with pytest.raises(ValueError, match = "max_iter deve ser um inteiro positivo"):
+        LogisticRegression(max_iter = 0)
+
+def test_tol_invalid():
+    with pytest.raises(ValueError, match = "tol deve ser não negativo e finito"):
+        LogisticRegression(tol = -1)
+
+def test_fit_intercept_invalid():
+    with pytest.raises(ValueError, match = "fit_intercept deve ser booleano"):
+        LogisticRegression(fit_intercept = 1)
+
+def test_lambda_invalid():
+    with pytest.raises(ValueError, match = "lambda_ deve ser não negativo e finito"):
+        LogisticRegression(lambda_ = -1)
+
+def test_loss_and_gradient_different_samples():
+    model = LogisticRegression()
+    X = np.zeros((3, 2))
+    Y = np.zeros((2, 2))
+    coef = np.zeros((2, 2))
+    intercept = np.zeros(2)
+
+    with pytest.raises(ValueError, match = "X e Y devem ter o mesmo número de observações"):
+        model._loss_and_gradient(X, Y, coef, intercept)
+
+def test_fit_X_not_2d():
+    model = LogisticRegression()
+    X = np.array([1, 2, 3])
+    y = np.array([0, 1, 0])
+
+    with pytest.raises(ValueError, match = "X deve ser um array de duas dimensões"):
+        model.fit(X, y)
+
+def test_fit_y_not_1d():
+    model = LogisticRegression()
+    X = np.array([[1, 2], [3, 4]])
+    y = np.array([[0], [1]])
+
+    with pytest.raises(ValueError, match = "y deve ser um array de uma dimensão"):
+        model.fit(X, y)
+
+def test_fit_different_samples():
+    model = LogisticRegression()
+    X = np.array([[1, 2], [3, 4], [5, 6]])
+    y = np.array([0, 1])
+
+    with pytest.raises(ValueError, match = "X e y devem ter o mesmo número de observações"):
+        model.fit(X, y)
+
+def test_fit_empty_X():
+    model = LogisticRegression()
+    X = np.empty((0, 2))
+    y = np.array([])
+
+    with pytest.raises(ValueError, match = "X não pode estar vazio"):
+        model.fit(X, y)
+
+def test_fit_y_nan():
+    model = LogisticRegression()
+    X = np.array([[1, 2], [3, 4], [5, 6]])
+    y = np.array([0, np.nan, 1])
+
+    with pytest.raises(ValueError, match = "y não pode ter valores NaN"):
+        model.fit(X, y)
+
+def test_fit_no_features():
+    model = LogisticRegression()
+    X = np.empty((3, 0))
+    y = np.array([0, 1, 0])
+
+    with pytest.raises(ValueError, match = "X deve ter pelo menos uma característica"):
+        model.fit(X, y)
+
+def test_fit_X_non_finite():
+    model = LogisticRegression()
+    X = np.array([[1, 2], [3, np.inf], [5, 6]])
+    y = np.array([0, 1, 0])
+
+    with pytest.raises(ValueError, match = "X deve ter apenas valores finitos"):
+        model.fit(X, y)
+
+def test_fit_single_class():
+    model = LogisticRegression()
+    X = np.array([[1, 2], [3, 4], [5, 6]])
+    y = np.array([1, 1, 1])
+
+    with pytest.raises(ValueError, match = "y deve ter pelo menos duas classes"):
+        model.fit(X, y)
+
+def test_predict_proba_model_not_fitted():
+    model = LogisticRegression()
+    X = np.array([[1, 2], [3, 4]])
+
+    with pytest.raises(
+        ValueError,match="O modelo ainda não foi treinado"):
+        model.predict_proba(X)
+
+def test_predict_proba_X_not_2d():
+    model = LogisticRegression()
+    model.fit(
+        np.array([[1, 2], [3, 4]]),
+        np.array([0, 1])
+    )
+    X = np.array([1, 2])
+
+    with pytest.raises(ValueError, match = "X deve ser um array de duas dimensões"):
+        model.predict_proba(X)
+
+def test_predict_proba_different_features():
+    model = LogisticRegression()
+    model.fit(
+        np.array([[1, 2], [3, 4]]),
+        np.array([0, 1])
+    )
+    X = np.array([[1, 2, 3]])
+
+    with pytest.raises(ValueError, match = "X deve ter o mesmo número de características usado no fit"):
+        model.predict_proba(X)
+
+def test_predict_proba_empty_X():
+    model = LogisticRegression()
+    model.fit(
+        np.array([[1, 2], [3, 4]]),
+        np.array([0, 1])
+    )
+    X = np.empty((0, 2))
+
+    with pytest.raises(ValueError, match = "X não pode estar vazio"):
+        model.predict_proba(X)
+
+def test_predict_proba_X_non_finite():
+    model = LogisticRegression()
+    model.fit(
+        np.array([[1, 2], [3, 4]]),
+        np.array([0, 1])
+    )
+    X = np.array([[1, np.inf]])
+
+    with pytest.raises(
+        ValueError,match = "X deve ter apenas valores finitos"):
+        model.predict_proba(X)
+
+
+
+
+
+
+
+
 
 
 
