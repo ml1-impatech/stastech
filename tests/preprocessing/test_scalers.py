@@ -21,3 +21,10 @@ def test_transform_exemplo_a_mao(X):
     esperado = [-1.22474487, 0, 1.22474487]
     np.testing.assert_allclose(resultado[:, 0], esperado, atol=1e-7)
     np.testing.assert_allclose(resultado[:, 1], esperado, atol=1e-7)
+
+def test_inverse_transform_recupera_original(X):
+    scaler = StandardScaler()
+    scaler.fit(X)
+    X_scaled = scaler.transform(X)
+    X_recovered = scaler.inverse_transform(X_scaled)
+    np.testing.assert_allclose(X_recovered, X)

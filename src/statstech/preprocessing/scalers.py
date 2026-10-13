@@ -111,4 +111,4 @@ class StandardScaler(BaseEstimator, TransformerMixin):
             colunas for diferente do visto no ``fit``.
         """
         # a conta ao contrário: X * scale_ + mean_ (respeitando os parâmetros)
-        raise NotImplementedError
+        return (X * self.scale_) + self.mean_
