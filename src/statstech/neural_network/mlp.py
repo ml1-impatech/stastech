@@ -141,15 +141,27 @@ class MLPRegressor(BaseEstimator, RegressorMixin):
         a = X
         zs = []
         activations = [X]
-        for i, (W,b) in enumerate(zip(self.weights_, self.biases_)):
+        for i, (W, b) in enumerate(zip(self.weights_, self.biases_)):
             z = a @ W + b
-            if i == len(self.weights_) - 1: 
+            if i == len(self.weights_) - 1:
                 a = identity(z)
-            else: 
+            else:
                 a = func(z)
             zs.append(z)
             activations.append(a)
         return zs, activations
 
-    def _backward(self, X, y, activations):
-        raise NotImplementedError
+    def _backward(self, y, zs, activations):
+        n = len(y)
+        _, der = ACTIVATIONS[self.activation]
+        y_pred = activations[-1]
+        y = y.reshape(-1, 1)
+        delta = (2 / n) * (y_pred - y) * identity_derivative(zs[-1])
+        grad_W = [None] * len(self.weights_)
+        grad_b = [None] * len(self.biases_)
+        for l in range(len(self.weights_) - 1, -1, -1):
+            grad_W[l] = activations[l].T @ delta
+            grad_b[l] = delta.sum(axis=0)
+            if l != 0:
+                delta = delta @ self.weights_[l].T * der(zs[l - 1])
+        return grad_W, grad_b

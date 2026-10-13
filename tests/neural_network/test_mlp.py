@@ -60,6 +60,7 @@ def test_init_weights_biases():
     for b in model.biases_:
         np.testing.assert_allclose(b, 0)
 
+
 def test_forward_linear():
     model = MLPRegressor(hidden_layer_sizes=())
     model.weights_ = [np.array([[2.0], [3.0]])]
@@ -67,7 +68,8 @@ def test_forward_linear():
     X = np.array([[1.0, 1.0], [2.0, 0.0]])
     zs, activations = model._forward(X)
     np.testing.assert_allclose(activations[-1], [[-5.0], [-6.0]])
-    
+
+
 def test_predict_linear():
     model = MLPRegressor(hidden_layer_sizes=())
     model.weights_ = [np.array([[2.0], [3.0]])]
@@ -76,14 +78,44 @@ def test_predict_linear():
     y_pred = model.predict(X)
     np.testing.assert_allclose(y_pred, [6.0, 5.0])
     assert y_pred.shape == (2,)
-    
+
+
 def test_predict_with_hidden_layer():
     model = MLPRegressor(hidden_layer_sizes=(3,))
     model.weights_ = [
         np.array([[1.0, -1.0, 0.0], [2.0, 1.0, 1.0]]),
-        np.array([[1.0], [1.0], [1.0]])     
+        np.array([[1.0], [1.0], [1.0]]),
     ]
     model.biases_ = [np.array([0.0, -3.0, 0.0]), np.array([0.5])]
     X = np.array([[1.0, 2.0]])
     y_pred = model.predict(X)
     np.testing.assert_allclose(y_pred, [7.5])
+
+
+def test_backward_linear():
+    model = MLPRegressor(hidden_layer_sizes=())
+    model.weights_ = [np.array([[2.0], [3.0]])]
+    model.biases_ = [np.array([1.0])]
+    X = np.array([[1.0, 1.0]])
+    y = np.array([4.0])
+    zs, activations = model._forward(X)
+    grad_W, grad_b = model._backward(y, zs, activations)
+    np.testing.assert_allclose(grad_W[0], [[4.0], [4.0]])
+    np.testing.assert_allclose(grad_b[0], [4.0])
+
+
+def test_backward_with_hidden_layer():
+    model = MLPRegressor(hidden_layer_sizes=(3,))
+    model.weights_ = [
+        np.array([[1.0, -1.0, 0.0], [2.0, 1.0, 1.0]]),
+        np.array([[1.0], [1.0], [1.0]]),
+    ]
+    model.biases_ = [np.array([0.0, -3.0, 0.0]), np.array([0.5])]
+    X = np.array([[1.0, 2.0]])
+    y = np.array([5.5])
+    zs, activations = model._forward(X)
+    grad_W, grad_b = model._backward(y, zs, activations)
+    np.testing.assert_allclose(grad_W[0], [[4.0, 0.0, 4.0], [8.0, 0.0, 8.0]])
+    np.testing.assert_allclose(grad_b[0], [4.0, 0.0, 4.0])
+    np.testing.assert_allclose(grad_W[1], [[20.0], [0.0], [8.0]])
+    np.testing.assert_allclose(grad_b[1], [4.0])
