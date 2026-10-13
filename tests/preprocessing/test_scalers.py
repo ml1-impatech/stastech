@@ -6,7 +6,7 @@ from statstech.preprocessing import StandardScaler
 
 @pytest.fixture
 def X():
-  return np.array([[1.0, 100.0], [2.0, 200.0], [3.0, 300.0]])
+    return np.array([[1.0, 100.0], [2.0, 200.0], [3.0, 300.0]])
 
 def test_fit_calcula_media_e_desvio(X):
     scaler = StandardScaler()
@@ -37,3 +37,14 @@ def test_coluna_constante_sem_nan():
     resultado = scaler.fit_transform(X)    
     assert np.isfinite(resultado).all()
     np.testing.assert_allclose(resultado[:, 0], 0)
+
+def test_transform_usa_estatisticas_do_treino():
+    treino = np.array([[1.0], [2.0], [3.0]])
+    teste = np.array([[4.0]])
+    
+    scaler = StandardScaler()
+    scaler.fit(treino)
+    
+    resultado = scaler.transform(teste)
+    
+    np.testing.assert_allclose(resultado, [[2.44948974]])
