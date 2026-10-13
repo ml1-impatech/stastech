@@ -13,6 +13,21 @@ class LogisticRegression(BaseEstimator, ClassifierMixin):
             fit_intercept = True,
             lambda_ = 0.01):
 
+        if not np.isfinite(learning_rate) or learning_rate <= 0:
+            raise ValueError("learning_rate deve ser positivo e finito.")
+
+        if not isinstance(max_iter, (int, np.integer)) or isinstance(max_iter, bool) or max_iter <= 0:
+            raise ValueError("max_iter deve ser um inteiro positivo.")
+
+        if not np.isfinite(tol) or tol < 0:
+            raise ValueError("tol deve ser não negativo e finito.")
+
+        if not isinstance(fit_intercept, (bool, np.bool_)):
+            raise ValueError("fit_intercept deve ser booleano.")
+
+        if not np.isfinite(lambda_) or lambda_ < 0:
+            raise ValueError("lambda_ deve ser não negativo e finito.")
+        
         self.learning_rate = learning_rate
         self.max_iter = max_iter
         self.tol = tol
@@ -21,6 +36,9 @@ class LogisticRegression(BaseEstimator, ClassifierMixin):
 
     # função auxiliar para facilitar os testes do gradiente 
     def _loss_and_gradient(self, X, Y, coef, intercept):
+        if X.shape[0] != Y.shape[0]:
+            raise ValueError("X e Y devem ter o mesmo número de observações.")
+
         n = X.shape[0]
         
         if self.fit_intercept:
@@ -55,7 +73,32 @@ class LogisticRegression(BaseEstimator, ClassifierMixin):
         
 
     def fit(self, X, y):
+
+        if not isinstance(X, np.ndarray) or X.ndim != 2:
+            raise ValueError("X deve ser um array de duas dimensões.")
+
+        if not isinstance(y, np.ndarray) or y.ndim != 1:
+            raise ValueError("y deve ser um array de uma dimensão.")
+
+        if X.shape[0] != y.shape[0]:
+            raise ValueError("X e y devem ter o mesmo número de observações.")
+
+        if X.shape[0] == 0:
+            raise ValueError("X não pode estar vazio.")
+
+        if np.any(y != y):
+            raise ValueError("y não pode ter valores NaN.")
+
+        if X.shape[1] == 0:
+            raise ValueError("X deve ter pelo menos uma característica.")
+
+        if not np.all(np.isfinite(X)):
+            raise ValueError("X deve ter apenas valores finitos.")
+        
         self.classes_ = np.unique(y)
+        if len(self.classes_) < 2:
+            raise ValueError("y deve ter pelo menos duas classes.")
+        
         K = len(self.classes_)
         p = X.shape[1]
         n = X.shape[0]
@@ -104,6 +147,21 @@ class LogisticRegression(BaseEstimator, ClassifierMixin):
         return self
 
     def predict_proba(self, X):
+        if not hasattr(self, "coef_"):
+            raise ValueError("O modelo ainda não foi treinado. Chame fit antes.")
+
+        if not isinstance(X, np.ndarray) or X.ndim != 2:
+            raise ValueError("X deve ser um array de duas dimensões.")
+
+        if X.shape[1] != self.mean_.shape[0]:
+            raise ValueError("X deve ter o mesmo número de características usado no fit.")
+
+        if X.shape[0] == 0:
+            raise ValueError("X não pode estar vazio.")
+
+        if not np.all(np.isfinite(X)):
+            raise ValueError("X deve ter apenas valores finitos.")
+        
         X = (X - self.mean_) / self.std_
 
         if self.fit_intercept:
