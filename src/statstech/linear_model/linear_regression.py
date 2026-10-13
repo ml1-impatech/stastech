@@ -31,8 +31,10 @@ class LinearRegression( BaseEstimator, RegressorMixin):
             X_centered = X
             y_centered = y
 
-        self.coef_ = np.linalg.inv(X_centered.T @ X_centered) @ X_centered.T @ y_centered
+        A = X_centered.T @ X_centered
+        b = X_centered.T @ y_centered
 
+        self.coef_ = np.linalg.solve(A, b)
         if self.fit_intercept is True:
             self.intercept_ = y_mean - np.dot(X_mean, self.coef_)
         else:
