@@ -130,7 +130,38 @@ class MLPRegressor(BaseEstimator, RegressorMixin):
         self.biases_ = biases
 
     def fit(self, X, y):
-        raise NotImplementedError
+        X = np.asarray(X, dtype=float)
+        y = np.asarray(y, dtype=float)
+        if self.activation not in ACTIVATIONS:
+            raise ValueError(
+                f"Ativação inválida {self.activation!r}. "
+                f"As opções válidas são: {list(ACTIVATIONS)}"
+            )
+
+        rng = np.random.default_rng(self.random_state)
+        n_samples, n_features = X.shape
+        self._init_weights(n_features, rng)
+        self.loss_curve_ = []
+
+        for _ in range(self.max_iter):
+            order = rng.permutation(n_samples)
+
+            for start in range(0, n_samples, self.batch_size):
+                idx = order[start : start + self.batch_size]
+                X_batch = X[idx]
+                y_batch = y[idx]
+
+                zs, activations = self._forward(X_batch)
+                grad_W, grad_b = self._backward(y_batch, zs, activations)
+
+                for l in range(len(self.weights_)):
+                    self.weights_[l] -= self.learning_rate * grad_W[l]
+                    self.biases_[l] -= self.learning_rate * grad_b[l]
+
+            y_pred = self.predict(X)
+            # TODO: use the metrics module once it accepts (y_true, y_pred)
+            self.loss_curve_.append(np.mean((y_pred - y) ** 2))
+        return self
 
     def predict(self, X):
         _, activations = self._forward(X)

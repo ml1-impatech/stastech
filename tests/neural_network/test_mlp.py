@@ -119,3 +119,39 @@ def test_backward_with_hidden_layer():
     np.testing.assert_allclose(grad_b[0], [4.0, 0.0, 4.0])
     np.testing.assert_allclose(grad_W[1], [[20.0], [0.0], [8.0]])
     np.testing.assert_allclose(grad_b[1], [4.0])
+
+
+def test_fit_returns_self():
+    rng = np.random.default_rng(0)
+    X = rng.normal(size=(20, 2))
+    y = X[:, 0] + X[:, 1]
+    model = MLPRegressor(hidden_layer_sizes=(4,), max_iter=1, random_state=0)
+    assert model.fit(X, y) is model
+
+
+def test_fit_loss_decreases():
+    rng = np.random.default_rng(0)
+    X = rng.normal(size=(50, 2))
+    y = X[:, 0] + X[:, 1]
+    model = MLPRegressor(
+        hidden_layer_sizes=(8,),
+        max_iter=200,
+        learning_rate=1e-2,
+        random_state=0,
+    )
+    model.fit(X, y)
+    assert model.loss_curve_[-1] < model.loss_curve_[0]
+
+
+def test_fit_same_seed_same_weights():
+    rng = np.random.default_rng(0)
+    X = rng.normal(size=(20, 2))
+    y = X[:, 0] + X[:, 1]
+    model_a = MLPRegressor(hidden_layer_sizes=(4,), max_iter=5, random_state=0)
+    model_b = MLPRegressor(hidden_layer_sizes=(4,), max_iter=5, random_state=0)
+    model_a.fit(X, y)
+    model_b.fit(X, y)
+    for wa, wb in zip(model_a.weights_, model_b.weights_):
+        np.testing.assert_allclose(wa, wb)
+    for ba, bb in zip(model_a.biases_, model_b.biases_):
+        np.testing.assert_allclose(ba, bb)
