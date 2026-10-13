@@ -1,108 +1,50 @@
-"""Tests for decision trees."""
+"""Decision trees (CART) for regression and classification."""
 
-import numpy as np
-import pytest
+from dataclasses import dataclass
 
-from statstech.base import clone
-from statstech.tree import DecisionTreeClassifier, DecisionTreeRegressor
-from statstech.tree.decision_tree import _entropy, _gini, _rss
+from statstech.base import BaseEstimator, ClassifierMixin, RegressorMixin
 
 
-# --- impurity functions (tested alone, with hand-computed values) ---
-def test_gini_pure_node_is_zero():
-    pass
+@dataclass
+class _Node:
+    feature: int | None = None
+    threshold: float | None = None
+    left: "_Node | None" = None
+    right: "_Node | None" = None
+    value: float | None = None  # only in leaves
 
 
-def test_gini_hand_computed_example():
-    pass
+class _BaseDecisionTree(BaseEstimator):
+    def __init__(self, max_depth=None, min_samples_split=2):
+        pass
+
+    def fit(self, X, y):
+        pass
+
+    def predict(self, X):
+        pass
+
+    def _build(self, X, y, depth):  # recursive
+        pass
+
+    def _impurity(self, y):  # each subclass defines
+        pass
+
+    def _leaf_value(self, y):  # each subclass defines
+        pass
 
 
-def test_entropy_hand_computed_example():
-    pass
+class DecisionTreeRegressor(_BaseDecisionTree, RegressorMixin):
+    def _impurity(self, y):
+        pass
+
+    def _leaf_value(self, y):
+        pass
 
 
-def test_rss_hand_computed_example():
-    pass
+class DecisionTreeClassifier(_BaseDecisionTree, ClassifierMixin):
+    def _impurity(self, y):
+        pass
 
-
-# --- regressor ---
-def test_regressor_pure_node_becomes_leaf():
-    pass
-
-
-def test_regressor_max_depth_1_makes_one_split():
-    pass
-
-
-def test_regressor_single_split_separates_perfectly():
-    pass
-
-
-def test_regressor_predicts_mean_at_leaf():
-    pass
-
-
-def test_regressor_without_max_depth_memorizes_training_data():
-    pass
-
-
-def test_regressor_min_samples_split_prevents_split():
-    pass
-
-
-# --- classifier ---
-def test_classifier_pure_node_becomes_leaf():
-    pass
-
-
-def test_classifier_max_depth_1_makes_one_split():
-    pass
-
-
-def test_classifier_single_split_separates_perfectly():
-    pass
-
-
-def test_classifier_predict_proba_sums_to_one():
-    pass
-
-
-def test_classifier_predict_proba_between_zero_and_one():
-    pass
-
-
-def test_classifier_string_labels_are_returned_as_strings():
-    pass
-
-
-def test_classifier_gini_and_entropy_both_work():
-    pass
-
-
-def test_classifier_invalid_criterion_raises_error():
-    pass
-
-
-# --- library contract ---
-def test_fit_returns_self():
-    pass
-
-
-def test_get_params_and_set_params():
-    pass
-
-
-def test_clone_returns_unfitted_model():
-    pass
-
-
-def test_predict_before_fit_raises_error():
-    pass
-
-
-def test_x_and_y_with_different_lengths_raises_error():
-    pass
-
-
-def test_1d_x_raises_error():
-    pass
+    def _leaf_value(self, y):
+        pass
