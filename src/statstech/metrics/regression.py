@@ -1,6 +1,6 @@
 from collections.abc import Callable
 
-def RSS(x: list[list[float]], y: list[float], f) -> float:
+def RSS(x: list[list[float]], y: list[float], f: Callable[[list[float]], float]) -> float:
     """Calculates the Residual Sum of Squares
     
     Computes the sum of the squared differences between the actual
@@ -42,7 +42,7 @@ def RSS(x: list[list[float]], y: list[float], f) -> float:
     rss = sum(errors)
     return rss
 
-def MSE(x: list[list[float]], y: list[float], f) -> float:
+def MSE(x: list[list[float]], y: list[float], f: Callable[[list[float]], float]) -> float:
     """Calculates the Mean Squared Error (MSE).
     
     Computes the RSS and divides it by the number of observations,
@@ -74,7 +74,7 @@ def MSE(x: list[list[float]], y: list[float], f) -> float:
     mse = total_error/n
     return mse
     
-def MAE(x: list[list[float]], y: list[float], f) -> float:
+def MAE(x: list[list[float]], y: list[float], f: Callable[[list[float]], float]) -> float:
     """Calculates the Mean Absolute Error (MAE).
     
     Computes the avarege of absolute diffences between the values,
@@ -115,7 +115,7 @@ def MAE(x: list[list[float]], y: list[float], f) -> float:
     mae = total/n
     return mae
 
-def RMSE(x: list[list[float]], y: list[float], f) -> float:
+def RMSE(x: list[list[float]], y: list[float], f: Callable[[list[float]], float]) -> float:
     """Calculates the Root Mean Absoltue Error (MAE).
     
     Computes the square root MSE, expressing the prediction error
@@ -146,7 +146,7 @@ def RMSE(x: list[list[float]], y: list[float], f) -> float:
     rmse = mse**0.5
     return rmse
 
-def R2_score(x: list[list[float]], y: list[float], f) -> float:
+def R2_score(x: list[list[float]], y: list[float], f: Callable[[list[float]], float]) -> float:
     """
     Calculates the coefficient of determination (R²).
     
