@@ -135,6 +135,42 @@ def false_negatives(c_matrix: list[list[int]], class_k: int) -> int:
             true_negatives += c_matrix[class_k][j]
     return true_negatives
 
+def accuracy_score(c_matrix: list[list[int]]) -> float:
+    """Calcula o Accuracy Score para uma matriz de confusão. 
+
+    Parameters
+    ----------
+    c_matrix: list[list[int]]
+        Uma matriz quadrada de dimensões (n_classes, n_classes), na qual cada elemento
+        na posição [i][j] representa o número de observações tais que a verdadeira classe
+        é i e a classe prevista é j. 
+
+    Returns
+    -------
+    true_predictions/total: float
+        A razão entre as previsões certas e todas as previsões. Isto indica o quanto um 
+        classificador acerta em geral quando faz uma previsão.
+    
+    Raises
+    ------
+    ValueError
+        Se não houver elementos na matriz de confusão, causando zero divisiong error.
+        Se a matriz for completamente zerada, causando zero divisiong error.
+    """
+    if len(c_matrix) == 0:
+        raise ValueError("A matriz de confusão deve ter ao menos um elemento.")
+    true_predictions = 0
+    total = 0
+    for i in range(len(c_matrix)):
+        for j in range(len(c_matrix)):
+            if i == j:
+                true_predictions += c_matrix[i][j]
+            total += c_matrix[i][j]
+    if total == 0:
+        raise ValueError("A matriz de confusão deve ter ao menos um elemento diferente de zero.")
+    return true_predictions/total
+
+
 def precision_score(c_matrix: list[list[int]], class_k: int) -> float:
     """Calcula o Precision Score para uma matriz de confusão. 
 
