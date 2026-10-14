@@ -63,8 +63,9 @@ def check_X_y(X, y):
     """ 
     Verifica se X e y são arrays válidos e se têm o mesmo tamanho.
 
-    X precisa ser um array 2D numérico, y precisa ser 1D e ter o mesmo número 
-    de amostras que X. y pode ser numérico ou texto para classificação.
+    X precisa ser um array 2D numérico, y precisa ser 1D e ter o mesmo 
+    número de amostras que X. y pode ser numérico ou texto para 
+    classificação.
 
     Parameters
     ----------
@@ -138,3 +139,4 @@ def check_is_fitted(model, attributes=None):
     if missing:
         raise NotFittedError(f"{name} ainda não foi treinado, " 
                              f"faltam {missing}")
+    
