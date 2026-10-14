@@ -18,8 +18,20 @@ class PCA(BaseEstimator, TransformerMixin):
             k = self.n_components
         else:
             raise ValueError('n_components fora do intervalo aceito')
+        max_abs_Vt = np.argmax(np.abs(Vt), axis = 1)
+        lines = np.arange(Vt.shape[0])
+        columns = max_abs_Vt
+        values = Vt[lines, columns]
+        signs = np.sign(values)
+        Vt = Vt * signs[:, np.newaxis]
         self.components_ = Vt[:k]
         self.n_components_ = k
+        n = X.shape[0]
+        variances = S**2 / (n-1)
+        variances_total = np.sum(variances)
+        ratios = variances/variances_total
+        self.explained_variance_ = variances[:k]
+        self.explained_variance_ratio_ = ratios[:k]
         return self
 
     def transform(self, X):
