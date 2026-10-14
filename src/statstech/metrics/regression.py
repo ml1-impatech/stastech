@@ -1,198 +1,138 @@
-from collections.abc import Callable
+import numpy as np
+import numpy.typing as npt
 
-def RSS(X: list[list[float]], y: list[float], f: Callable[[list[float]], float]) -> float:
-    """Calculates the Residual Sum of Squares
-    
-    Computes the sum of the squared differences between the actual
-    target values and the values predicted by the function f.
-    
+def RSS(y_true: npt.NDArray[np.float64], y_pred: npt.NDArray[np.float64]) -> float:
+    """Calcula a Soma dos Quadrados dos Resíduos.
+
     Parameters
     ----------
-    X: list[list[float]]
-        List of observations, where each observation contains the input
-        features used by the prediction function.
-    y: list[float]
-        List of actual target values corresponding to the observations in X.
-    f: callable
-        Function that takes an observation from X and returns a predicted value.
-        
+    y_true: numpy.ndarray 
+        Array com os valores reais do alvo.
+    y_pred: numpy.ndarray
+        Array com os valores previstos pelo modelo.
+    
     Returns
     -------
     rss: float 
-        Sum of the squared differences between predicted and actual values.
-    
+        Soma das diferenças ao quadrado entre os valores previstos e reais.
+
     Raises
     ------
     ValueError
-        If the lists of input observations and target values does not have
-        same lenth or are empty.
+        Se os arrays tiverem comprimentos diferentes ou estiverem vazios.
     """
-    if len(X) != len(y):
-        raise ValueError("The lists of input observations and target values" \
-        " must have the same length.") 
-    if len(X) == 0:
-        raise ValueError("The input lists must not be empty")
-    errors = []
-    n = len(X)
-    for i in range(n):
-        y_pred = f(X[i])
-        y_true = y[i]
-        sqrd_error = (y_pred - y_true)**2
-        errors.append(sqrd_error)
-    rss = sum(errors)
+    if len(y_true) != len(y_pred):
+        raise ValueError("Os arrays reais e previstos devem ter o mesmo comprimento.") 
+    if len(y_true) == 0:
+        raise ValueError("Os arrays devem não estar vazios.")
+
+    rss = float(np.sum((y_true - y_pred) ** 2))
     return rss
 
-def MSE(X: list[list[float]], y: list[float], f: Callable[[list[float]], float]) -> float:
-    """Calculates the Mean Squared Error (MSE).
-    
-    Computes the RSS and divides it by the number of observations,
-    obtaining the avarege of the squared prediction errors.
-    
+def MSE(y_true: npt.NDArray[np.float64], y_pred: npt.NDArray[np.float64]) -> float:
+    """Calcula o Erro Quadrático Médio.
+
     Parameters
     ----------
-    X: list[list[float]]
-        List of observations, where each observation contains the input
-        features used by the prediction function.
-    y: list[float]
-        List of actual target values corresponding to the observations in X.
-    f: callable
-        Function that takes an observation from X and returns a predicted value.
+    y_true: numpy.ndarray 
+        Array com os valores reais do alvo.
+    y_pred: numpy.ndarray
+        Array com os valores previstos pelo modelo.
     
     Returns
     -------
-    mse: float 
-        Avarege of the squared differences between predicted and actual values.
-    
+    rss: float 
+        Média dos quadrados das diferenças entre os valores reais e previstos.
+
     Raises
     ------
     ValueError
-        If the lists of input observations and target values does not have
-        same lenth or are empty.
-    """
-    total_error = RSS(X, y, f)
-    n = len(X)
-    mse = total_error/n
+        Se os arrays tiverem comprimentos diferentes ou estiverem vazios.
+    """    
+    total_error = RSS(y_true, y_pred)
+    n = len(y_true)
+    mse = float(total_error/n)
     return mse
     
-def MAE(X: list[list[float]], y: list[float], f: Callable[[list[float]], float]) -> float:
-    """Calculates the Mean Absolute Error (MAE).
-    
-    Computes the avarege of absolute diffences between the values,
-    predicted by the function f and the actual target values.
-    
+def MAE(y_true: npt.NDArray[np.float64], y_pred: npt.NDArray[np.float64]) -> float:
+    """Calcula o Erro Absoluto Médio.
+
     Parameters
     ----------
-    X: list[list[float]]
-        List of observations, where each observation contains the input
-        features used by the prediction function.
-    y: list[float]
-        List of actual target values corresponding to the observations in X.
-    f: callable
-        Function that takes an observation from X and returns a predicted value.
+    y_true: numpy.ndarray 
+        Array com os valores reais do alvo.
+    y_pred: numpy.ndarray
+        Array com os valores previstos pelo modelo.
     
     Returns
     -------
     mae: float 
-        Avarege of the absolute prediction errors.
-    
+        Média do valor absoluto das diferenças entre os valores reais e previstos.
+
     Raises
     ------
     ValueError
-        If the lists of input observations and target values does not have
-        same lenth or are empty.
-    """
-    if len(X) != len(y):
-        raise ValueError("The lists of input observations and target values" \
-        " must have the same length.")
-    if len(X) == 0:
-        raise ValueError("The input lists must not be empty")
-    errors = []
-    n = len(X)
-    for i in range(n):
-        abs_error = abs(f(X[i]) - y[i])
-        errors.append(abs_error)
-    total = sum(errors)
-    mae = total/n
+        Se os arrays tiverem comprimentos diferentes ou estiverem vazios.
+    """    
+    if len(y_true) != len(y_pred):
+        raise ValueError("Os arrays reais e previstos devem ter o mesmo comprimento.")
+    if len(y_true) == 0:
+        raise ValueError("Os arrays devem estar não vazios.")
+    mae = float(np.mean(np.abs(y_pred - y_true)))
     return mae
 
-def RMSE(X: list[list[float]], y: list[float], f: Callable[[list[float]], float]) -> float:
-    """Calculates the Root Mean Absoltue Error (MAE).
-    
-    Computes the square root MSE, expressing the prediction error
-    in the same unit of measurement as the actual predicted values.
-    
+def RMSE(y_true: npt.NDArray[np.float64], y_pred: npt.NDArray[np.float64]) -> float:
+    """Calcula a raíz do Erro Quadrático Médio.
+
     Parameters
     ----------
-    X: list[list[float]]
-        List of observations, where each observation contains the input
-        features used by the prediction function.
-    y: list[float]
-        List of actual target values corresponding to the observations in X.
-    f: callable
-        Function that takes an observation from X and returns a predicted value.
+    y_true: numpy.ndarray 
+        Array com os valores reais do alvo.
+    y_pred: numpy.ndarray
+        Array com os valores previstos pelo modelo.
     
     Returns
     -------
-    rmse: float 
-        Square root of the mean squared prediction errors.
-    
+    rss: float 
+        A raíz quadrada da média dos quadrados das diferenças entre os valores reais e previstos.
+
     Raises
     ------
     ValueError
-        If the lists of input observations and target values does not have
-        same lenth or are empty.
-    """
-    mse = MSE(X, y, f)
+        Se os arrays tiverem comprimentos diferentes ou estiverem vazios.
+    """        
+    mse = MSE(y_true, y_pred)
     rmse = mse**0.5
     return rmse
 
-def R2_score(X: list[list[float]], y: list[float], f: Callable[[list[float]], float]) -> float:
-    """
-    Calculates the coefficient of determination (R²).
-    
-    Compares the model's residual sum of squares with the total sum
-    of squares, which measures the variation of the actual target values
-    around their mean. The result indicates how well the model performs 
-    compared to using the mean as prediction.
-    
+def R2_score(y_true: npt.NDArray[np.float64], y_pred: npt.NDArray[np.float64]) -> float:
+    """Calcula o coeficiente de determinação (R²).
+
     Parameters
     ----------
-    X: list[list[float]]
-        List of observations, where each observation contains the input
-        features used by the prediction function.
-    y: list[float]
-        List of actual target values corresponding to the observations in X.
-    f: callable
-        Function that takes an observation from X and returns a predicted value.
+    y_true: numpy.ndarray 
+        Array com os valores reais do alvo.
+    y_pred: numpy.ndarray
+        Array com os valores previstos pelo modelo.
     
     Returns
     -------
     r2_score: float 
-        Coefficient of determination R². A value 1 indicates a perfect fit,
-        a value 0 indicates performance equivalent to predicting the mean,
-        and a negative value indicates worse performance than predicting the mean.
-
+        Coeficiente de determinação, que indica o quanto da variabilidade
+        dos valores reais é explicada pelas previsões do modelo.    
+    
     Raises
     ------
     ValueError
-        If all actual target values are identical, making TSS equal to zero
-        and R² undefined.
-        If the lists of input observations and target values does not have
-        same lenth or are empty.
-    """
-    rss = RSS(X, y, f)
-    n = len(X)
-    media = sum(y)/n 
-    errors = []
-    for i in range(n):
-        y_pred = media
-        y_true = y[i]
-        sqrd_error = (y_true - y_pred)**2
-        errors.append(sqrd_error)
-    tss = sum(errors)
+        Se os arrays tiverem comprimentos diferentes ou estiverem vazios.
+        Se todos os valores de y_true forem iguais, zerando o TSS e tornando R² indefinido.
+    """            
+    rss = RSS(y_true, y_pred)
+    media = np.mean(y_true) 
+    tss = np.sum((media-y_true)**2)
     if tss != 0:
-        r2_score = 1-rss/tss
+        r2_score = float(1-rss/tss)
         return r2_score
     else:
-        raise ValueError("R² is undefined when TSS = 0")
+        raise ValueError("R² é indefinido quando TSS = 0")
 
