@@ -134,10 +134,11 @@ class _BaseDecisionTree(BaseEstimator):
                     )/n
 
                 if score < best_score:
-                    
-                    #guarda score, j e t como os melhores
+                    best_score = score
+                    best_feature = j
+                    best_threshold = t
         
-        if best_feature == None:
+        if best_feature is None: #linhas idênticas
             return _Node(value=self._leaf_value(y))
 
         # recursão
@@ -147,11 +148,16 @@ class _BaseDecisionTree(BaseEstimator):
         nod.right = self._build(X[~mask], y[~mask], depth+1)
         return nod
         
-
-    def _impurity(self, y):  # each subclass defines
+    def _prepare_y(self, y):
         pass
 
-    def _leaf_value(self, y):  # each subclass defines
+    def _decode_predictions(self, values):
+        pass
+
+    def _impurity(self, y):  # cada subclasse define
+        pass
+
+    def _leaf_value(self, y):  # cada subclasse define
         pass
 
 
