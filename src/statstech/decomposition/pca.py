@@ -49,4 +49,13 @@ class PCA(BaseEstimator, TransformerMixin):
         return Xc @ self.components_.T
 
     def inverse_transform(self, Z):
-        raise NotImplementedError
+        """ recebe as coordenadas Z e reconstrói os pontos no espaço original"""
+        attributes = ["mean_", "n_components_", "components_"]
+        check_is_fitted(self, attributes)
+        Z = check_array(Z)
+        if Z.shape[1] != self.n_components_:
+            raise ValueError(f"Z tem {Z.shape[1]} componentes" 
+                            f"mas deveria ter {self.n_components_}")
+        Zd = Z @ self.components_
+        Zdc = Zd + self.mean_
+        return Zdc 
