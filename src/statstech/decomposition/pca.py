@@ -108,8 +108,8 @@ class PCA(BaseEstimator, TransformerMixin):
         return self
 
     def transform(self, X):
-        """ Pega dados de treino ou novos e escreve cada ponto nas coordenadas
-        das componentes que o fit aprendeu
+        """ Pega dados de treino ou novos e escreve cada ponto nas 
+        coordenadas das componentes que o fit aprendeu.
  
         Parameters
         ----------
@@ -138,12 +138,32 @@ class PCA(BaseEstimator, TransformerMixin):
         return Xc @ self.components_.T
 
     def inverse_transform(self, Z):
-        """ recebe as coordenadas Z e reconstrói os pontos no espaço original"""
+        """ Recebe as coordenadas Z e reconstrói os pontos no espaço original
+        Com todas as componentes, a reconstrução é exata. Com menos,
+        é a melhor aproximação de posto n_components_.
+ 
+        Parameters
+        ----------
+        Z : array-like de formato (n_amostras, n_components_)
+            Coordenadas nas componentes principais.
+ 
+        Returns
+        -------
+        X : ndarray de formato (n_amostras, n_features)
+            Pontos reconstruídos no espaço original.
+ 
+        Raises
+        ------
+        NotFittedError
+            Se o modelo ainda não tiver sido treinado.
+        ValueError
+            Se Z tiver um número de colunas diferente de n_components_.
+        """
         attributes = ["mean_", "n_components_", "components_"]
         check_is_fitted(self, attributes)
         Z = check_array(Z)
         if Z.shape[1] != self.n_components_:
-            raise ValueError(f"Z tem {Z.shape[1]} componentes" 
+            raise ValueError(f"Z tem {Z.shape[1]} componentes, " 
                             f"mas deveria ter {self.n_components_}")
         Zd = Z @ self.components_
         Zdc = Zd + self.mean_
