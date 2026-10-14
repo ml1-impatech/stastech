@@ -119,6 +119,20 @@ class _BaseDecisionTree(BaseEstimator):
                 "For a single feature, use X.reshape(-1,1).")
         return X.astype(float)
 
+    def _check_is_fitted(self):
+        """
+        Confere que o modelo foi treinado.
+        
+        Raises
+        ------
+        RuntimeError
+            Se ''fit'' ainda não foi chamado.
+        """
+        if not hasattr(self, "tree_"):
+            raise RuntimeError(
+                f"This {type(self).__name__} is not fitted yet. Call ''fit'' first."
+            )
+
     def fit(self, X, y):
         # validar as entradas
         self._check_params()
