@@ -218,7 +218,7 @@ class _BaseDecisionTree(BaseEstimator):
 
         return self._decode_predictions(np.array(values))
 
-    def _is_leaf(self, y, depth):
+    def get_depth(self, y, depth):
         """
         Devolve a profundidade da árvore treinada.
         
