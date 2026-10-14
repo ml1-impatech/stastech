@@ -97,7 +97,12 @@ class MLPRegressor(BaseEstimator, RegressorMixin):
 
     Attributes
     ----------
-    # TODO depois de implementar
+    weights_ : list de ndarray
+        Matrizes de pesos, uma por camada.
+    biases_ : list de ndarray
+        Vetores de viés, um por camada.
+    loss_curve_ : list de float
+        MSE no conjunto de treino ao fim de cada época.
     """
 
     def __init__(
@@ -130,6 +135,25 @@ class MLPRegressor(BaseEstimator, RegressorMixin):
         self.biases_ = biases
 
     def fit(self, X, y):
+        """Treina a rede com gradiente descente em mini-lotes.
+
+        Parameters
+        ----------
+        X : array (n_amostras, n_features)
+            Dados de treino.
+        y : array (n_amostras,)
+            Valores almejados.
+
+        Returns
+        -------
+        self : MLPRegressor
+            O modelo treinado.
+
+        Raises
+        ------
+        ValueError
+            Se `activation` não for uma das opções válidas.
+        """
         X = np.asarray(X, dtype=float)
         y = np.asarray(y, dtype=float)
         if self.activation not in ACTIVATIONS:
@@ -164,8 +188,21 @@ class MLPRegressor(BaseEstimator, RegressorMixin):
         return self
 
     def predict(self, X):
+        """Prever y para cada amostra de X.
+
+        Parameters
+        ----------
+        X : array (n_amostras, n_features)
+            Dados para os quais a previsão será feita.
+
+        Returns
+        -------
+        y_pred : ndarray (n_amostras,)
+            Valores previstos, um por amostra.
+        """
         _, activations = self._forward(X)
-        return activations[-1][:, 0]
+        y_pred = activations[-1][:, 0]
+        return y_pred
 
     def _forward(self, X):
         func, _ = ACTIVATIONS[self.activation]
