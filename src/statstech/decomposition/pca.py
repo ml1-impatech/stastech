@@ -110,13 +110,30 @@ class PCA(BaseEstimator, TransformerMixin):
     def transform(self, X):
         """ Pega dados de treino ou novos e escreve cada ponto nas coordenadas
         das componentes que o fit aprendeu
+ 
+        Parameters
+        ----------
+        X : array-like de formato (n_amostras, n_features)
+            Dados de treino ou novos.
+ 
+        Returns
+        -------
+        Z : ndarray de formato (n_amostras, n_components_)
+            Coordenadas de cada ponto nas componentes principais.
+ 
+        Raises
+        ------
+        NotFittedError
+            Se o modelo ainda não tiver sido treinado.
+        ValueError
+            Se X tiver um número de features diferente do fit.
         """
-        attributes = ["mean_", "components_"]
+        attributes = ["mean_", "components_", "n_features_in_"]
         check_is_fitted(self, attributes)
         X = check_array(X)
-        if X.shape[1] != len(self.mean_):
+        if X.shape[1] != self.n_features_in_:
             raise ValueError(f"X tem {X.shape[1]} features "
-                            f"mas deveria ter {len(self.mean_)}")
+                            f"mas deveria ter {self.n_features_in_}")
         Xc = X - self.mean_
         return Xc @ self.components_.T
 
