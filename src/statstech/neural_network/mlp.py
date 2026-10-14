@@ -77,7 +77,7 @@ ACTIVATIONS = {
 class MLPRegressor(BaseEstimator, RegressorMixin):
     """Multi-Layer Perceptron (MLP) Regressor.
 
-    Implementação de uma rede neural para regressão
+    Implementação de uma rede neural para regressão.
 
     Parameters
     ----------
@@ -100,7 +100,7 @@ class MLPRegressor(BaseEstimator, RegressorMixin):
     weights_ : list de ndarray
         Matrizes de pesos, uma por camada.
     biases_ : list de ndarray
-        Vetores de viés, um por camada.
+        Vetores de viés, um por camada. 
     loss_curve_ : list de float
         MSE no conjunto de treino ao fim de cada época.
     """
@@ -135,24 +135,24 @@ class MLPRegressor(BaseEstimator, RegressorMixin):
         self.biases_ = biases
 
     def fit(self, X, y):
-        """Treina a rede com gradiente descente em mini-lotes.
-
+        """Treina a rede com gradiente descendente em mini-lotes.
+        
         Parameters
         ----------
         X : array (n_amostras, n_features)
             Dados de treino.
         y : array (n_amostras,)
-            Valores almejados.
-
+            Valores alvo.
+        
         Returns
         -------
         self : MLPRegressor
             O modelo treinado.
-
+        
         Raises
         ------
         ValueError
-            Se `activation` não for uma das opções válidas.
+            Se `activation` não for uma das opções válidas.    
         """
         X = np.asarray(X, dtype=float)
         y = np.asarray(y, dtype=float)
@@ -183,26 +183,28 @@ class MLPRegressor(BaseEstimator, RegressorMixin):
                     self.biases_[l] -= self.learning_rate * grad_b[l]
 
             y_pred = self.predict(X)
-            # TODO: use the metrics module once it accepts (y_true, y_pred)
+            # TODO: mudar para utilizar metrics MSE(y_true, y_pred)
             self.loss_curve_.append(np.mean((y_pred - y) ** 2))
         return self
 
     def predict(self, X):
-        """Prever y para cada amostra de X.
-
+        """Prevê y para cada amostra de X.
+        
         Parameters
         ----------
         X : array (n_amostras, n_features)
             Dados para os quais a previsão será feita.
-
+        
         Returns
         -------
         y_pred : ndarray (n_amostras,)
             Valores previstos, um por amostra.
         """
         _, activations = self._forward(X)
+        #TODO: detalhe de utils/validation para adicionar ainda
         y_pred = activations[-1][:, 0]
         return y_pred
+    
 
     def _forward(self, X):
         func, _ = ACTIVATIONS[self.activation]
