@@ -1,7 +1,7 @@
 import numpy as np
 import numpy.typing as npt
 
-def RSS(y_true: npt.NDArray[np.float64], y_pred: npt.NDArray[np.float64]) -> float:
+def residual_sum_squares(y_true: npt.NDArray[np.float64], y_pred: npt.NDArray[np.float64]) -> float:
     """Calcula a Soma dos Quadrados dos Resíduos.
 
     Parameters
@@ -29,7 +29,7 @@ def RSS(y_true: npt.NDArray[np.float64], y_pred: npt.NDArray[np.float64]) -> flo
     rss = float(np.sum((y_true - y_pred) ** 2))
     return rss
 
-def MSE(y_true: npt.NDArray[np.float64], y_pred: npt.NDArray[np.float64]) -> float:
+def mean_squared_error(y_true: npt.NDArray[np.float64], y_pred: npt.NDArray[np.float64]) -> float:
     """Calcula o Erro Quadrático Médio.
 
     Parameters
@@ -49,12 +49,12 @@ def MSE(y_true: npt.NDArray[np.float64], y_pred: npt.NDArray[np.float64]) -> flo
     ValueError
         Se os arrays tiverem comprimentos diferentes ou estiverem vazios.
     """    
-    total_error = RSS(y_true, y_pred)
+    total_error = residual_sum_squares(y_true, y_pred)
     n = len(y_true)
     mse = float(total_error/n)
     return mse
     
-def MAE(y_true: npt.NDArray[np.float64], y_pred: npt.NDArray[np.float64]) -> float:
+def mean_absolute_error(y_true: npt.NDArray[np.float64], y_pred: npt.NDArray[np.float64]) -> float:
     """Calcula o Erro Absoluto Médio.
 
     Parameters
@@ -81,7 +81,7 @@ def MAE(y_true: npt.NDArray[np.float64], y_pred: npt.NDArray[np.float64]) -> flo
     mae = float(np.mean(np.abs(y_pred - y_true)))
     return mae
 
-def RMSE(y_true: npt.NDArray[np.float64], y_pred: npt.NDArray[np.float64]) -> float:
+def root_mean_squared_error(y_true: npt.NDArray[np.float64], y_pred: npt.NDArray[np.float64]) -> float:
     """Calcula a raíz do Erro Quadrático Médio.
 
     Parameters
@@ -101,11 +101,11 @@ def RMSE(y_true: npt.NDArray[np.float64], y_pred: npt.NDArray[np.float64]) -> fl
     ValueError
         Se os arrays tiverem comprimentos diferentes ou estiverem vazios.
     """        
-    mse = MSE(y_true, y_pred)
+    mse = mean_squared_error(y_true, y_pred)
     rmse = mse**0.5
     return rmse
 
-def R2_score(y_true: npt.NDArray[np.float64], y_pred: npt.NDArray[np.float64]) -> float:
+def r2_score(y_true: npt.NDArray[np.float64], y_pred: npt.NDArray[np.float64]) -> float:
     """Calcula o coeficiente de determinação (R²).
 
     Parameters
@@ -127,7 +127,7 @@ def R2_score(y_true: npt.NDArray[np.float64], y_pred: npt.NDArray[np.float64]) -
         Se os arrays tiverem comprimentos diferentes ou estiverem vazios.
         Se todos os valores de y_true forem iguais, zerando o TSS e tornando R² indefinido.
     """            
-    rss = RSS(y_true, y_pred)
+    rss = residual_sum_squares(y_true, y_pred)
     media = np.mean(y_true) 
     tss = np.sum((media-y_true)**2)
     if tss != 0:

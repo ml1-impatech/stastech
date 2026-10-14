@@ -38,7 +38,7 @@ def confusion_matrix(y_true: list[int], y_pred: list[int], classes: list[int]) -
         c_matrix[y_true[i]][y_pred[i]] += 1
     return c_matrix
 
-def TP(c_matrix: list[list[int]], class_k: int) -> int:
+def true_positives(c_matrix: list[list[int]], class_k: int) -> int:
     """Calcula o True Positives de uma matriz de confusão para uma classe específica.
 
     Parameters
@@ -59,7 +59,7 @@ def TP(c_matrix: list[list[int]], class_k: int) -> int:
     true_positives = c_matrix[class_k][class_k]
     return true_positives
 
-def FP(c_matrix: list[list[int]], class_k: int) -> int:
+def false_positives(c_matrix: list[list[int]], class_k: int) -> int:
     """Calcula o False Positives de uma matriz de confusão para uma classe específica.
 
     Parameters
@@ -84,7 +84,7 @@ def FP(c_matrix: list[list[int]], class_k: int) -> int:
             false_positives += c_matrix[i][class_k]
     return false_positives
 
-def TN(c_matrix: list[list[int]], class_k: int) -> int:
+def true_negatives(c_matrix: list[list[int]], class_k: int) -> int:
     """Calcula o True Negatives de uma matriz de confusão para uma classe específica.
  
     Parameters
@@ -110,7 +110,7 @@ def TN(c_matrix: list[list[int]], class_k: int) -> int:
                 true_negatives += c_matrix[i][j]
     return true_negatives
 
-def FN(c_matrix: list[list[int]], class_k: int) -> int:
+def false_negatives(c_matrix: list[list[int]], class_k: int) -> int:
     """Calcula o False Negatives de uma matriz de confusão para uma classe específica.
  
     Parameters
@@ -158,8 +158,8 @@ def precision_score(c_matrix: list[list[int]], class_k: int) -> float:
     ValueError
         Se tp+fp for igual a zero, causando zero divisiong error.
     """
-    tp = TP(c_matrix, class_k)
-    fp = FP(c_matrix, class_k)
+    tp = true_positives(c_matrix, class_k)
+    fp = false_positives(c_matrix, class_k)
     if tp+fp != 0:
         return tp/(tp+fp)
     else:
@@ -188,8 +188,8 @@ def recall_score(c_matrix: list[list[int]], class_k: int) -> float:
     ValueError
         Se tp+fn for igual a zero, causando zero divisiong error.
     """
-    tp = TP(c_matrix, class_k)
-    fn = FN(c_matrix, class_k)
+    tp = true_positives(c_matrix, class_k)
+    fn = false_negatives(c_matrix, class_k)
     if tp+fn != 0:
         return tp/(tp+fn)
     else:
@@ -219,8 +219,8 @@ def specifity_score(c_matrix: list[list[int]], class_k: int) -> float:
     ValueError
         Se tn+fp for igual a zero, causando zero divisiong error.
     """    
-    tn = TN(c_matrix, class_k)
-    fp = FP(c_matrix, class_k)
+    tn = true_negatives(c_matrix, class_k)
+    fp = false_positives(c_matrix, class_k)
     if tn+fp != 0:
         return tn/(tn+fp)
     else: 
@@ -249,9 +249,9 @@ def f1_score(c_matrix: list[list[int]], class_k: int) -> float:
     ValueError
         Se o denominador do f1 for igual a zero, causando zero divisiong error.
     """    
-    tp = TP(c_matrix, class_k)
-    fp = FP(c_matrix, class_k)
-    fn = FN(c_matrix, class_k)
+    tp = true_positives(c_matrix, class_k)
+    fp = false_positives(c_matrix, class_k)
+    fn = false_negatives(c_matrix, class_k)
     if 2*tp + fn + fp != 0:
         return 2*tp/(2*tp + fn + fp)
     else: 

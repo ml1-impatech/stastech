@@ -2,7 +2,7 @@
 
 import copy
 import inspect
-from statstech.metrics.regression import R2_score
+from statstech.metrics.regression import r2_score
 
 class BaseEstimator:
     """Base-class of all models and transformers.
@@ -63,7 +63,7 @@ class BaseEstimator:
 class RegressorMixin:
     def score(self, X, y):
         y_pred = self.predict(X)
-        return R2_score(y, y_pred)
+        return r2_score(y, y_pred)
 
 
 
