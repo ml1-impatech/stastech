@@ -40,65 +40,101 @@ class _BaseDecisionTree(BaseEstimator):
         return X.astype(float)
 
     def fit(self, X, y):
-        # validar as entradas, esperar alguém implementar utils/validation
+        # validar as entradas
+        self._check_params()
+        X = self._check_X(X)
+        y = np.asarray(y)
+
         # X tem que ser 2D (n_amostras, n_features), y é 1D com o mesmo num de linhas
         # max_depth: None ou inteiro >=1
         # min_samples_split: inteiro >=2
+        if y.dim != 1:
+            raise ValueError("y must be 1D.")
+        if len(y) != X.shape[0]:
+            raise ValueError("X and y must have the same number of rows.")
+        if len(y) == 0:
+            raise ValueError("Cannot fit with zero samples.")
 
-        # Regressão: y vira array de floats
+        # Regressão: y vira array de floats        
         # Classificação: classes_ = valores únicos ordenados de y
+        y = self._prepare_y(y)
+
         # y = índice de cada rótulo dentro de classes_
         # usar np.unique(y, return_inverse=True)
         # As impurezas trabalham com inteiros e os rótulos originais só voltam no predict
 
         # construir a árvore recursivamente
+        self.n_features_in_ = X.shape[1]
         self.tree_ = self._build(X, y, depth=0)
         return self
 
     def predict(self, X):
         # Validar X como 2D e conferir que existe tree_ (o modelo foi treinado)
+        if not hasattr(self, "tree_"):
+            raise RuntimeError(f"This {type(self).__name__} is not fitted yet. Call fit first.")
+        X = self._check_X(X)
+        if X.shape[1] != self.n_features_in_:
+            raise ValueError(
+                f"X has {X.shape[1]} features, but the model was fitted with {self.n_features_in_}."
+            )
+
+        values = []
+
         for x in X: #descer pela árvore, x é linha da matriz
-            nod = tree_
-            while nod.feature != None: # enquanto nó não é folha
+            nod = self.tree_
+            while nod.feature is not None: # enquanto nó não é folha
                 if x[nod.feature] <= nod.threshold:
                     nod = nod.left
                 else:
                     nod = nod.right
-            result = nod.value
+            values.append(nod.value) #checar identação desta linha
 
         # Classificação: value é um índice de classes, pegar classes_[indice], lembrar de converter value float -> int
         # Regressão: devolver valores como estão
-        return #array (n_amostras,)
-        
+
+        return self._decode_predictions(np.array(values))
+
+    def _is_leaf(self, y, depth):
+
+        if self.max_depth is not None and depth >= self.max_depth:
+            return True
+
+        if len(y) < self.min_samples_split:
+            return True
+
+        if self._impurity(y) <= 1e-12: #nó puro
+            return True
+
+        return False  
 
     def _build(self, X, y, depth):
         n = len(y)
 
-        # Critérios de parada (se algum for verdadeiro, vira folha)
-        # Mudar a forma de implementação para não ficar repetindo linha
-        if self.max_depth != None and depth >= self.max_depth:
-            return _Node(value= self._leaf_value(y))
-        if n < self.min_samples_split:
-            return _Node(value= self._leaf_value(y))
-        if self._impurity == 0:
+        if self._is_leaf(y, depth):
             return _Node(value= self._leaf_value(y))
         
         # Busca da melhor divisão
         best_feature, best_threshold = None, None
-        best_score = 10000000 #infinito
+        best_score = np.inf #infinito
 
-        for j in colunas de X:
+        for j in range(X.shape[1]):
         # Limiares candidatos: pontos médios entre valores consecutivos distintos e ordenados da coluna j
-            valores = valores únicos de X[:, j] ordenados
-            limiares = (valores[:, -1] + valores[1:])/2
+            valores = np.unique(X[:, j]) #já ordenados
+            limiares = (valores[:, -1] + valores[1:])/2 #mudar para portugueês os nomes
 
             for t in limiares:
-                mask = X[:, j] <= t #(True = vai p esquerda)
+                mask = X[:, j] <= t #True = vai p esquerda
                 y_esq, y_dir = y[mask], y[~mask]
+                if len(y_esq) == 0 or len(y_dir) == 0:
+                    continue #pode acontecer por arredondamento de floats
 
-                score = (len(y_esq)*self._impurity(y_esq) + len(y_dir)*self._impurity(y_dir))/n
+                score = (
+                    len(y_esq)*self._impurity(y_esq)
+                    + len(y_dir)*self._impurity(y_dir)
+                    )/n
 
                 if score < best_score:
+                    
                     #guarda score, j e t como os melhores
         
         if best_feature == None:
