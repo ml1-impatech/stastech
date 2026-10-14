@@ -9,21 +9,82 @@ from statstech.base import BaseEstimator, ClassifierMixin, RegressorMixin
 
 @dataclass
 class _Node:
+    """
+    Nó da árvore.
+    
+    Um nó interno tem ''feature'', ''threshold'', ''left'' e ''rignt''.
+    Uma folha tem apenas''value''.
+    """
     feature: int | None = None
     threshold: float | None = None
     left: "_Node | None" = None
     right: "_Node | None" = None
     value: float | None = None  # só nas folhas
 
+def _node_depth(node): # função auxiliar
+    """
+    Devolve a profundidade da subárvore que começa em ''node''.
+    
+    Parameters
+    ----------
+    node : _Node
+        Raís da subárvore.
+
+    Returns
+    -------
+    depth : int
+        Número de divisões no caminho mais longo até uma folha.
+        Uma folha tem profundidade 0
+    """
+    if node.feature is None:
+        return 0
+    return 1 + max(_node_depth(node.left), _node_depth(node.right))
 
 class _BaseDecisionTree(BaseEstimator):
+    """
+    Classe-base das árvores de decisão
+    
+    Implementa a construção recursiva e a predição.
+    As subclasses só definem o critério de impureza e o valor das folhas.
+
+    Parameters
+    ----------
+    max_depth : int ou None, default=None
+        Profundidade máxima da árvore.
+        Se None, a árvore cresce até todos os nós ficarem puros ou pequenos demais para dividir.
+    min_samples_split : int, default=2
+        Número mínimo de amostras para tentar dividir um nó.
+
+    Attributes
+    ----------
+    tree_ : _Node
+        Nó raíz da árvore treinada.
+    n_features_in_ : int
+        Número de features vistas no "fit".
+    """
     def __init__(self, max_depth=None, min_samples_split=2):
         self.max_depth = max_depth
         self.min_samples_split = min_samples_split
+
+    # ------------------------------------------------------------------
+    # Validação (temporária: trocar por utils/validation quando existir)
+    # ------------------------------------------------------------------
         
-    def _check_params(self): #temporária
+    def _check_params(self):
+        """
+        Valida os hiperparâmetros.
+
+        Raises
+        ------
+        ValueError
+            Se ''max_depth'' não for None nem um inteiro >= 1,
+            ou se ''min_samples_split'' não for um inteiro >= 2.
+        """
         if self.max_depth is not None:
-            if not isinstance(self.max_depth, (int, np.integer)) or self.max_depth < 1:
+            if (
+                not isinstance(self.max_depth, (int, np.integer)) or
+                self.max_depth < 1
+            ):
                 raise ValueError("max_depth must be None or an integer >= 1.")
         if (
             not isinstance(self.min_samples_split, (int, np.integer))
@@ -31,7 +92,26 @@ class _BaseDecisionTree(BaseEstimator):
         ):
             raise ValueError("min_samples_split must be an integer >= 2.")
 
-    def _check_X(X): #temporária
+    @staticmethod
+    def _check_X(X): 
+        """
+        Converte X para um array 2D de floats.
+
+        Parameters
+        ----------
+        X : array-like
+            Dados de entrada.
+
+        Returns
+        -------
+        X : ndarray de shape (n_amostras, n_features)
+            cópia de X como float.
+
+        Raises
+        ------
+        ValueError
+            Se X não for 2D.
+        """
         X = np.asarray(X)
         if X.ndim != 2:
             raise ValueError(
@@ -160,7 +240,6 @@ class _BaseDecisionTree(BaseEstimator):
     def _leaf_value(self, y):  # cada subclasse define
         pass
 
-
 class DecisionTreeRegressor(_BaseDecisionTree, RegressorMixin):
     def _impurity(self, y):
         def mean(y):
@@ -180,11 +259,11 @@ class DecisionTreeClassifier(_BaseDecisionTree, ClassifierMixin):
 
         # Nó puro é Gini = 0
 
-        return 1 - (p**2)
+        return 1 - np.sum(p**2)
 
     def _leaf_value(self, y):
         # empate: argmax pega o menor índice
         # fit já deixou os índices inteiros
 
-        return argmax(np.bincount(y))
-        pass
+        return np.argmax(np.bincount(y))
+        
