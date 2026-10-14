@@ -13,7 +13,7 @@ class _Node:
     threshold: float | None = None
     left: "_Node | None" = None
     right: "_Node | None" = None
-    value: float | None = None  # only in leaves
+    value: float | None = None  # só nas folhas
 
 
 class _BaseDecisionTree(BaseEstimator):
@@ -21,6 +21,23 @@ class _BaseDecisionTree(BaseEstimator):
         self.max_depth = max_depth
         self.min_samples_split = min_samples_split
         
+    def _check_params(self): #temporária
+        if self.max_depth is not None:
+            if not isinstance(self.max_depth, (int, np.integer)) or self.max_depth < 1:
+                raise ValueError("max_depth must be None or an integer >= 1.")
+        if (
+            not isinstance(self.min_samples_split, (int, np.integer))
+            or self.min_samples_split < 2
+        ):
+            raise ValueError("min_samples_split must be an integer >= 2.")
+
+    def _check_X(X): #temporária
+        X = np.asarray(X)
+        if X.ndim != 2:
+            raise ValueError(
+                "X must be 2D with shape (n_samples, n_features)."
+                "For a single feature, use X.reshape(-1,1).")
+        return X.astype(float)
 
     def fit(self, X, y):
         # validar as entradas, esperar alguém implementar utils/validation
@@ -126,6 +143,6 @@ class DecisionTreeClassifier(_BaseDecisionTree, ClassifierMixin):
     def _leaf_value(self, y):
         # empate: argmax pega o menor índice
         # fit já deixou os índices inteiros
-        
+
         return argmax(np.bincount(y))
         pass
