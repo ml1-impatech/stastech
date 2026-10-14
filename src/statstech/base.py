@@ -1,8 +1,8 @@
 """Base classes and functions that all methods use."""
 
+import numpy as np
 import copy
 import inspect
-import numpy as np
 
 class BaseEstimator:
     """Base-class of all models and transformers.
@@ -60,16 +60,30 @@ class BaseEstimator:
         return f"{type(self).__name__}({args})"
 
 
-class RegressorMixin: 
-    pass
+def r2_score(y_true, y_pred):
+    if len(y_true) != len(y_pred):
+        raise ValueError("Os arrays reais e previstos devem ter o mesmo comprimento.") 
+    if len(y_true) == 0:
+        raise ValueError("Os arrays devem não estar vazios.")
+    rss = np.sum((y_true - y_pred) ** 2)
+    media = np.mean(y_true) 
+    tss = np.sum((media-y_true)**2)
+    if tss != 0:
+        r_score = float(1-rss/tss)
+        return r_score
+    else:
+        raise ValueError("R² é indefinido quando TSS = 0")
+
+
+class RegressorMixin:   
+    def score(self, X, y):
+        y_pred = self.predict(X)
+        return r2_score(y, y_pred)
+
 
 
 class ClassifierMixin: 
-
-    def score(self, X, y):
-        """" Retorna a acurácia da classificação. """
-        y_pred = self.predict(X)
-        return np.mean(y_pred == y)
+    pass
 
 
 class TransformerMixin: 
