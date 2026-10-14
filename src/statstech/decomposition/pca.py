@@ -7,6 +7,7 @@ class PCA(BaseEstimator, TransformerMixin):
         self.n_components = n_components
 
     def fit(self, X, y=None):
+        """ treinamento do modelo"""
         X = check_array(X)
         self.mean_ = np.mean(X, axis=0)
         Xc = X - self.mean_
@@ -35,7 +36,17 @@ class PCA(BaseEstimator, TransformerMixin):
         return self
 
     def transform(self, X):
-        raise NotImplementedError
+        """ Pega dados de treino ou novos e escreve cada ponto nas coordenadas
+        das componentes que o fit aprendeu
+        """
+        attributes = ["mean_", "components_"]
+        check_is_fitted(self, attributes)
+        X = check_array(X)
+        if X.shape[1] != len(self.mean_):
+            raise ValueError(f"X tem {X.shape[1]} features "
+                            f"mas deveria ter {len(self.mean_)}")
+        Xc = X - self.mean_
+        return Xc @ self.components_.T
 
     def inverse_transform(self, Z):
         raise NotImplementedError
