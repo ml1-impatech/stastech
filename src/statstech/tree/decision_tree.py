@@ -235,10 +235,40 @@ class _BaseDecisionTree(BaseEstimator):
         RuntimeError
             Se o modelo ainda não foi treinado.
         """
-
         self._check_is_fitted()
         return _node_depth(self.tree_)
 
+    # ------------------------------------------------------------------
+    # Construção da árvore
+    # ------------------------------------------------------------------
+    
+    def _is_leaf(self, y, depth):
+        """
+        Diz se um nó com alvo ``y`` e profundidade ``depth`` é folha.
+ 
+        Parameters
+        ----------
+        y : ndarray de shape (n_amostras,)
+            Alvo das amostras que chegaram ao nó.
+        depth : int
+            Profundidade do nó.
+ 
+        Returns
+        -------
+        is_leaf : bool
+            True se algum critério de parada for atendido.
+        """
+        if self.max_depth is not None and depth >= self.max_depth:
+            return True
+ 
+        if len(y) < self.min_samples_split:
+            return True
+ 
+        if self._impurity(y) <= 1e-12:  # nó puro
+            return True
+ 
+        return False
+    
     def _build(self, X, y, depth):
         n = len(y)
 
