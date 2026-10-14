@@ -1,4 +1,3 @@
-```markdown
 # statstech
 
 Biblioteca de aprendizado de máquina com NumPy.
@@ -23,7 +22,7 @@ pip install statstech
 
  -> Há um exemplo para cada módulo na pasta [`examples/`](examples).
 
-## Módulos e métodos:
+## Módulos e métodos
 
 <!-- Manter esta tabela igual ao que está na main. Tirar o que não entrar. -->
 
@@ -39,19 +38,6 @@ pip install statstech
 | `model_selection` | Divisão treino/teste, k-fold, LOOCV, bootstrap, busca de hiperparâmetros |
 | `metrics` | Métricas de regressão e de classificação |
 | `preprocessing` | Padronização, codificação de categorias, imputação de valores faltantes |
-
-## Convenções
-
-Todos os modelos seguem as mesmas regras:
-
-- `X` é sempre 2D, com formato `(n_amostras, n_features)`, e `y` é 1D, com
-  formato `(n_amostras,)`.
-- Os hiperparâmetros vão no `__init__`.
-- O `fit` aprende e devolve `self`, então `Modelo().fit(X, y).predict(X_novo)`
-  funciona.
-- Os atributos aprendidos terminam com `_`, como `weights_` e `loss_curve_`.
-- Quem usa aleatoriedade recebe `random_state`, e o mesmo valor dá o mesmo
-  resultado.
 
 ## Testes
 
