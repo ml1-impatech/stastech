@@ -41,7 +41,7 @@ def MSE(y_true: npt.NDArray[np.float64], y_pred: npt.NDArray[np.float64]) -> flo
     
     Returns
     -------
-    rss: float 
+    mse: float 
         Média dos quadrados das diferenças entre os valores reais e previstos.
 
     Raises
@@ -93,7 +93,7 @@ def RMSE(y_true: npt.NDArray[np.float64], y_pred: npt.NDArray[np.float64]) -> fl
     
     Returns
     -------
-    rss: float 
+    rmse: float 
         A raíz quadrada da média dos quadrados das diferenças entre os valores reais e previstos.
 
     Raises

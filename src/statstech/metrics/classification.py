@@ -1,37 +1,37 @@
 from collections.abc import Callable
 
-def confusion_matrix(y_true: list[float], y_pred: list[float], classes: list[int]) -> list[list[int]]:
-    """Calculate the Confusion Matrix for a classification problem.
+def confusion_matrix(y_true: list[int], y_pred: list[int], classes: list[int]) -> list[list[int]]:
+    """Calcula a matriz de confusão para um problema de classificação.
     
-    The confusion matrix compares the actual classes with the predicted classses.
-    Each row represents an actual class, and each column represents a predicted class.
+    A matriz de confusão compara as classes reais com as classes previstas. 
+    Cada linha representa uma classe verdadeira, e cada coluna uma classe prevista.
     
     Parameters
     ----------
     y_true: list[float]
-        List of actual target values corresponding to the observations in y_pred.
+        Lista dos valores reais correspondentes às previsões em y_pred.
     y_pred: list[float]
-        List of predictions based on observations.
+        Lista de predições baseadas nas observações.
     classes: list[int]
+        Lista das classes possíveis do classificador 
         List of possible classes of the classifier.
         
     Returns
     -------
     c_matrix: list[list[int]] 
-        A square matrix of shape (n_classes, n_classes), where each element in position 
-        [i][j] represents the number of observations whose actual class is i and predicted
-        class is j.
+        Uma matriz quadrada de dimensões (n_classes, n_classes), na qual cada elemento
+        na posição [i][j] representa o número de observações tais que a verdadeira classe
+        é i e a classe prevista é j.
     
     Raises
     ------
     ValueError
-        If y_true and y_pred have different lenghts, or if either list is empty.
+        Se y_true e y_pred tiverem comprimentos diferentes ou se algum dos dois for vazio.
     """
     if len(y_true) != len(y_pred):
-        raise ValueError("The lists of input predictions and target values" \
-        " must have the same length.")
+        raise ValueError("A lista de predições e de valores reais devem ter o mesmo comprimento.")
     if len(y_true) == 0:
-        raise ValueError("The input lists must not be empty")
+        raise ValueError("As listas de input devem ser não vazias.")
     n_classes = len(classes)
     c_matrix = [[0 for _ in range(n_classes)] for _ in range(n_classes)]
     for i in range(len(y_true)):
@@ -39,44 +39,44 @@ def confusion_matrix(y_true: list[float], y_pred: list[float], classes: list[int
     return c_matrix
 
 def TP(c_matrix: list[list[int]], class_k: int) -> int:
-    """Calculate the True Positives of a confusion matrix for a especific class.
+    """Calcula o True Positives de uma matriz de confusão para uma classe específica.
 
     Parameters
     ----------
     c_matrix: list[list[int]]
-        A square matrix of shape (n_classes, n_classes), where each element in position 
-        [i][j] represents the number of observations whose actual class is i and predicted
-        class is j.
+        Uma matriz quadrada de dimensões (n_classes, n_classes), na qual cada elemento
+        na posição [i][j] representa o número de observações tais que a verdadeira classe
+        é i e a classe prevista é j.
     class_k: int
-        The index of the class for which the True Positives will be calculated.
+        O índice da classe para qual o True Positives será calculado.
 
     Returns
     -------
     true_positives: int
-        The element c_matrix[class_k][class_k], which indicates how many times the classifier
-        returned class_k when it was the real class of the observation. 
+        O elemento c_matrix[class_k][class_k], o qual indica quantas vezes o classificador
+        retornou class_k quando esta era a verdadeira classe da observação.
     """
     true_positives = c_matrix[class_k][class_k]
     return true_positives
 
 def FP(c_matrix: list[list[int]], class_k: int) -> int:
-    """Calculate the False Positives of a confusion matrix for a especific class.
+    """Calcula o False Positives de uma matriz de confusão para uma classe específica.
 
     Parameters
     ----------
     c_matrix: list[list[int]]
-        A square matrix of shape (n_classes, n_classes), where each element in position 
-        [i][j] represents the number of observations whose actual class is i and predicted
-        class is j.
+        Uma matriz quadrada de dimensões (n_classes, n_classes), na qual cada elemento
+        na posição [i][j] representa o número de observações tais que a verdadeira classe
+        é i e a classe prevista é j.    
     class_k: int
-        The index of the class for which the False Positives will be calculated.
+        O índice da classe para qual o False Positives será calculado.
 
     Returns
     -------
     false_positives: int
-        Sum of the entries in column class_k, excluding c_matrix[class_k][class_k].
-        This represents the number of observations predicted as class_k whose actual
-        class is different from class_k.
+        A soma das entradas da coluna class_k, exceto c_matri[class_k][class_k].
+        Isto representa o número de observações previstas como class_k quando sua
+        classe verdadeira era diferente de class_k.
     """
     false_positives = 0
     for i in range(len(c_matrix)):
@@ -85,22 +85,23 @@ def FP(c_matrix: list[list[int]], class_k: int) -> int:
     return false_positives
 
 def TN(c_matrix: list[list[int]], class_k: int) -> int:
-    """Calculate the True Negatives of a confusion matrix for a especific class.
+    """Calcula o True Negatives de uma matriz de confusão para uma classe específica.
  
     Parameters
     ----------
     c_matrix: list[list[int]]
-        A square matrix of shape (n_classes, n_classes), where each element in position 
-        [i][j] represents the number of observations whose actual class is i and predicted
-        class is j.
+        Uma matriz quadrada de dimensões (n_classes, n_classes), na qual cada elemento
+        na posição [i][j] representa o número de observações tais que a verdadeira classe
+        é i e a classe prevista é j.    
     class_k: int
-        The index of the class for which the True Negatives will be calculated.
+        O índice da classe para qual o True Negatives será calculado.
 
     Returns
     -------
     true_negatives: int
-        Sum of all entries outside row class_k and column class_k. This represents the number 
-        of observations whose actual and predicted classes are both different from class_k.
+        Soma de todas as entradas fora da coluna class_k e linha class_k. Isto representa 
+        o número de observações as quais a verdadeira classe e a classe prevista são 
+        ambas diferentes de class_k.
     """
     true_negatives = 0
     for i in range(len(c_matrix)):
@@ -110,23 +111,23 @@ def TN(c_matrix: list[list[int]], class_k: int) -> int:
     return true_negatives
 
 def FN(c_matrix: list[list[int]], class_k: int) -> int:
-    """Calculate the False Negatives of a confusion matrix for a especific class.
+    """Calcula o False Negatives de uma matriz de confusão para uma classe específica.
  
     Parameters
     ----------
     c_matrix: list[list[int]]
-        A square matrix of shape (n_classes, n_classes), where each element in position 
-        [i][j] represents the number of observations whose actual class is i and predicted
-        class is j.
+        Uma matriz quadrada de dimensões (n_classes, n_classes), na qual cada elemento
+        na posição [i][j] representa o número de observações tais que a verdadeira classe
+        é i e a classe prevista é j.    
     class_k: int
-        The index of the class for which the False Negatives will be calculated.
+        O índice da classe para qual o False Negatives será calculado.
 
     Returns
     -------
     false_negatives: int
-        Sum of entries in row class_k, excluding c_matrix[class_k][class_k]. This represents
-        the number of observations whose actual class is class_k but whose predicted class
-        is different from class_k.
+        Soma de todas as entradas na linha class_k, exceto c_matrix[class_k][class_k].
+        Isto representa o número de observações os quais a verdadeira classe é class_k,
+        mas que foram predivistas em classes diferentes de class_k.
     """
     true_negatives = 0
     for j in range(len(c_matrix)):
@@ -135,117 +136,118 @@ def FN(c_matrix: list[list[int]], class_k: int) -> int:
     return true_negatives
 
 def precision_score(c_matrix: list[list[int]], class_k: int) -> float:
-    """Calculate the precision score of a confusion matrix.
+    """Calcula o Precision Score para uma matriz de confusão. 
 
     Parameters
     ----------
     c_matrix: list[list[int]]
-        A square matrix of shape (n_classes, n_classes), where each element in position 
-        [i][j] represents the number of observations whose actual class is i and predicted
-        class is j.
+        Uma matriz quadrada de dimensões (n_classes, n_classes), na qual cada elemento
+        na posição [i][j] representa o número de observações tais que a verdadeira classe
+        é i e a classe prevista é j. 
     class_k: int
-        The index of the class for which the precision score will be calculated.
+        O índice da classe para qual o Precision será calculado.
 
     Returns
     -------
     tp/(tp+fp): float
-        The ratio of true positives to all observations predicted as class_k. It indicates
-        how often the classifier is correct when predicting the class_k.
+        A razão entre True Positives e todas as observações previstas como class_k. 
+        Isto indica o quanto um classificador é correto quando prevendo class_k.
     
     Raises
     ------
     ValueError
-        If tp+fp equals to zero, causing zero divisiong error.
+        Se tp+fp for igual a zero, causando zero divisiong error.
     """
     tp = TP(c_matrix, class_k)
     fp = FP(c_matrix, class_k)
     if tp+fp != 0:
         return tp/(tp+fp)
     else:
-        raise ValueError("tp + fp must no be equal to 0")
+        raise ValueError("tp + fp deve ser diferente de 0.")
     
 def recall_score(c_matrix: list[list[int]], class_k: int) -> float:
-    """Calculate the recall score of a confusion matrix.
+    """Calcula o Recall Score para uma matriz de confusão.
 
     Parameters
     ----------
     c_matrix: list[list[int]]
-        A square matrix of shape (n_classes, n_classes), where each element in position 
-        [i][j] represents the number of observations whose actual class is i and predicted
-        class is j.
+        Uma matriz quadrada de dimensões (n_classes, n_classes), na qual cada elemento
+        na posição [i][j] representa o número de observações tais que a verdadeira classe
+        é i e a classe prevista é j.    
     class_k: int
-        The index of the class for which the recall score will be calculated.
+        O índice da classe para qual o Recall será calculado.
 
     Returns
     -------
     tp/(tp+fn): float
-        The propotion of True positives to all observations that were actually positives. It 
-        indicates how well the classifier identifies observationgs belonging to class_k.
+        A proporção entre True Positive e todas as observações que deveriam ser positivas.
+        Isto indica o quão bem um classificador identifica observações pertencentes a class_k.
     
     Raises
     ------
     ValueError
-        If tp+fn equals to zero, causing zero divisiong error.
+        Se tp+fn for igual a zero, causando zero divisiong error.
     """
     tp = TP(c_matrix, class_k)
     fn = FN(c_matrix, class_k)
     if tp+fn != 0:
         return tp/(tp+fn)
     else:
-        raise ValueError("tp + fn must not be equal to 0")
+        raise ValueError("tp + fn deve ser diferente de 0.")
 
 def specifity_score(c_matrix: list[list[int]], class_k: int) -> float:
-    """Calculate the specifity score of a confusion matrix.
+    """Calcula o Specifity Score para uma matriz de confusão.
 
     Parameters
     ----------
     c_matrix: list[list[int]]
-        A square matrix of shape (n_classes, n_classes), where each element in position 
-        [i][j] represents the number of observations whose actual class is i and predicted
-        class is j.
+        Uma matriz quadrada de dimensões (n_classes, n_classes), na qual cada elemento
+        na posição [i][j] representa o número de observações tais que a verdadeira classe
+        é i e a classe prevista é j.    
     class_k: int
-        The index of the class for which the specifity score will be calculated.
+        O índice da classe para qual o specifity score será calculado.
 
     Returns
     -------
     tn/(tn+fp): float
-        The ratio of True Negatives to all observations that were actually negatives. It 
-        indicates how well the classifier identifies observationgs that do not belong to class_k.
-    
+        A razão entre True Negatives e todas as observações que deveriam ser negativas.
+        Isto indica o quão bem um classificador identifica observaçõse que não pertencem
+        a class_k.
+
     Raises
     ------
     ValueError
-        If tp+fp equals to zero, causing zero divisiong error.        
+        Se tn+fp for igual a zero, causando zero divisiong error.
     """    
     tn = TN(c_matrix, class_k)
     fp = FP(c_matrix, class_k)
     if tn+fp != 0:
         return tn/(tn+fp)
     else: 
-        raise ValueError("tn + fp must not be equal to 0")
+        raise ValueError("tn + fp deve ser diferente de 0.")
 
 def f1_score(c_matrix: list[list[int]], class_k: int) -> float:
-    """Calculate the f1 score of a confusion matrix.
+    """Calcula o F1 Score para uma matriz de confusão.
 
     Parameters
     ----------
     c_matrix: list[list[int]]
-        A square matrix of shape (n_classes, n_classes), where each element in position 
-        [i][j] represents the number of observations whose actual class is i and predicted
-        class is j.
+        Uma matriz quadrada de dimensões (n_classes, n_classes), na qual cada elemento
+        na posição [i][j] representa o número de observações tais que a verdadeira classe
+        é i e a classe prevista é j.    
     class_k: int
-        The index of the class for which the f1 score will be calculated.
+        O índice da classe para qual o f1 score será calculado.
 
     Returns
     -------
     tp*2/(2*tp+fn+fp): float
-        The f1 score, which is the harmonic mean of precision and recall. It balances the two
-        metrics into a single score.
+        O F1 Score, que é a média harmônica entre o Precision e o Recall. Isto combina
+        as duas métricas em um só Score.
     
     Raises
     ------
     ValueError
-        If tp+fp equals to zero, causing zero divisiong error.
+        Se o denominador do f1 for igual a zero, causando zero divisiong error.
     """    
     tp = TP(c_matrix, class_k)
     fp = FP(c_matrix, class_k)
@@ -253,30 +255,30 @@ def f1_score(c_matrix: list[list[int]], class_k: int) -> float:
     if 2*tp + fn + fp != 0:
         return 2*tp/(2*tp + fn + fp)
     else: 
-        raise ValueError("")
+        raise ValueError("O denominador 2*tp + fn + fp deve ser diferente de zero.")
 
 def macro_metric(c_matrix: list[list[int]], metric: Callable[[list[list[int]], int], float]) -> float:
-    """Calculate the macro-avarege of a specific metric of a confusion matrix.
+    """Calcula o média macro para uma métrica específica em uma matriz de confusão.
 
     Parameters
     ----------
     c_matrix: list[list[int]]
-        A square matrix of shape (n_classes, n_classes), where each element in position 
-        [i][j] represents the number of observations whose actual class is i and predicted
-        class is j.
+        Uma matriz quadrada de dimensões (n_classes, n_classes), na qual cada elemento
+        na posição [i][j] representa o número de observações tais que a verdadeira classe
+        é i e a classe prevista é j.    
     metric: callable
-        The metric which will be utilised for calculatic its macro.
+        A métrica que será utilizada para calcular seu macro.
 
     Returns
     -------
     t_metric: float
-        The arithmetic mean of the metric scores calculated for each class.
+        A média aritmética da métrica calculada para cada classe.
     
     Raises
     ------
     ValueError
-        If there is ValueError for every class in c_matrix, causing undefined metric 
-        for every iteration in the "for".
+        Se existe ValueError para toda classe em c_matrix, causando métrica indefinida
+        para toda iteração do "for".
     """    
     t_metric = 0
     n_classes = len(c_matrix)
