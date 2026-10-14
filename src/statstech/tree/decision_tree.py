@@ -270,7 +270,24 @@ class _BaseDecisionTree(BaseEstimator):
         return False
     
     def _build(self, X, y, depth):
-        n = len(y)
+        """
+        Constrói recursivamente a subárvore para as amostras (X, y).
+        
+        Parameters
+        ----------
+        X : ndarray de shape (n_amostras, n_features)
+            Features das amostras que chegam ao nó.
+        y : ndarray de shape (n_amostras,)
+            Alvo preparado por ''_prepare_y''.
+        depth : int
+            Profundidade do nó atual.
+            
+        Returns
+        -------
+        node : _Node
+            Folha ou nó interno com a melhor divisão encontrada.
+        """
+        n_samples = len(y)
 
         if self._is_leaf(y, depth):
             return _Node(value= self._leaf_value(y))
@@ -281,19 +298,22 @@ class _BaseDecisionTree(BaseEstimator):
 
         for j in range(X.shape[1]):
         # Limiares candidatos: pontos médios entre valores consecutivos distintos e ordenados da coluna j
-            valores = np.unique(X[:, j]) #já ordenados
-            limiares = (valores[:, -1] + valores[1:])/2 #mudar para portugueês os nomes
+            unique_values = np.unique(X[:, j]) 
+            threshold = (
+                unique_values[:, -1] 
+                + unique_values[1:]
+                )/2
 
-            for t in limiares:
+            for t in threshold:
                 mask = X[:, j] <= t #True = vai p esquerda
-                y_esq, y_dir = y[mask], y[~mask]
-                if len(y_esq) == 0 or len(y_dir) == 0:
+                y_left, y_right = y[mask], y[~mask]
+                if len(y_left) == 0 or len(y_right) == 0:
                     continue #pode acontecer por arredondamento de floats
 
                 score = (
-                    len(y_esq)*self._impurity(y_esq)
-                    + len(y_dir)*self._impurity(y_dir)
-                    )/n
+                    len(y_left)*self._impurity(y_left)
+                    + len(y_right)*self._impurity(y_right)
+                    )/n_samples
 
                 if score < best_score:
                     best_score = score
@@ -303,7 +323,6 @@ class _BaseDecisionTree(BaseEstimator):
         if best_feature is None: #linhas idênticas
             return _Node(value=self._leaf_value(y))
 
-        # recursão
         mask = X[:, best_feature] <= best_threshold
         node = _Node(feature=best_feature, threshold=best_threshold)
         node.left = self._build(X[mask], y[mask], depth+1)
