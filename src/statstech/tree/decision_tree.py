@@ -133,15 +133,37 @@ class _BaseDecisionTree(BaseEstimator):
                 f"Esta {type(self).__name__} ainda não passou pelo fit. Chame ''fit'' antes."
             )
 
+    # ------------------------------------------------------------------
+    # API pública
+    # ------------------------------------------------------------------
+
     def fit(self, X, y):
-        # validar as entradas
+        """
+        Constrói a árvore de decisão a partir dos dados de treino.
+        
+        Parameters
+        ----------
+        X : array-like de shape (n_amostras, n_features)
+            Dados de entrada (features).
+        Y : array-like de shape (n_amostras,)
+            Valores (regressão) ou rótulos (classificação) correspondentes a X.
+            
+        Returns
+        -------
+        self : objeto
+            O próprio modelo treinado.
+            
+        Raises
+        ------
+        ValueError
+            Se os hiperparâmetros forem inválidos.
+            Se X não for 2D ou y não for 1D.
+            Se não houver nenhuma amostra.
+        """
         self._check_params()
         X = self._check_X(X)
         y = np.asarray(y)
 
-        # X tem que ser 2D (n_amostras, n_features), y é 1D com o mesmo num de linhas
-        # max_depth: None ou inteiro >=1
-        # min_samples_split: inteiro >=2
         if y.dim != 1:
             raise ValueError("y deve ser 1D.")
         if len(y) != X.shape[0]:
@@ -149,23 +171,35 @@ class _BaseDecisionTree(BaseEstimator):
         if len(y) == 0:
             raise ValueError("Não é possível aplicar o fit com zero amostras.")
 
-        # Regressão: y vira array de floats        
-        # Classificação: classes_ = valores únicos ordenados de y
         y = self._prepare_y(y)
 
-        # y = índice de cada rótulo dentro de classes_
-        # usar np.unique(y, return_inverse=True)
-        # As impurezas trabalham com inteiros e os rótulos originais só voltam no predict
-
-        # construir a árvore recursivamente
         self.n_features_in_ = X.shape[1]
         self.tree_ = self._build(X, y, depth=0)
         return self
 
     def predict(self, X):
-        # Validar X como 2D e conferir que existe tree_ (o modelo foi treinado)
+        """
+        Prevê o alvo de cada amostra de X.
+
+        Parameters
+        ----------
+        X : array-like de shape (n_amostras, n_features)
+            Dados de entrada. Precisa ter o mesmo número de features do ''fit''.
+
+        Returns
+        -------
+        y_pred : ndarray de shape (n_amostras,)
+            Valores previstos (regressão) ou rótulos originais (classificação).
+        
+        Raises
+        ------
+        RuntimeError
+            Se o modelo ainda não foi treinado.
+        ValueError
+            Se X não for 2D ou tiver número de features diferente do usado no ''fit''.
+        """
         if not hasattr(self, "tree_"):
-            raise RuntimeError(f"This {type(self).__name__} is not fitted yet. Call fit first.")
+            raise RuntimeError(f"Esta {type(self).__name__} ainda não passou pelo fit. Chame ''fit'' antes.")
         X = self._check_X(X)
         if X.shape[1] != self.n_features_in_:
             raise ValueError(
@@ -173,33 +207,37 @@ class _BaseDecisionTree(BaseEstimator):
             )
 
         values = []
-
-        for x in X: #descer pela árvore, x é linha da matriz
-            nod = self.tree_
-            while nod.feature is not None: # enquanto nó não é folha
-                if x[nod.feature] <= nod.threshold:
-                    nod = nod.left
+        for x in X: #desce pela árvore, x é linha da matriz
+            node = self.tree_
+            while node.feature is not None: # enquanto nó não é folha
+                if x[node.feature] <= node.threshold:
+                    node = node.left
                 else:
-                    nod = nod.right
-            values.append(nod.value) #checar identação desta linha
-
-        # Classificação: value é um índice de classes, pegar classes_[indice], lembrar de converter value float -> int
-        # Regressão: devolver valores como estão
+                    node = node.right
+            values.append(node.value)
 
         return self._decode_predictions(np.array(values))
 
     def _is_leaf(self, y, depth):
+        """
+        Devolve a profundidade da árvore treinada.
+        
+        Útil para estudar overfitting: sem ''max_depth'' a profundidade cresce até a árvore decorar o treino.
+        
+        Returns
+        -------
+        depth : int
+            Número de divisões no caminho mais longo da raíz até uma folha.
+            Uma árvore com só uma folha tem profundidade 0.
+            
+        Raises
+        ------
+        RuntimeError
+            Se o modelo ainda não foi treinado.
+        """
 
-        if self.max_depth is not None and depth >= self.max_depth:
-            return True
-
-        if len(y) < self.min_samples_split:
-            return True
-
-        if self._impurity(y) <= 1e-12: #nó puro
-            return True
-
-        return False  
+        self._check_is_fitted()
+        return _node_depth(self.tree_)
 
     def _build(self, X, y, depth):
         n = len(y)
@@ -237,10 +275,10 @@ class _BaseDecisionTree(BaseEstimator):
 
         # recursão
         mask = X[:, best_feature] <= best_threshold
-        nod = _Node(feature=best_feature, threshold=best_threshold)
-        nod.left = self._build(X[mask], y[mask], depth+1)
-        nod.right = self._build(X[~mask], y[~mask], depth+1)
-        return nod
+        node = _Node(feature=best_feature, threshold=best_threshold)
+        node.left = self._build(X[mask], y[mask], depth+1)
+        node.right = self._build(X[~mask], y[~mask], depth+1)
+        return node
         
     def _prepare_y(self, y):
         pass
