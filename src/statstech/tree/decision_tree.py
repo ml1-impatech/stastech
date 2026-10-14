@@ -85,12 +85,12 @@ class _BaseDecisionTree(BaseEstimator):
                 not isinstance(self.max_depth, (int, np.integer)) or
                 self.max_depth < 1
             ):
-                raise ValueError("max_depth must be None or an integer >= 1.")
+                raise ValueError("max_depth deve ser None ou inteiro >= 1.")
         if (
             not isinstance(self.min_samples_split, (int, np.integer))
             or self.min_samples_split < 2
         ):
-            raise ValueError("min_samples_split must be an integer >= 2.")
+            raise ValueError("min_samples_split deve ser inteiro >= 2.")
 
     @staticmethod
     def _check_X(X): 
@@ -130,7 +130,7 @@ class _BaseDecisionTree(BaseEstimator):
         """
         if not hasattr(self, "tree_"):
             raise RuntimeError(
-                f"This {type(self).__name__} is not fitted yet. Call ''fit'' first."
+                f"Esta {type(self).__name__} ainda não passou pelo fit. Chame ''fit'' antes."
             )
 
     def fit(self, X, y):
@@ -143,11 +143,11 @@ class _BaseDecisionTree(BaseEstimator):
         # max_depth: None ou inteiro >=1
         # min_samples_split: inteiro >=2
         if y.dim != 1:
-            raise ValueError("y must be 1D.")
+            raise ValueError("y deve ser 1D.")
         if len(y) != X.shape[0]:
-            raise ValueError("X and y must have the same number of rows.")
+            raise ValueError("X e y devem ter o mesmo número de linhas.")
         if len(y) == 0:
-            raise ValueError("Cannot fit with zero samples.")
+            raise ValueError("Não é possível aplicar o fit com zero amostras.")
 
         # Regressão: y vira array de floats        
         # Classificação: classes_ = valores únicos ordenados de y
@@ -169,7 +169,7 @@ class _BaseDecisionTree(BaseEstimator):
         X = self._check_X(X)
         if X.shape[1] != self.n_features_in_:
             raise ValueError(
-                f"X has {X.shape[1]} features, but the model was fitted with {self.n_features_in_}."
+                f"X tem {X.shape[1]} features, mas o modelo foi fitted com {self.n_features_in_}."
             )
 
         values = []
