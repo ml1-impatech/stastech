@@ -1,5 +1,7 @@
 """Decision trees (CART) for regression and classification."""
 
+import numpy as np
+
 from dataclasses import dataclass
 
 from statstech.base import BaseEstimator, ClassifierMixin, RegressorMixin
@@ -37,7 +39,20 @@ class _BaseDecisionTree(BaseEstimator):
         return self
 
     def predict(self, X):
-        pass
+        # Validar X como 2D e conferir que existe tree_ (o modelo foi treinado)
+        for x in X: #descer pela árvore, x é linha da matriz
+            nod = tree_
+            while nod.feature != None: # enquanto nó não é folha
+                if x[nod.feature] <= nod.threshold:
+                    nod = nod.left
+                else:
+                    nod = nod.right
+            result = nod.value
+
+        # Classificação: value é um índice de classes, pegar classes_[indice], lembrar de converter value float -> int
+        # Regressão: devolver valores como estão
+        return #array (n_amostras,)
+        
 
     def _build(self, X, y, depth):
         n = len(y)
@@ -89,7 +104,10 @@ class _BaseDecisionTree(BaseEstimator):
 
 class DecisionTreeRegressor(_BaseDecisionTree, RegressorMixin):
     def _impurity(self, y):
-        pass
+        def mean(y):
+            result = 
+            return result
+        return mean((y- mean(y))**2)
 
     def _leaf_value(self, y):
         pass
@@ -97,7 +115,17 @@ class DecisionTreeRegressor(_BaseDecisionTree, RegressorMixin):
 
 class DecisionTreeClassifier(_BaseDecisionTree, ClassifierMixin):
     def _impurity(self, y):
-        pass
+        Gini = 1 - sum(p_k**2) #p_k é a proporção da classe k em y
+        counts = np.bincount(y)
+        p = counts/len(y)
+
+        # Nó puro é Gini = 0
+
+        return 1 - (p**2)
 
     def _leaf_value(self, y):
+        # empate: argmax pega o menor índice
+        # fit já deixou os índices inteiros
+        
+        return argmax(np.bincount(y))
         pass
