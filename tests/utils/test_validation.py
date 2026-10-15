@@ -81,6 +81,16 @@ def test_check_X_y_y_numerico_com_nan_ou_infinito(valor):
     with pytest.raises(ValueError, match="NaN ou valores infinitos"):
         check_X_y(X_ok, [1.0, valor, 3.0])
 
+@pytest.mark.parametrize("faltante", [None, np.nan])
+def test_check_X_y_y_texto_com_nan(faltante):
+    y = np.array(["a", faltante, "b"], dtype=object)
+    with pytest.raises(ValueError, match="NaN ou None"):
+        check_X_y(X_ok, y)
+
+def test_check_X_y_X_invalido():
+    with pytest.raises(ValueError, match="reshape"):
+        check_X_y([1, 2, 3], [1, 2, 3])
+
 
 # testes de check_is_fitted
 
