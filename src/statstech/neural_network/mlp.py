@@ -1,6 +1,7 @@
 import numpy as np
 
 from statstech.base import BaseEstimator, RegressorMixin
+from statstech.utils.validation import check_X_y, check_array, check_is_fitted
 
 
 def relu(preactivation: np.ndarray) -> np.ndarray:
@@ -100,7 +101,7 @@ class MLPRegressor(BaseEstimator, RegressorMixin):
     weights_ : list de ndarray
         Matrizes de pesos, uma por camada.
     biases_ : list de ndarray
-        Vetores de viés, um por camada. 
+        Vetores de viés, um por camada.
     loss_curve_ : list de float
         MSE no conjunto de treino ao fim de cada época.
     """
@@ -122,6 +123,7 @@ class MLPRegressor(BaseEstimator, RegressorMixin):
         self.random_state = random_state
 
     def _init_weights(self, n_features, rng):
+        """Inicializa pesos e vieses de todas as camadas."""
         layer_sizes = [n_features] + list(self.hidden_layer_sizes) + [1]
         weights = []
         biases = []
@@ -136,26 +138,28 @@ class MLPRegressor(BaseEstimator, RegressorMixin):
 
     def fit(self, X, y):
         """Treina a rede com gradiente descendente em mini-lotes.
-        
+
         Parameters
         ----------
         X : array (n_amostras, n_features)
             Dados de treino.
         y : array (n_amostras,)
             Valores alvo.
-        
+
         Returns
         -------
         self : MLPRegressor
             O modelo treinado.
-        
+
         Raises
         ------
         ValueError
-            Se `activation` não for uma das opções válidas.    
+            Se `activation` não for uma das opções válidas,
+            ou se X ou y forem inválidos.
         """
-        X = np.asarray(X, dtype=float)
-        y = np.asarray(y, dtype=float)
+        X, y = check_X_y(X, y)
+        X = X.astype(float)
+        y = y.astype(float)
         if self.activation not in ACTIVATIONS:
             raise ValueError(
                 f"Ativação inválida {self.activation!r}. "
@@ -189,24 +193,38 @@ class MLPRegressor(BaseEstimator, RegressorMixin):
 
     def predict(self, X):
         """Prevê y para cada amostra de X.
-        
+
         Parameters
         ----------
         X : array (n_amostras, n_features)
             Dados para os quais a previsão será feita.
-        
+
         Returns
         -------
         y_pred : ndarray (n_amostras,)
             Valores previstos, um por amostra.
+
+        Raises
+        ------
+        NotFittedError
+            Se o modelo ainda não foi treinado.
+        ValueError
+            Se X não for 2D, tiver NaN ou infinitos, ou tiver
+            número de features diferente do usado no treino.
         """
+        check_is_fitted(self)
+        X = check_array(X).astype(float)
+        if X.shape[1] != self.weights_[0].shape[0]:
+            raise ValueError(
+                f"X tem {X.shape[1]} features, mas o modelo foi treinado "
+                f"com {self.weights_[0].shape[0]}."
+            )
         _, activations = self._forward(X)
-        #TODO: detalhe de utils/validation para adicionar ainda
         y_pred = activations[-1][:, 0]
         return y_pred
-    
 
     def _forward(self, X):
+        """Propaga X pela rede, camada por camada."""
         func, _ = ACTIVATIONS[self.activation]
         a = X
         zs = []
@@ -222,6 +240,7 @@ class MLPRegressor(BaseEstimator, RegressorMixin):
         return zs, activations
 
     def _backward(self, y, zs, activations):
+        """Calcula os gradientes da loss por backpropagation."""
         n = len(y)
         _, der = ACTIVATIONS[self.activation]
         y_pred = activations[-1]

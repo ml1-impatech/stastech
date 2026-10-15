@@ -1,6 +1,8 @@
 import numpy as np
+import pytest
 
 from statstech.base import clone
+from statstech.utils.validation import NotFittedError
 from statstech.neural_network.mlp import (
     MLPRegressor,
     identity,
@@ -155,3 +157,19 @@ def test_fit_same_seed_same_weights():
         np.testing.assert_allclose(wa, wb)
     for ba, bb in zip(model_a.biases_, model_b.biases_):
         np.testing.assert_allclose(ba, bb)
+
+
+def test_predict_before_fit_raises():
+    model = MLPRegressor()
+    with pytest.raises(NotFittedError):
+        model.predict(np.zeros((3, 2)))
+
+
+def test_predict_wrong_n_features_raises():
+    rng = np.random.default_rng(0)
+    X = rng.normal(size=(20, 2))
+    y = X[:, 0] + X[:, 1]
+    model = MLPRegressor(hidden_layer_sizes=(4,), max_iter=1, random_state=0)
+    model.fit(X, y)
+    with pytest.raises(ValueError):
+        model.predict(np.zeros((3, 3)))
