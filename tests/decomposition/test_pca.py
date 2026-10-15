@@ -65,3 +65,30 @@ def test_get_params_nao_muda_depois_do_fit():
     pca = PCA(n_components=0.9).fit(X)
     assert pca.get_params()["n_components"] == 0.9
 
+@pytest.mark.parametrize("n_components", [0, -1, 5, 1.5, True])
+def test_n_components_invalido(n_components):
+    with pytest.raises(ValueError, match="n_components"):
+        PCA(n_components=n_components).fit(X)
+ 
+def test_transform_antes_do_fit():
+    with pytest.raises(NotFittedError):
+        PCA().transform(X)
+ 
+def test_numero_de_colunas_errado():
+    pca = PCA(n_components=2).fit(X)
+    with pytest.raises(ValueError, match="features"):
+        pca.transform(np.ones((1, 3)))
+    with pytest.raises(ValueError, match="componentes"):
+        pca.inverse_transform(np.ones((1, 3)))
+ 
+ 
+@pytest.mark.parametrize(
+    "X_ruim, mensagem",
+    [
+        ([[1.0, 2.0, 3.0]], "2 amostras"),
+        (np.ones((5, 3)), "variância zero"),
+    ],
+)
+def test_fit_X_invalido(X_ruim, mensagem):
+    with pytest.raises(ValueError, match=mensagem):
+        PCA().fit(X_ruim)
