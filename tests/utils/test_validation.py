@@ -48,6 +48,10 @@ def test_check_array_sem_ensure_numeric():
     X = check_array([["a", "b"], ["c", "d"]], ensure_numeric=False)
     assert X.shape == (2, 2)
 
+def test_check_array_valores_corretos():
+    X = np.array([[1.5, 2.0], [3.0, 4.5]])
+    np.testing.assert_allclose(check_array(X), X)
+
 
 # testes de check_X_y
 
