@@ -315,29 +315,60 @@ def macro_metric(c_matrix: list[list[int]], metric: Callable[[list[list[int]], i
     ------
     ValueError
         Se existe ValueError para toda classe em c_matrix, causando métrica indefinida
-        para toda iteração do "for".
+        para toda iteração do "for". Ignora-se classes com valor da métrica indefinido
+        ou classes com ValueError por algum outro motivo.
     """    
     t_metric = 0
+    n_valid = 0
     n_classes = len(c_matrix)
     for i in range(n_classes):
         try:
             t_metric += metric(c_matrix, i)
+            n_valid += 1
         except ValueError:
-            continue 
-    t_metric /= n_classes
+            continue
+    if n_valid == 0:
+        raise ValueError("Nenhuma classe possui métrica definida.")
+    t_metric /= n_valid 
     return t_metric
 
-def log_loss(p_matrix: npt.ArrayLike, y_true: npt.ArrayLike, epsilon: float=1e-10) -> float:
+def macro_f1(c_matrix: list[list[int]]) -> float:
+    """Calcula a média macro do F1 Score.
+
+    Parameters
+    ----------
+    c_matrix: list[list[int]]
+        Uma matriz quadrada de dimensões (n_classes, n_classes), na qual cada elemento
+        na posição [i][j] representa o número de observações tais que a verdadeira classe
+        é i e a classe prevista é j.    
+
+    Returns
+    -------
+    float
+        O macro F1 Score, que é a média aritmética do f1_score para todas as classes. 
+        Ignora-se classes com valor f1 indefinido.
+    
+    Raises
+    ------
+    ValueError
+        Se o denominador do f1 for igual a zero, causando zero divisiong error.
+        Se existe ValueError para toda classe em c_matrix, causando métrica indefinida
+        para toda iteração do "for".
+    """
+    return macro_metric(c_matrix, f1_score)
+
+
+def log_loss(y_true: npt.ArrayLike, p_matrix: npt.ArrayLike, epsilon: float=1e-10) -> float:
     """Calcula a perda logarítmica de um classificador.
 
     Parameters
     ----------
+    y_true: array-like
+        Array com os índices das classes reais do alvo, entre 0 e n_classes - 1.
     p_matrix: array-like
         Uma matriz de dimensões (n_samples, n_classes), na qual cada elemento
         na posição [i][j] representa a probabilidade de a observação i ser
         prevista como classe j.
-    y_true: array-like
-        Array com os índices das classes reais do alvo, entre 0 e n_classes - 1.
     epsilon: float, default 1e-10
         Número utilizado para evitar que se tenha log de zero.
 
@@ -390,3 +421,5 @@ def log_loss(p_matrix: npt.ArrayLike, y_true: npt.ArrayLike, epsilon: float=1e-1
 
     l_loss = -total / len(y_true)
     return float(l_loss)
+
+def roc_auc_score(y_true, )
