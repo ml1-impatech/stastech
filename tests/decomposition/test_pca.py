@@ -2,6 +2,9 @@ import numpy as np
 import pytest
 from statstech.decomposition.pca import PCA
 
+rng = np.random.default_rng(0)
+X = rng.normal(size=(100, 4))
+
 def test_componentes_ortonormais():
     C = PCA().fit(X).components_
     np.testing.assert_allclose(C @ C.T, np.eye(4), atol=1e-10)
