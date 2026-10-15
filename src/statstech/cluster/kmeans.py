@@ -1,10 +1,17 @@
 import numpy as np
 from statstech.base import BaseEstimator
 
-class Kmeans(BaseEstimator):
 
-    def __init__(self, n_clusters=8, n_init=10, max_iter=300,
-                 tol=1e-4, init="k-means++", random_state=None):
+class Kmeans(BaseEstimator):
+    def __init__(
+        self,
+        n_clusters=8,
+        n_init=10,
+        max_iter=300,
+        tol=1e-4,
+        init="k-means++",
+        random_state=None,
+    ):
         self.n_clusters = n_clusters
         self.n_init = n_init
         self.max_iter = max_iter
@@ -20,7 +27,3 @@ class Kmeans(BaseEstimator):
 
     def fit_predict(self, X, y=None):
         raise self.fit(X).labels_
-
-    
-
-    
