@@ -61,10 +61,14 @@ class BaseEstimator:
 
 
 def r2_score(y_true, y_pred):
-    if len(y_true) != len(y_pred):
-        raise ValueError("Os arrays reais e previstos devem ter o mesmo comprimento.") 
-    if len(y_true) == 0:
+    y_true = np.asarray(y_true, dtype=float)
+    y_pred = np.asarray(y_pred, dtype=float)
+    if y_true.shape != y_pred.shape:
+        raise ValueError("Os arrays reais e previstos devem ter o mesmo formato.") 
+    if y_true.size == 0:
         raise ValueError("Os arrays devem não estar vazios.")
+    if y_true.ndim != 1:
+        raise ValueError("Os arrays devem ser unidimensionais.")
     rss = np.sum((y_true - y_pred) ** 2)
     media = np.mean(y_true) 
     tss = np.sum((media-y_true)**2)
