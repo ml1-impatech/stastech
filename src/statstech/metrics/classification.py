@@ -1,4 +1,6 @@
 from collections.abc import Callable
+import numpy as np
+import numpy.typing as npt
 
 def confusion_matrix(y_true: list[int], y_pred: list[int], classes: list[int]) -> list[list[int]]:
     """Calcula a matriz de confusão para um problema de classificação.
@@ -13,9 +15,8 @@ def confusion_matrix(y_true: list[int], y_pred: list[int], classes: list[int]) -
     y_pred: list[float]
         Lista de predições baseadas nas observações.
     classes: list[int]
-        Lista das classes possíveis do classificador 
-        List of possible classes of the classifier.
-        
+        A lista de possíveis classes do problema de classificação.
+
     Returns
     -------
     c_matrix: list[list[int]] 
@@ -325,3 +326,67 @@ def macro_metric(c_matrix: list[list[int]], metric: Callable[[list[list[int]], i
             continue 
     t_metric /= n_classes
     return t_metric
+
+def log_loss(p_matrix: npt.ArrayLike, y_true: npt.ArrayLike, epsilon: float=1e-10) -> float:
+    """Calcula a perda logarítmica de um classificador.
+
+    Parameters
+    ----------
+    p_matrix: array-like
+        Uma matriz de dimensões (n_samples, n_classes), na qual cada elemento
+        na posição [i][j] representa a probabilidade de a observação i ser
+        prevista como classe j.
+    y_true: array-like
+        Array com os índices das classes reais do alvo, entre 0 e n_classes - 1.
+    epsilon: float, default 1e-10
+        Número utilizado para evitar que se tenha log de zero.
+
+    Returns
+    -------
+    l_loss: float
+        Log loss média das observações. Valores menores indicam probabilidades
+        mais favoráveis às classes verdadeiras.
+
+    Raises
+    ------
+    ValueError
+        Se as dimensões ou os valores de entrada forem inválidos.
+        Se os índices das classes forem inválidos, se houver probabilidades
+        inválidas ou se o valor de epsilon for inválido.
+    """
+    p_matrix = np.asarray(p_matrix, np.float64)
+    y_true = np.asarray(y_true)
+
+    if p_matrix.ndim != 2:
+        raise ValueError("A dimensão de p_matrix deve ser igual a 2.")
+    if y_true.ndim != 1:
+        raise ValueError("A dimensão de y_true deve ser igual a 1.")
+
+    n_samples, n_classes = p_matrix.shape
+
+    if n_samples == 0 or n_classes == 0:
+        raise ValueError("p_matrix deve conter ao menos uma observação e uma classe.")
+    if not np.isfinite(epsilon) or not 0 < epsilon < 1:
+        raise ValueError("epsilon deve ser finito e estar entre 0 e 1.")
+    if len(y_true) != n_samples:
+        raise ValueError("As dimensões de p_matrix e y_true devem ser compatíveis.")
+    if not np.issubdtype(y_true.dtype, np.integer):
+        raise ValueError("y_true deve conter índices inteiros de classes.")
+    if np.any(y_true < 0) or np.any(y_true >= n_classes):
+        raise ValueError("y_true contém índices fora do intervalo.")
+    if not np.all(np.isfinite(p_matrix)):
+        raise ValueError("p_matrix não pode conter NaN ou infinito.")
+    if np.any(p_matrix < 0) or np.any(p_matrix > 1):
+        raise ValueError("p_matrix contém probabilidades fora do intervalo.")
+    if not np.allclose(p_matrix.sum(axis=1), 1.0):
+        raise ValueError("As probabilidades de cada linha devem somar 1.")
+
+    total = 0.0
+
+    for i in range(len(y_true)):
+        ind = y_true[i]
+        prob = np.clip(p_matrix[i, ind], epsilon, 1.0)
+        total += np.log(prob)
+
+    l_loss = -total / len(y_true)
+    return float(l_loss)
