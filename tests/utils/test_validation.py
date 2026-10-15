@@ -3,7 +3,8 @@ import pytest
 
 from statstech.utils.validation import (NotFittedError, 
                                         check_array,
-                                        check_X_y)
+                                        check_X_y,
+                                        check_is_fitted)
 
 # testes de check_array
 
@@ -79,3 +80,40 @@ def test_check_X_y_y_nao_1d(y):
 def test_check_X_y_y_numerico_com_nan_ou_infinito(valor):
     with pytest.raises(ValueError, match="NaN ou valores infinitos"):
         check_X_y(X_ok, [1.0, valor, 3.0])
+
+
+# testes de check_is_fitted
+
+class Modelo:
+    """Modelo mínimo: hiperparâmetro sem _, fit cria coef_."""
+ 
+    def __init__(self, alpha=1.0):
+        self.alpha = alpha
+ 
+    def fit(self):
+        self.coef_ = np.array([1.0])
+        return self
+ 
+def test_not_fitted_error_e_value_error():
+    assert issubclass(NotFittedError, ValueError)
+    assert issubclass(NotFittedError, AttributeError)
+ 
+def test_check_is_fitted_sem_lista_nao_treinado():
+    with pytest.raises(NotFittedError, match="Modelo"):
+        check_is_fitted(Modelo())
+ 
+def test_check_is_fitted_sem_lista_treinado():
+    check_is_fitted(Modelo().fit())
+ 
+@pytest.mark.parametrize("attributes", ["coef_", ["coef_"]])
+def test_check_is_fitted_com_lista_treinado(attributes):
+    check_is_fitted(Modelo().fit(), attributes)
+ 
+@pytest.mark.parametrize("attributes", ["coef_", ["coef_"]])
+def test_check_is_fitted_com_lista_nao_treinado(attributes):
+    with pytest.raises(NotFittedError, match="coef_"):
+        check_is_fitted(Modelo(), attributes)
+ 
+def test_check_is_fitted_falta_algum_a_treinar():
+    with pytest.raises(NotFittedError, match=r"\['intercept_'\]"):
+        check_is_fitted(Modelo().fit(), ["coef_", "intercept_"])
