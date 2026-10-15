@@ -1,9 +1,10 @@
 import numpy as np
 import pytest
 from statstech.decomposition.pca import PCA
+from statstech.utils.validation import NotFittedError
 
-rng = np.random.default_rng(0)
-X = rng.normal(size=(100, 4))
+RNG = np.random.default_rng(0)
+X = RNG.normal(size=(100, 4)) * [5.0, 3.0, 1.0, 0.5]
 
 def test_componentes_ortonormais():
     C = PCA().fit(X).components_
@@ -28,3 +29,39 @@ def test_convencao_de_sinal():
     C = PCA().fit(X).components_
     maiores = C[np.arange(4), np.argmax(np.abs(C), axis=1)]
     assert np.all(maiores > 0)
+
+def test_dados_numa_reta():
+    t = np.linspace(0, 1, 30)
+    pca = PCA().fit(np.column_stack([t, 2 * t]))
+    np.testing.assert_allclose(pca.explained_variance_ratio_[0], 1.0)
+
+def test_mean():
+    np.testing.assert_allclose(PCA().fit(X).mean_, np.mean(X, axis=0))
+
+def test_variancia_igual_autovalores_da_covariancia():
+    autovalores = np.linalg.eigvalsh(np.cov(X, rowvar=False))[::-1]
+    np.testing.assert_allclose(PCA().fit(X).explained_variance_,
+                               autovalores)
+
+@pytest.mark.parametrize("formato", [(100, 4), (3, 5)])
+def test_n_components_none_usa_minimo(formato):
+    X_ = RNG.normal(size=formato)
+    assert PCA().fit(X_).n_components_ == min(formato)
+
+@pytest.mark.parametrize("k", [1, 2, 3, 4])
+def test_n_components_inteiro_formatos(k):
+    pca = PCA(n_components=k).fit(X)
+    assert pca.components_.shape == (k, 4)
+    assert pca.transform(X).shape == (100, k)
+
+def test_n_components_fracao():
+    todas = np.cumsum(PCA().fit(X).explained_variance_ratio_)
+    k = PCA(n_components=0.9).fit(X).n_components_
+    # k é o menor número de componentes que chega a 0.9.
+    assert todas[k - 1] >= 0.9
+    assert k == 1 or todas[k - 2] < 0.9
+
+def test_get_params_nao_muda_depois_do_fit():
+    pca = PCA(n_components=0.9).fit(X)
+    assert pca.get_params()["n_components"] == 0.9
+
