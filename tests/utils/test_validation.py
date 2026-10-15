@@ -52,6 +52,9 @@ def test_check_array_valores_corretos():
     X = np.array([[1.5, 2.0], [3.0, 4.5]])
     np.testing.assert_allclose(check_array(X), X)
 
+def test_check_array_bool():
+    X = check_array([[True, False], [False, True]])
+    assert X.shape == (2, 2)
 
 # testes de check_X_y
 
@@ -94,6 +97,10 @@ def test_check_X_y_y_texto_com_nan(faltante):
 def test_check_X_y_X_invalido():
     with pytest.raises(ValueError, match="reshape"):
         check_X_y([1, 2, 3], [1, 2, 3])
+
+def test_check_X_y_y_bool():
+    _, y = check_X_y(X_ok, [True, False, True])
+    assert y.shape == (3,)
 
 
 # testes de check_is_fitted
