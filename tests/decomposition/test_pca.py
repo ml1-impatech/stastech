@@ -2,9 +2,9 @@ import numpy as np
 import pytest
 from statstech.decomposition.pca import PCA
 from statstech.utils.validation import NotFittedError
+from statstech.base import clone
 
-RNG = np.random.default_rng(0)
-X = RNG.normal(size=(100, 4)) * [5.0, 3.0, 1.0, 0.5]
+X = np.random.default_rng(0).normal(size=(100, 4)) * [5.0, 3.0, 1.0, 0.5]
 
 def test_componentes_ortonormais():
     C = PCA().fit(X).components_
@@ -31,9 +31,11 @@ def test_convencao_de_sinal():
     assert np.all(maiores > 0)
 
 def test_dados_numa_reta():
-    t = np.linspace(0, 1, 30)
-    pca = PCA().fit(np.column_stack([t, 2 * t]))
+    x = np.linspace(0, 1, 30)
+    pca = PCA().fit(np.column_stack([x, 2 * x]))
     np.testing.assert_allclose(pca.explained_variance_ratio_[0], 1.0)
+    np.testing.assert_allclose(pca.components_[0],
+                               np.array([1.0, 2.0]) / np.sqrt(5))
 
 def test_mean():
     np.testing.assert_allclose(PCA().fit(X).mean_, np.mean(X, axis=0))
@@ -45,7 +47,7 @@ def test_variancia_igual_autovalores_da_covariancia():
 
 @pytest.mark.parametrize("formato", [(100, 4), (3, 5)])
 def test_n_components_none_usa_minimo(formato):
-    X_ = RNG.normal(size=formato)
+    X_ = np.random.default_rng(0).normal(size=formato)
     assert PCA().fit(X_).n_components_ == min(formato)
 
 @pytest.mark.parametrize("k", [1, 2, 3, 4])
@@ -57,7 +59,6 @@ def test_n_components_inteiro_formatos(k):
 def test_n_components_fracao():
     todas = np.cumsum(PCA().fit(X).explained_variance_ratio_)
     k = PCA(n_components=0.9).fit(X).n_components_
-    # k é o menor número de componentes que chega a 0.9.
     assert todas[k - 1] >= 0.9
     assert k == 1 or todas[k - 2] < 0.9
 
@@ -70,9 +71,10 @@ def test_n_components_invalido(n_components):
     with pytest.raises(ValueError, match="n_components"):
         PCA(n_components=n_components).fit(X)
  
-def test_transform_antes_do_fit():
+@pytest.mark.parametrize("metodo", ["transform", "inverse_transform"])
+def test_antes_do_fit(metodo):
     with pytest.raises(NotFittedError):
-        PCA().transform(X)
+        getattr(PCA(), metodo)(X)
  
 def test_numero_de_colunas_errado():
     pca = PCA(n_components=2).fit(X)
@@ -80,7 +82,6 @@ def test_numero_de_colunas_errado():
         pca.transform(np.ones((1, 3)))
     with pytest.raises(ValueError, match="componentes"):
         pca.inverse_transform(np.ones((1, 3)))
- 
  
 @pytest.mark.parametrize(
     "X_ruim, mensagem",
@@ -92,3 +93,23 @@ def test_numero_de_colunas_errado():
 def test_fit_X_invalido(X_ruim, mensagem):
     with pytest.raises(ValueError, match=mensagem):
         PCA().fit(X_ruim)
+
+def test_fit_transform_igual_a_fit_depois_transform():
+    np.testing.assert_allclose(PCA(n_components=2).fit_transform(X),
+                               PCA(n_components=2).fit(X).transform(X))
+
+def test_transform_usa_media_do_treino():
+    X_novo = np.random.default_rng(1).normal(size=(10, 4)) + 3.0
+    pca = PCA(n_components=2).fit(X)
+    esperado = (X_novo - pca.mean_) @ pca.components_.T
+    np.testing.assert_allclose(pca.transform(X_novo), esperado)
+
+def test_fit_devolve_self():
+    pca = PCA()
+    assert pca.fit(X) is pca
+
+def test_clone_devolve_pca_nao_treinado():
+    novo = clone(PCA(n_components=2).fit(X))
+    assert isinstance(novo, PCA)
+    assert novo.n_components == 2
+    assert not hasattr(novo, "components_")
