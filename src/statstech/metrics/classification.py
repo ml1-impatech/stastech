@@ -34,9 +34,12 @@ def confusion_matrix(y_true: list[int], y_pred: list[int], classes: list[int]) -
     if len(y_true) == 0:
         raise ValueError("As listas de input devem ser não vazias.")
     n_classes = len(classes)
+    dict_classes = {}
+    for i in range(n_classes):
+        dict_classes[classes[i]] = i
     c_matrix = [[0 for _ in range(n_classes)] for _ in range(n_classes)]
     for i in range(len(y_true)):
-        c_matrix[y_true[i]][y_pred[i]] += 1
+        c_matrix[dict_classes[y_true[i]]][dict_classes[y_pred[i]]] += 1
     return c_matrix
 
 def true_positives(c_matrix: list[list[int]], class_k: int) -> int:
