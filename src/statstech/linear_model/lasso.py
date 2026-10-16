@@ -23,13 +23,13 @@ class Lasso(BaseEstimator, RegressorMixin):
         y = np.asarray(y, dtype = float)
 
         if X.ndim != 2:
-            raise ValueError("X must be a 2D matrix")
+            raise ValueError("X deve ser uma matriz 2d")
 
         if y.ndim != 1:
-            raise ValueError("y must be a vector")
+            raise ValueError("y deve ser um vetor")
 
         if X.shape[1] != y.shape[1]:
-            raise ValueError("X and y must have the same number of sample")
+            raise ValueError("X e y devem possuir o mesmo número de amostras")
 
         if self.fit_interept is True:
             X_mean = np.mean(X, axis = 0)
@@ -89,9 +89,9 @@ class Lasso(BaseEstimator, RegressorMixin):
         X = np.asarray(X, dtype = float)
 
         if not hasattr(self, "coef_"):
-            raise ValueError("The model has not been trained")
+            raise ValueError("O modelo não foi treinado")
 
         if X.ndim != 2:
-            raise ValueError("X must be a 2D matrix")
+            raise ValueError("X deve ser uma matriz 2D")
 
         y_predicted = X @ self.coef_ + self.intercept_
