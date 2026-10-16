@@ -155,8 +155,8 @@ def accuracy_score(c_matrix: list[list[int]]) -> float:
     Raises
     ------
     ValueError
-        Se não houver elementos na matriz de confusão, causando zero divisiong error.
-        Se a matriz for completamente zerada, causando zero divisiong error.
+        Se não houver elementos na matriz de confusão, tornando a métrica indefinida.
+        Se a matriz for completamente zerada, tornando a métrica indefinida.
     """
     if len(c_matrix) == 0:
         raise ValueError("A matriz de confusão deve ter ao menos um elemento.")
@@ -187,13 +187,13 @@ def precision_score(c_matrix: list[list[int]], class_k: int) -> float:
     Returns
     -------
     tp/(tp+fp): float
-        A razão entre True Positives e todas as observações previstas como class_k. 
-        Isto indica o quanto um classificador é correto quando prevendo class_k.
+        A proporção das observações previstas como pertencentes a class_k
+        que realmente pertencem a essa classe.
     
     Raises
     ------
     ValueError
-        Se tp+fp for igual a zero, causando zero divisiong error.
+        Se tp+fp for igual a zero, tornando a métrica indefinida.
     """
     tp = true_positives(c_matrix, class_k)
     fp = false_positives(c_matrix, class_k)
@@ -223,7 +223,7 @@ def recall_score(c_matrix: list[list[int]], class_k: int) -> float:
     Raises
     ------
     ValueError
-        Se tp+fn for igual a zero, causando zero divisiong error.
+        Se tp+fn for igual a zero, tornando a métrica indefinida.
     """
     tp = true_positives(c_matrix, class_k)
     fn = false_negatives(c_matrix, class_k)
@@ -232,8 +232,8 @@ def recall_score(c_matrix: list[list[int]], class_k: int) -> float:
     else:
         raise ValueError("tp + fn deve ser diferente de 0.")
 
-def specifity_score(c_matrix: list[list[int]], class_k: int) -> float:
-    """Calcula o Specifity Score para uma matriz de confusão.
+def specificity_score(c_matrix: list[list[int]], class_k: int) -> float:
+    """Calcula o Specificity Score para uma matriz de confusão.
 
     Parameters
     ----------
@@ -242,7 +242,7 @@ def specifity_score(c_matrix: list[list[int]], class_k: int) -> float:
         na posição [i][j] representa o número de observações tais que a verdadeira classe
         é i e a classe prevista é j.    
     class_k: int
-        O índice da classe para qual o specifity score será calculado.
+        O índice da classe para qual o Specificity score será calculado.
 
     Returns
     -------
@@ -254,7 +254,7 @@ def specifity_score(c_matrix: list[list[int]], class_k: int) -> float:
     Raises
     ------
     ValueError
-        Se tn+fp for igual a zero, causando zero divisiong error.
+        Se tn+fp for igual a zero, tornando a métrica indefinida.
     """    
     tn = true_negatives(c_matrix, class_k)
     fp = false_positives(c_matrix, class_k)
@@ -284,7 +284,7 @@ def f1_score(c_matrix: list[list[int]], class_k: int) -> float:
     Raises
     ------
     ValueError
-        Se o denominador do f1 for igual a zero, causando zero divisiong error.
+        Se o denominador do f1 for igual a zero, tornando a métrica indefinida.
     """    
     tp = true_positives(c_matrix, class_k)
     fp = false_positives(c_matrix, class_k)
@@ -351,11 +351,82 @@ def macro_f1(c_matrix: list[list[int]]) -> float:
     Raises
     ------
     ValueError
-        Se o denominador do f1 for igual a zero, causando zero divisiong error.
         Se existe ValueError para toda classe em c_matrix, causando métrica indefinida
         para toda iteração do "for".
     """
     return macro_metric(c_matrix, f1_score)
+
+def macro_specificity(c_matrix: list[list[int]]) -> float:
+    """Calcula a média macro do Specificity Score.
+
+    Parameters
+    ----------
+    c_matrix: list[list[int]]
+        Uma matriz quadrada de dimensões (n_classes, n_classes), na qual cada elemento
+        na posição [i][j] representa o número de observações tais que a verdadeira classe
+        é i e a classe prevista é j.    
+
+    Returns
+    -------
+    float
+        O macro Specificity Score, que é a média aritmética do specificity_score para todas as classes. 
+        Ignora-se classes com valor indefinido.
+    
+    Raises
+    ------
+    ValueError
+        Se existe ValueError para toda classe em c_matrix, causando métrica indefinida
+        para toda iteração do "for".
+    """
+    return macro_metric(c_matrix, specificity_score)
+
+def macro_recall(c_matrix: list[list[int]]) -> float:
+    """Calcula a média macro do Recall Score.
+
+    Parameters
+    ----------
+    c_matrix: list[list[int]]
+        Uma matriz quadrada de dimensões (n_classes, n_classes), na qual cada elemento
+        na posição [i][j] representa o número de observações tais que a verdadeira classe
+        é i e a classe prevista é j.    
+
+    Returns
+    -------
+    float
+        O macro Recall Score, que é a média aritmética do recall_score para todas as classes. 
+        Ignora-se classes com valor indefinido.
+    
+    Raises
+    ------
+    ValueError
+        Se existe ValueError para toda classe em c_matrix, causando métrica indefinida
+        para toda iteração do "for".
+    """
+    return macro_metric(c_matrix, recall_score)
+
+def macro_precision(c_matrix: list[list[int]]) -> float:
+    """Calcula a média macro do Precision Score.
+
+    Parameters
+    ----------
+    c_matrix: list[list[int]]
+        Uma matriz quadrada de dimensões (n_classes, n_classes), na qual cada elemento
+        na posição [i][j] representa o número de observações tais que a verdadeira classe
+        é i e a classe prevista é j.    
+
+    Returns
+    -------
+    float
+        O macro Precision Score, que é a média aritmética do precision_score para todas as classes. 
+        Ignora-se classes com valor indefinido.
+    
+    Raises
+    ------
+    ValueError
+        Se existe ValueError para toda classe em c_matrix, causando métrica indefinida
+        para toda iteração do "for".
+    """
+    return macro_metric(c_matrix, precision_score)
 
 
 def log_loss(y_true: npt.ArrayLike, p_matrix: npt.ArrayLike, epsilon: float=1e-10) -> float:
@@ -422,4 +493,9 @@ def log_loss(y_true: npt.ArrayLike, p_matrix: npt.ArrayLike, epsilon: float=1e-1
     l_loss = -total / len(y_true)
     return float(l_loss)
 
-def roc_auc_score(y_true, )
+def roc_auc_score(y_true, y_score):
+    epsilon = 1e-10
+    threshholds = []
+    for i in range(len(y_score)):
+        threshholds.append(y_score[i])
+        
