@@ -2,6 +2,39 @@ import numpy as np
 from base import BaseEstimator, RegressorMixin
 
 class Lasso(BaseEstimator, RegressorMixin):
+    """
+    Modelo de Regressão Linear com regularização L1.
+
+    Parameters
+    ----------
+    alpha : float, defaut = 1.0
+        Constante não negativa que multiplica o termo de penalização L1,
+        determinando a intensidade da regularização.
+
+    fit_intercept : bool, defaut = True
+        Quando verdadeiro, o intercepto é calculado. Quando é falso, o 
+        intercepto não é usado nos calculos.
+
+    tol = float, default = 1e-4
+        Tolerância usada para verificar a otimização dos coeficientes.
+
+    max_iteration = int, defaut = 1000
+        Número máximo de iterações para o algoritmo.
+
+    Attributes
+    ----------
+    coef_ : ndarray
+        Coeficientes estimados para as variáveis de entrada.
+
+    intercept_ : float
+        Intercepto calculado pelo modelo.
+
+    n_iteration_ : int
+        Número de iterações.
+
+    n_features_in : int
+        Número de variáeis calculada pelo modelo.
+    """
 
     def __init__(self, alpha = 1.0, fit_intercept = True, tol = 1e-4, max_iteration = 1000):
         self.alpha = alpha
@@ -11,6 +44,23 @@ class Lasso(BaseEstimator, RegressorMixin):
 
     @staticmethod
     def _sort_threshold(z, threshold):
+        """
+        Aplica o operador de limiarização suave.
+
+        Parameters
+        ----------
+        z : float
+            Valor em que o operador está sendo aplicado.
+
+        threshold : float
+            Limiar utilizado ma transformação.
+
+        Returns
+        -------
+        float
+            Valor resultante do limiar suave.        
+        """
+
         if z > threshold:
             return z - threshold
         elif z < -threshold:
@@ -19,6 +69,30 @@ class Lasso(BaseEstimator, RegressorMixin):
             return 0.0
 
     def fit(self, X, y):
+        """
+        Ajusta o modelo de regressão Lasso aos dados de treino.
+
+        Parameters
+        ----------
+        X : array-like, shape (n_samples, n_features)
+            Matriz com os dados de treinamento.
+
+        y : array-like, shape (n_samples,)
+            Valores observados usados para o ajuste do modelo.
+
+        Returns
+        -------
+        self : object
+            Retorna a instância ajustada pelo modelo.
+
+        Raises
+        ------
+        ValueError
+            Se X não for uma matriz 2D.
+            Se X não for um vetor.
+            Se o número de amostras de X e y não são iguais.
+        """
+
         X = np.asarrya(X, dtype = float)
         y = np.asarray(y, dtype = float)
 
@@ -86,6 +160,25 @@ class Lasso(BaseEstimator, RegressorMixin):
 
 
     def predict(self, X):
+        """
+        Realiza previsões de y com base nos valores fornecidos em X.
+
+        Parameters
+        ----------
+        X : array-like, shape (n_samples, n_features)
+            Amostras a serem previstas.
+
+        Returns
+        -------
+        y_predicted : ndarray, shape (n_samples,)
+            Valores preditos pelo modelo.
+
+        Raises
+        ------
+        ValueError
+            Se X não é uma matriz 2D.
+            Se o modelo não tiver sido treinado.
+        """
         X = np.asarray(X, dtype = float)
 
         if not hasattr(self, "coef_"):

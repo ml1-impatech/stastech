@@ -17,7 +17,7 @@ class Ridge(BaseEstimator, RegressorMixin):
         o intercepto não é utilizado nos calculos.
 
 
-    Atributes
+    Attributes
     ---------
 
     coef_ : ndarray
@@ -49,7 +49,7 @@ class Ridge(BaseEstimator, RegressorMixin):
         Returns
         -------
         self : object
-            Retorna a instância ajusta pelo modelo.
+            Retorna a instância ajustada pelo modelo.
 
         Raises
         ------

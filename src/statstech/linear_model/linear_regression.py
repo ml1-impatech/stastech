@@ -11,7 +11,7 @@ class LinearRegression( BaseEstimator, RegressorMixin):
         Quando verdadeiro, o intercepto é calculado. Quando é falso,
         o intercepto não é utiliado nos calculos.
 
-    Atributes
+    Attributes
     ---------
     coef_ : ndarray
         Coeficientes estimados para as variáeis de entrada.
