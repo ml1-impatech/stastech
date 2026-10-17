@@ -102,8 +102,7 @@ class LogisticRegression(BaseEstimator, ClassifierMixin):
         K = len(self.classes_)
         p = X.shape[1]
         n = X.shape[0]
-        self.mean_ = np.mean(X, axis=0)
-        self.std_ = np.std(X, axis=0)
+   
         self.coef_ = np.zeros((p,K))
     
         if self.fit_intercept:
@@ -113,12 +112,6 @@ class LogisticRegression(BaseEstimator, ClassifierMixin):
 
         Y = np.zeros((n, K))
         Y[np.arange(n), y_indices] = 1
-
-        # evita divisão por zero na hora de padronizar
-        self.std_[self.std_ == 0] = 1
-
-        # padroniza as variáveis de entrada
-        X = (X - self.mean_) / self.std_
 
         self.loss_history_ = []
      
@@ -153,7 +146,7 @@ class LogisticRegression(BaseEstimator, ClassifierMixin):
         if not isinstance(X, np.ndarray) or X.ndim != 2:
             raise ValueError("X deve ser um array de duas dimensões.")
 
-        if X.shape[1] != self.mean_.shape[0]:
+        if X.shape[1] != self.coef_.shape[0]:
             raise ValueError("X deve ter o mesmo número de características usado no fit.")
 
         if X.shape[0] == 0:
@@ -161,8 +154,6 @@ class LogisticRegression(BaseEstimator, ClassifierMixin):
 
         if not np.all(np.isfinite(X)):
             raise ValueError("X deve ter apenas valores finitos.")
-        
-        X = (X - self.mean_) / self.std_
 
         if self.fit_intercept:
             z = X @ self.coef_ + self.intercept_
