@@ -3,6 +3,27 @@ import numpy as np
 import numpy.typing as npt
 import warnings
 
+
+def _validate_confusion_matrix(c_matrix: list[list[int]]) -> None:
+    """Valida se a matriz de confusão é não vazia e quadrada."""
+    if len(c_matrix) == 0:
+        raise ValueError("A matriz de confusão deve ter ao menos um elemento.")
+
+    if not all(len(row) == len(c_matrix) for row in c_matrix):
+        raise ValueError("A matriz de confusão deve ser quadrada.")
+
+
+def _validate_class_index( c_matrix: list[list[int]], class_k: int) -> None:
+    """Valida a matriz de confusão e o índice da classe."""
+    _validate_confusion_matrix(c_matrix)
+
+    if isinstance(class_k, (bool, np.bool_)) or not isinstance(class_k, (int, np.integer)):
+        raise ValueError("class_k deve ser um inteiro.")
+
+    if not 0 <= class_k < len(c_matrix):
+        raise ValueError("class_k está fora do intervalo válido.")
+
+
 def confusion_matrix(y_true: list[int], y_pred: list[int], classes: list[int]) -> list[list[int]]:
     """Calcula a matriz de confusão para um problema de classificação.
     
@@ -70,9 +91,11 @@ def true_positives(c_matrix: list[list[int]], class_k: int) -> int:
     ------
     ValueError
         Se c_class for menor que zero ou maior que o número total de classes.
+        Se a matriz de confusão não for quadrada ou for vazia.
+        Se class_k for inválido.
     """
-    if not 0 <= class_k < len(c_matrix):
-        raise ValueError("class_k está fora do intervalo válido.") 
+    _validate_class_index(c_matrix, class_k)
+
     t_positives = c_matrix[class_k][class_k]
     return t_positives
 
@@ -99,9 +122,11 @@ def false_positives(c_matrix: list[list[int]], class_k: int) -> int:
     ------
     ValueError
         Se c_class for menor que zero ou maior que o número total de classes.
+        Se a matriz de confusão não for quadrada ou for vazia.
+        Se class_k for inválido.
     """
-    if not 0 <= class_k < len(c_matrix):
-        raise ValueError("class_k está fora do intervalo válido.") 
+    _validate_class_index(c_matrix, class_k)
+
     f_positives = 0
     for i in range(len(c_matrix)):
         if i != class_k:
@@ -131,9 +156,11 @@ def true_negatives(c_matrix: list[list[int]], class_k: int) -> int:
     ------
     ValueError
         Se c_class for menor que zero ou maior que o número total de classes.
+        Se a matriz de confusão não for quadrada ou for vazia.
+        Se class_k for inválido.
     """
-    if not 0 <= class_k < len(c_matrix):
-        raise ValueError("class_k está fora do intervalo válido.") 
+    _validate_class_index(c_matrix, class_k)
+
     t_negatives = 0
     for i in range(len(c_matrix)):
         for j in range(len(c_matrix)):
@@ -164,9 +191,11 @@ def false_negatives(c_matrix: list[list[int]], class_k: int) -> int:
     ------
     ValueError
         Se c_class for menor que zero ou maior que o número total de classes.
+        Se a matriz de confusão não for quadrada ou for vazia.
+        Se class_k for inválido.
     """
-    if not 0 <= class_k < len(c_matrix):
-        raise ValueError("class_k está fora do intervalo válido.") 
+    _validate_class_index(c_matrix, class_k)
+    
     f_negatives = 0
     for j in range(len(c_matrix)):
         if j != class_k:
@@ -196,10 +225,8 @@ def accuracy_score(c_matrix: list[list[int]]) -> float:
         Se a matriz for completamente zerada, tornando a métrica indefinida.
         Se a matriz de confusão não for quadrada.
     """
-    if len(c_matrix) == 0:
-        raise ValueError("A matriz de confusão deve ter ao menos um elemento.")
-    if not all(len(row) == len(c_matrix) for row in c_matrix):
-        raise ValueError("A matriz de confusão deve ser quadrada.")
+    _validate_confusion_matrix(c_matrix)
+    
     true_predictions = 0
     total = 0
     for i in range(len(c_matrix)):
