@@ -2,11 +2,55 @@ import numpy as np
 from base import BaseEstimator, RegressorMixin
 
 class LinearRegression( BaseEstimator, RegressorMixin):
+    """ 
+    Modelo de regressão linear baseado em mínimos quadrados.
+
+    Parameters
+    ----------
+    fit_intercept : bool, default = True
+        Quando verdadeiro, o intercepto é calculado. Quando é falso,
+        o intercepto não é utiliado nos calculos.
+
+    Atributes
+    ---------
+    coef_ : ndarray
+        Coeficientes estimados para as variáeis de entrada.
+
+    intercept_ : float
+        Intercepto calculado pelo modelo.
+    
+    n_features_in : int
+        Número de variáveis usadas para calcular o modelo.
+    """
 
     def __init__(self, fit_intercept = True):
         self.fit_intercept = fit_intercept
 
     def fit(self, X, y):
+        """ 
+        Ajusta o modelo aos dados de treinamento
+
+        Parameters
+        ----------
+        X : array-like, shape (n_samples, n_features)
+            Matriz com os dados de treinamento.
+
+        y: array-like, shape (n_samples,)
+            Valores observados usados para ajuste do modelo.
+
+
+        Returns
+        -------
+        self : LinearRegression
+            Retorna a instâcia ajustada do modelo.
+
+        Raises
+        ------
+        ValueError
+            Se X não for uma matriz 2D.
+            Se y não for um vetor.
+            Se o número de amostras de X e y não são iguais.
+        """
 
         X = np.asarray(X, dtype = float)
         y = np.asarray(y, dtype = float)
@@ -43,6 +87,26 @@ class LinearRegression( BaseEstimator, RegressorMixin):
         return self
 
     def predict(self, X):
+        """
+        Realiza previsões de y com base nos valores fornecidos em X.
+
+        Parameters
+        ----------
+        X : array-like, shape (n_samples, n_features)
+            Amostras a serem previstas
+
+        Returns
+        -------
+        y_predict : ndarray, shape (n_samples, )
+            Valores preditos pelo modelo
+
+        Raises
+        ------
+        ValueError
+            Se X não é uma matriz 2D
+            Se o modelo não tiver sido treinado
+                
+        """
         X = np.asarray(X, dtype = float)
 
         if X.ndim != 2:
