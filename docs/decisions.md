@@ -6,17 +6,25 @@ Este documento registra as decisões tomadas na construção da biblioteca `stat
 
 - Inspirado na biblioteca [CB2325NumericaG8](https://github.com/lazyluca/CB2325NumericaG8) construída pelos alunos do IMPA-Tech na disciplina de **Programação 2 2025**
 - **`src/`**: o código fica em `src/statstech/`, uma pasta por módulo
-  (`linear_model`, `tree`, `neural_network`, `metrics` etc.). 
+  (`linear_model`, `tree`, `neural_network`, `metrics` etc.).
 - **`tests/`** para cada módulo.
-- **`examples/`** 
+- **`examples/`** com um exemplo simples de uso para cada módulo.
 - **`docs/`** guarda este documento.
 
-## 2. Classe ou função?
+## 2. Classe ou função
 
-- **Classe** quando o objeto **guarda estado aprendido**: modelos e
+- **Classe** quando o objeto guarda estado aprendido: modelos e
   transformadores.
 - **Função** quando só recebe entrada e devolve saída, sem estado: métricas,
   funções de validação e de reamostragem.
+
+## 3. Código compartilhado
+
+Funcionalidades usadas por vários módulos ficam localizadas em um mesmo arquivo para evitar repetições de funções.
+
+- **`base.py`**
+- **`utils/validation.py`** (Todos os modelos validam entradas do mesmo jeito e levantam as mesmas mensagens de erro).
+
 
 ## 3. Pré-processamento 
 
@@ -35,7 +43,6 @@ código em cada modelo e mantém cada módulo com uma responsabilidade.
 - A `main` é **protegida**.
   Mudança por Pull Request.
 - Uma branch por tarefa.
-- Os PRs entram com **merge commit**.
 - Problemas e propostas de mudança são registrados como *issues*.
 
 ## 6. Instalação
