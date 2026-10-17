@@ -32,7 +32,7 @@ pip install statstech
 | `neighbors` | KNN |
 | `discriminant_analysis` | LDA, QDA |
 | `tree` | Árvores de decisão (regressão e classificação) |
-| `neural_network` | `MLPRegressor` |
+| `neural_network` | Redes neurais (regressão) |
 | `decomposition` | PCA |
 | `cluster` | K-means |
 | `model_selection` | Divisão treino/teste, k-fold, LOOCV, bootstrap, busca de hiperparâmetros |
@@ -62,6 +62,10 @@ to Statistical Learning with Applications in Python*. Springer, 2023.
 | Manuela Ronconi | [manuronconi](https://github.com/manuronconi) |
 | Maria Clara Fernandes | [mclaracarvalhoo](https://github.com/mclaracarvalhoo) |
 | Maria Izabelle Silva | [izabelle02](https://github.com/izabelle02) |
+
+## Uso de IA 
+
+Seguindo as políticas internas da instituição, o Claude (Anthropic) foi utilizado como ferramenta de consulta para explicações de conceito e sintaxe, revisão de código e rascunhos de docstrings. 
 
 ## Licença
 
