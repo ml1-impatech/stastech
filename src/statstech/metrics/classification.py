@@ -1,6 +1,7 @@
 from collections.abc import Callable
 import numpy as np
 import numpy.typing as npt
+import warnings
 
 def confusion_matrix(y_true: list[int], y_pred: list[int], classes: list[int]) -> list[list[int]]:
     """Calcula a matriz de confusão para um problema de classificação.
@@ -28,6 +29,7 @@ def confusion_matrix(y_true: list[int], y_pred: list[int], classes: list[int]) -
     ------
     ValueError
         Se y_true e y_pred tiverem comprimentos diferentes ou se algum dos dois for vazio.
+        Se classes for vazio ou se houver duplicatas em classes.
     """
     if len(y_true) != len(y_pred):
         raise ValueError("A lista de predições e de valores reais devem ter o mesmo comprimento.")
@@ -35,9 +37,13 @@ def confusion_matrix(y_true: list[int], y_pred: list[int], classes: list[int]) -
         raise ValueError("As listas de input devem ser não vazias.")
     n_classes = len(classes)
     dict_classes = {}
+    if not classes:
+        raise ValueError("classes deve ser não vazio.")
     for i in range(n_classes):
         dict_classes[classes[i]] = i
     c_matrix = [[0 for _ in range(n_classes)] for _ in range(n_classes)]
+    if len(set(classes)) != len(classes):
+        raise ValueError("classes não pode conter duplicatas.")
     for i in range(len(y_true)):
         c_matrix[dict_classes[y_true[i]]][dict_classes[y_pred[i]]] += 1
     return c_matrix
@@ -59,9 +65,16 @@ def true_positives(c_matrix: list[list[int]], class_k: int) -> int:
     true_positives: int
         O elemento c_matrix[class_k][class_k], o qual indica quantas vezes o classificador
         retornou class_k quando esta era a verdadeira classe da observação.
+    
+    Raises
+    ------
+    ValueError
+        Se c_class for menor que zero ou maior que o número total de classes.
     """
-    true_positives = c_matrix[class_k][class_k]
-    return true_positives
+    if not 0 <= class_k < len(c_matrix):
+        raise ValueError("class_k está fora do intervalo válido.") 
+    t_positives = c_matrix[class_k][class_k]
+    return t_positives
 
 def false_positives(c_matrix: list[list[int]], class_k: int) -> int:
     """Calcula o False Positives de uma matriz de confusão para uma classe específica.
@@ -81,12 +94,19 @@ def false_positives(c_matrix: list[list[int]], class_k: int) -> int:
         A soma das entradas da coluna class_k, exceto c_matri[class_k][class_k].
         Isto representa o número de observações previstas como class_k quando sua
         classe verdadeira era diferente de class_k.
+    
+    Raises
+    ------
+    ValueError
+        Se c_class for menor que zero ou maior que o número total de classes.
     """
-    false_positives = 0
+    if not 0 <= class_k < len(c_matrix):
+        raise ValueError("class_k está fora do intervalo válido.") 
+    f_positives = 0
     for i in range(len(c_matrix)):
         if i != class_k:
-            false_positives += c_matrix[i][class_k]
-    return false_positives
+            f_positives += c_matrix[i][class_k]
+    return f_positives
 
 def true_negatives(c_matrix: list[list[int]], class_k: int) -> int:
     """Calcula o True Negatives de uma matriz de confusão para uma classe específica.
@@ -106,13 +126,20 @@ def true_negatives(c_matrix: list[list[int]], class_k: int) -> int:
         Soma de todas as entradas fora da coluna class_k e linha class_k. Isto representa 
         o número de observações as quais a verdadeira classe e a classe prevista são 
         ambas diferentes de class_k.
+    
+    Raises
+    ------
+    ValueError
+        Se c_class for menor que zero ou maior que o número total de classes.
     """
-    true_negatives = 0
+    if not 0 <= class_k < len(c_matrix):
+        raise ValueError("class_k está fora do intervalo válido.") 
+    t_negatives = 0
     for i in range(len(c_matrix)):
         for j in range(len(c_matrix)):
             if i != class_k and j != class_k:
-                true_negatives += c_matrix[i][j]
-    return true_negatives
+                t_negatives += c_matrix[i][j]
+    return t_negatives
 
 def false_negatives(c_matrix: list[list[int]], class_k: int) -> int:
     """Calcula o False Negatives de uma matriz de confusão para uma classe específica.
@@ -132,12 +159,19 @@ def false_negatives(c_matrix: list[list[int]], class_k: int) -> int:
         Soma de todas as entradas na linha class_k, exceto c_matrix[class_k][class_k].
         Isto representa o número de observações os quais a verdadeira classe é class_k,
         mas que foram predivistas em classes diferentes de class_k.
+    
+    Raises
+    ------
+    ValueError
+        Se c_class for menor que zero ou maior que o número total de classes.
     """
-    true_negatives = 0
+    if not 0 <= class_k < len(c_matrix):
+        raise ValueError("class_k está fora do intervalo válido.") 
+    f_negatives = 0
     for j in range(len(c_matrix)):
         if j != class_k:
-            true_negatives += c_matrix[class_k][j]
-    return true_negatives
+            f_negatives += c_matrix[class_k][j]
+    return f_negatives
 
 def accuracy_score(c_matrix: list[list[int]]) -> float:
     """Calcula o Accuracy Score para uma matriz de confusão. 
@@ -160,9 +194,12 @@ def accuracy_score(c_matrix: list[list[int]]) -> float:
     ValueError
         Se não houver elementos na matriz de confusão, tornando a métrica indefinida.
         Se a matriz for completamente zerada, tornando a métrica indefinida.
+        Se a matriz de confusão não for quadrada.
     """
     if len(c_matrix) == 0:
         raise ValueError("A matriz de confusão deve ter ao menos um elemento.")
+    if not all(len(row) == len(c_matrix) for row in c_matrix):
+        raise ValueError("A matriz de confusão deve ser quadrada.")
     true_predictions = 0
     total = 0
     for i in range(len(c_matrix)):
@@ -297,43 +334,60 @@ def f1_score(c_matrix: list[list[int]], class_k: int) -> float:
     else: 
         raise ValueError("O denominador 2*tp + fn + fp deve ser diferente de zero.")
 
-def macro_metric(c_matrix: list[list[int]], metric: Callable[[list[list[int]], int], float]) -> float:
-    """Calcula o média macro para uma métrica específica em uma matriz de confusão.
+def macro_metric(
+    c_matrix: list[list[int]],
+    metric: Callable[[list[list[int]], int], float]
+) -> float:
+    """Calcula a média macro para uma métrica específica.
 
     Parameters
     ----------
-    c_matrix: list[list[int]]
-        Uma matriz quadrada de dimensões (n_classes, n_classes), na qual cada elemento
-        na posição [i][j] representa o número de observações tais que a verdadeira classe
-        é i e a classe prevista é j.    
-    metric: callable
-        A métrica que será utilizada para calcular seu macro.
+    c_matrix : list[list[int]]
+        Matriz de confusão quadrada.
+    metric : Callable
+        Métrica que será utilizada para calcular a média macro.
 
     Returns
     -------
-    t_metric: float
-        A média aritmética da métrica calculada para cada classe.
-    
+    float
+        Média aritmética da métrica calculada para as classes cuja 
+        métrica possui valor definido.
+
+    Warns
+    -----
+    UserWarning
+        Se uma ou mais classes forem ignoradas por terem provocado 
+        ValueError durante o cálculo.
+
     Raises
     ------
     ValueError
-        Se existe ValueError para toda classe em c_matrix, causando métrica indefinida
-        para toda iteração do "for". Ignora-se classes com valor da métrica indefinido
-        ou classes com ValueError por algum outro motivo.
-    """    
-    t_metric = 0
+        Se nenhuma classe possuir métrica definida.
+    """
+    total_metric = 0.0
     n_valid = 0
     n_classes = len(c_matrix)
+    ignored_classes = 0
+
     for i in range(n_classes):
         try:
-            t_metric += metric(c_matrix, i)
+            total_metric += metric(c_matrix, i)
             n_valid += 1
         except ValueError:
-            continue
+            ignored_classes += 1
+
     if n_valid == 0:
         raise ValueError("Nenhuma classe possui métrica definida.")
-    t_metric /= n_valid 
-    return t_metric
+
+    if ignored_classes > 0:
+        warnings.warn(
+            f"{ignored_classes} classe(s) desconsiderada(s) "
+            "porque a métrica lançou ValueError.",
+            UserWarning,
+            stacklevel=2
+        )
+
+    return total_metric / n_valid
 
 def macro_f1(c_matrix: list[list[int]]) -> float:
     """Calcula a média macro do F1 Score.
@@ -437,7 +491,8 @@ def log_loss(y_true: npt.ArrayLike, p_matrix: npt.ArrayLike, classes: list[int],
     Parameters
     ----------
     y_true: array-like
-        Array com os índices das classes reais do alvo, entre 0 e n_classes - 1.
+        Array unidimensional com os rótulos reais das observações, no qual
+        cada rótulo deve estar presente na lista classes.
     p_matrix: array-like
         Uma matriz de dimensões (n_samples, n_classes), na qual cada elemento
         na posição [i][j] representa a probabilidade de a observação i ser
@@ -472,6 +527,8 @@ def log_loss(y_true: npt.ArrayLike, p_matrix: npt.ArrayLike, classes: list[int],
         raise ValueError("p_matrix deve conter ao menos uma observação e uma classe.")
     if len(classes) != n_classes:
         raise ValueError("O número de classes deve ser igual ao número de colunas de p_matrix.")
+    if len(set(classes)) != len(classes):
+        raise ValueError("classes não pode conter duplicatas.")
     if not np.isfinite(epsilon) or not 0 < epsilon < 1:
         raise ValueError("epsilon deve ser finito e estar entre 0 e 1.")
     if len(y_true) != n_samples:
@@ -575,7 +632,7 @@ def binary_roc_auc(y_true: npt.ArrayLike, y_score: npt.ArrayLike) -> float:
     tpr = np.insert(tpr, 0, 0.0)
     fpr = np.insert(fpr, 0, 0.0)
 
-    auc = np.trapezoid(tpr, fpr)
+    auc = np.sum((tpr[1:]+tpr[:-1])*(fpr[1:]-fpr[:-1])/2.0)
 
     return float(auc)
 
