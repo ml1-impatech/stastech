@@ -499,9 +499,171 @@ def log_loss(y_true: npt.ArrayLike, p_matrix: npt.ArrayLike, classes: list[int],
     l_loss = -total / len(y_true)
     return float(l_loss)
 
-def roc_auc_score(y_true, y_score):
-    epsilon = 1e-10
-    threshholds = []
-    for i in range(len(y_score)):
-        threshholds.append(y_score[i])
+def binary_roc_auc(y_true: npt.ArrayLike, y_score: npt.ArrayLike) -> float:        
+    """Calcula a área sob a curva ROC para classificação binária.
+
+    Parameters
+    ----------
+    y_true: array-like
+        Array unidimensional com os rótulos reais das observações,
+        contendo apenas 0 e 1.
+    y_score: array-like
+        Array unidimensional com os scores atribuídos pelo modelo à
+        classe positiva. Scores maiores indicam maior evidência da
+        classe positiva.
+
+    Returns
+    -------
+    auc: float
+        Área sob a curva ROC, variando entre 0 e 1. Valores maiores
+        indicam melhor capacidade de discriminação entre as classes.
+
+    Raises
+    ------
+    ValueError
+        Se os arrays não forem unidimensionais, tiverem tamanhos
+        diferentes ou estiverem vazios.
+        Se y_true contiver rótulos diferentes de 0 e 1, se y_score
+        contiver valores não finitos ou se y_true não contiver
+        ambas as classes.
+    """
+    y_true = np.asarray(y_true)
+    y_score = np.asarray(y_score, dtype=float)
+
+    if y_true.ndim != 1 or y_score.ndim != 1:
+        raise ValueError("y_true e y_score devem ser unidimensionais.")
+
+    if y_true.size != y_score.size:
+        raise ValueError("y_true e y_score devem ter o mesmo tamanho.")
+
+    if y_true.size == 0:
+        raise ValueError("y_true e y_score devem ser não vazios.")
+
+    if not np.all(np.isin(y_true, [0, 1])):
+        raise ValueError("y_true deve conter apenas 0 e 1.")
+
+    if not np.all(np.isfinite(y_score)):
+        raise ValueError("y_score deve conter apenas valores finitos.")
+
+    n_positive = np.sum(y_true == 1)
+    n_negative = np.sum(y_true == 0)
+
+    if n_positive == 0 or n_negative == 0:
+        raise ValueError("y_true deve conter ambas as classes.")
+
+    order = np.argsort(-y_score)
+
+    y_true = y_true[order]
+    y_score = y_score[order]
+
+    tp = np.cumsum(y_true == 1)
+    fp = np.cumsum(y_true == 0)
+
+    score_diffs = np.diff(y_score)
+
+    change_positions = np.where(score_diffs != 0)[0]
+
+    last_ind = y_true.size - 1
+    distinct = np.append(change_positions, last_ind)
+
+    tp = tp[distinct]
+    fp = fp[distinct]
+
+    tpr = tp/n_positive
+    fpr = fp/n_negative
+
+    tpr = np.insert(tpr, 0, 0.0)
+    fpr = np.insert(fpr, 0, 0.0)
+
+    auc = np.trapezoid(tpr, fpr)
+
+    return float(auc)
+
+def roc_auc_score(y_true: npt.ArrayLike, y_score: npt.ArrayLike, class_k: int | None = None) -> float:
+    """Calcula a área sob a curva ROC para classificação binária
+    ou para uma classe específica em classificação multiclasse.
+
+    Parameters
+    ----------
+    y_true: array-like
+        Array unidimensional com os rótulos reais das observações.
+        Na classificação binária, deve conter apenas 0 e 1.
+        Na classificação multiclasse, deve conter índices inteiros
+        de classes entre 0 e n_classes - 1.
+    y_score: array-like
+        Na classificação binária, array unidimensional com os scores
+        da classe positiva.
+        Na classificação multiclasse, matriz de dimensões
+        (n_samples, n_classes), na qual cada elemento [i][j]
+        representa o score atribuído à classe j para a observação i.
+        A coluna j deve corresponder ao rótulo j.
+    class_k: int or None, default None
+        Índice da classe cuja área ROC-AUC será calculada na
+        classificação multiclasse, considerando essa classe como
+        positiva e todas as demais como negativas (One-vs-Rest).
+        Deve ser None na classificação binária e um índice válido
+        na classificação multiclasse.
+
+    Returns
+    -------
+    auc: float
+        Área sob a curva ROC para a classificação binária ou para
+        a classe escolhida na classificação multiclasse. Valores
+        maiores indicam melhor capacidade de discriminação.
+
+    Raises
+    ------
+    ValueError
+        Se as dimensões ou os tamanhos dos arrays forem inválidos,
+        se y_score contiver valores não finitos ou se houver menos
+        de duas colunas na matriz multiclasse.
+        Se class_k for incompatível com o tipo de classificação,
+        não for um inteiro válido ou estiver fora do intervalo das
+        classes.
+        Se y_true contiver rótulos que não correspondam aos índices
+        das colunas de y_score na classificação multiclasse.
+        Também pode ser gerado se os dados da classificação binária
+        forem inválidos.
+    """
+    y_true = np.asarray(y_true)
+    y_score = np.asarray(y_score, dtype=float)
+
+    if y_true.ndim != 1: 
+        raise ValueError("y_true deve ser unidimensional.")
+
+    if y_score.ndim == 1:
+        if class_k is not None:
+            raise ValueError("class_k deve ser None para classificação binária.")
         
+        return binary_roc_auc(y_true, y_score)
+
+    if y_score.ndim != 2:
+        raise ValueError("y_score deve ser unidimensional ou bidimensional.")
+
+    if y_true.size != y_score.shape[0]:
+        raise ValueError("O tamanho de y_score deve ser o número de linhas de y_true.")
+
+    if y_score.shape[1] < 2:
+        raise ValueError("y_score deve conter ao menos 2 colunas de classes.")
+
+    if not np.all(np.isfinite(y_score)):
+        raise ValueError("Os valores de y_score devem ser finitos.")
+
+    if class_k is None:
+        raise ValueError("class_k é exigida para classificações multiclasse.")
+
+    if isinstance(class_k, (bool, np.bool_)) or not isinstance(class_k, (int, np.integer)):
+        raise ValueError("class_k deve ser um inteiro.")
+
+    n_classes = y_score.shape[1]
+
+    if class_k < 0 or class_k >= n_classes:
+        raise ValueError("class_k está fora do intervalo válido.")
+
+    if not np.all(np.isin(y_true, np.arange(n_classes))):
+        raise ValueError("Os labels de y_true devem corresponder aos índices das colunas de y_score.")
+
+    y_true_bin = (y_true == class_k).astype(int)
+    y_score_bin = y_score[:, class_k]
+
+    return binary_roc_auc(y_true_bin, y_score_bin)
