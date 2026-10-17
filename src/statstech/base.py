@@ -3,6 +3,7 @@
 import numpy as np
 import copy
 import inspect
+from statstech.metrics.regression import r2_score
 
 
 class BaseEstimator:
@@ -57,7 +58,7 @@ class BaseEstimator:
 
         args = ", ".join(f"{k}={v!r}" for k, v in self.get_params().items())
         return f"{type(self).__name__}({args})"
-
+ 
 
 class ClassifierMixin:
     def score(self, X, y):
@@ -65,7 +66,7 @@ class ClassifierMixin:
         y_pred = self.predict(X)
         return np.mean(y_pred == y)
 
-
+      
 def r2_score(y_true, y_pred):
     y_true = np.asarray(y_true, dtype=float)
     y_pred = np.asarray(y_pred, dtype=float)
@@ -84,7 +85,7 @@ def r2_score(y_true, y_pred):
     else:
         raise ValueError("R² é indefinido quando TSS = 0")
 
-
+        
 class RegressorMixin:   
     def score(self, X, y):
         y_pred = self.predict(X)
