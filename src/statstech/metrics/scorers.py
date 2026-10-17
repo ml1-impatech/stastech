@@ -22,3 +22,16 @@ SCORERS = {
     "regression": REGRESSION_SCORERS,
     "classification": CLASSIFICATION_SCORERS,
 }
+
+LOWER_IS_BETTER = {"rss", "mse", "mae", "rmse", "log_loss"}
+
+def lower_is_better(name: str) -> bool:
+    "Retorna True se uma métrica é melhor quanto menor for."
+    return name in LOWER_IS_BETTER
+
+_FLAT = {REGRESSION_SCORERS, CLASSIFICATION_SCORERS}
+
+def get_scorer(name):
+    if name not in _FLAT:
+        raise ValueError(f"scoring desconhecido: {name!r}. Opções: {sorted(_FLAT)}")
+    return _FLAT[name]
