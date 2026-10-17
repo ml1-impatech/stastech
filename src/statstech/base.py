@@ -3,7 +3,7 @@
 import numpy as np
 import copy
 import inspect
-
+from metrics.regression import r2_score
 
 class BaseEstimator:
     """Base-class of all models and transformers.
@@ -64,26 +64,6 @@ class ClassifierMixin:
         """Retorna a acurácia da classificação."""
         y_pred = self.predict(X)
         return np.mean(y_pred == y)
-
-
-def r2_score(y_true, y_pred):
-    y_true = np.asarray(y_true, dtype=float)
-    y_pred = np.asarray(y_pred, dtype=float)
-    if y_true.shape != y_pred.shape:
-        raise ValueError("Os arrays reais e previstos devem ter o mesmo formato.") 
-    if y_true.size == 0:
-        raise ValueError("Os arrays devem não estar vazios.")
-    if y_true.ndim != 1:
-        raise ValueError("Os arrays devem ser unidimensionais.")
-    rss = np.sum((y_true - y_pred) ** 2)
-    media = np.mean(y_true) 
-    tss = np.sum((media-y_true)**2)
-    if tss != 0:
-        r_score = float(1-rss/tss)
-        return r_score
-    else:
-        raise ValueError("R² é indefinido quando TSS = 0")
-
 
 class RegressorMixin:   
     def score(self, X, y):
