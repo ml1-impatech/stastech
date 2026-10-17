@@ -41,8 +41,8 @@ class LinearRegression( BaseEstimator, RegressorMixin):
 
         Returns
         -------
-        self : LinearRegression
-            Retorna a instâcia ajustada do modelo.
+        self : object
+            Retorna a instância ajustada do modelo.
 
         Raises
         ------
@@ -93,18 +93,18 @@ class LinearRegression( BaseEstimator, RegressorMixin):
         Parameters
         ----------
         X : array-like, shape (n_samples, n_features)
-            Amostras a serem previstas
+            Amostras a serem previstas.
 
         Returns
         -------
         y_predict : ndarray, shape (n_samples, )
-            Valores preditos pelo modelo
+            Valores preditos pelo modelo.
 
         Raises
         ------
         ValueError
-            Se X não é uma matriz 2D
-            Se o modelo não tiver sido treinado
+            Se X não é uma matriz 2D.
+            Se o modelo não tiver sido treinado.
                 
         """
         X = np.asarray(X, dtype = float)

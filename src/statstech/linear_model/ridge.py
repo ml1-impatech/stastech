@@ -2,12 +2,62 @@ import numpy as np
 from  base import BaseEstimator, RegressorMixin
 
 class Ridge(BaseEstimator, RegressorMixin):
+    """
+    Modelo de Regressão Linear com a regularização L2.
+
+    Parameters
+    ----------
+    alpha : float, defaut = 1.0
+        Constante não negativa de intensidade da penalização dos coeficientes
+        que multiplica o termo de regularização L2.
+
+
+    fit_intercept : bool, defalt = True
+        Quando verdadeiro, o intercepto é calculado. Quando é falso, 
+        o intercepto não é utilizado nos calculos.
+
+
+    Atributes
+    ---------
+
+    coef_ : ndarray
+        Coeficientes estimados para as variáveis de entrada.
+
+    intercept_ : float
+        Intercepto calculado pelo modelo.
+
+    n_features_in : int
+        Número de variáveis utilizadas para calcular o modelo.
+    """
 
     def __init__(self, alpha = 1.0, fit_intercept = True):
         self.alpha = alpha
         self.fit_intercept = fit_intercept
 
     def fit(self, X, y):
+        """
+        Ajusta o modelo de regressão Ridge aos dados de treino.
+
+        Parameters
+        ----------
+        X : array-like, shape(n_samples, n_features)
+            Matriz com os dados de treinamento.
+
+        y : array-like, shape(n_sample,)
+            Valores observados usados para ajuste do modelo.
+
+        Returns
+        -------
+        self : object
+            Retorna a instância ajusta pelo modelo.
+
+        Raises
+        ------
+        ValueError
+            Se X não for uma matriz 2D.
+            Se y não for um vetor.
+            Se o número de amostras de X e y não são iguais.
+        """
         X = np.asarray(X, dtype = float)
         y = np.asarray(y, dtype = float)
 
@@ -48,6 +98,26 @@ class Ridge(BaseEstimator, RegressorMixin):
         return self      
 
     def predict(self, X):
+        """
+        Realiza previsões de y com base nos valores fornecidos em X.
+
+        Parameters
+        ----------
+        X : array-like, shape(n_samples, n_features)
+            Amostras a serem previstas.
+
+        Returns
+        -------
+        y_predicted : ndarray, shape(n_samples,)
+            Valores preditos pelo modelo.
+
+        Raises
+        ------
+        ValueError
+            Se X não é uma matriz 2D.
+            Se o modelo não tiver sido treinado.
+
+        """
         X = np.asarray(X, dtype = float)
 
         if X.ndim != 2:
