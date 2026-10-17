@@ -431,8 +431,7 @@ def macro_precision(c_matrix: list[list[int]]) -> float:
     """
     return macro_metric(c_matrix, precision_score)
 
-
-def log_loss(y_true: npt.ArrayLike, p_matrix: npt.ArrayLike, epsilon: float=1e-10) -> float:
+def log_loss(y_true: npt.ArrayLike, p_matrix: npt.ArrayLike, classes: list[int], epsilon: float=1e-10) -> float:
     """Calcula a perda logarítmica de um classificador.
 
     Parameters
@@ -456,8 +455,8 @@ def log_loss(y_true: npt.ArrayLike, p_matrix: npt.ArrayLike, epsilon: float=1e-1
     ------
     ValueError
         Se as dimensões ou os valores de entrada forem inválidos.
-        Se os índices das classes forem inválidos, se houver probabilidades
-        inválidas ou se o valor de epsilon for inválido.
+        Se y_true conter classes que não estão em classes, se houver 
+        probabilidades inválidas ou se o valor de epsilon for inválido.
     """
     p_matrix = np.asarray(p_matrix, np.float64)
     y_true = np.asarray(y_true)
@@ -471,14 +470,12 @@ def log_loss(y_true: npt.ArrayLike, p_matrix: npt.ArrayLike, epsilon: float=1e-1
 
     if n_samples == 0 or n_classes == 0:
         raise ValueError("p_matrix deve conter ao menos uma observação e uma classe.")
+    if len(classes) != n_classes:
+        raise ValueError("O número de classes deve ser igual ao número de colunas de p_matrix.")
     if not np.isfinite(epsilon) or not 0 < epsilon < 1:
         raise ValueError("epsilon deve ser finito e estar entre 0 e 1.")
     if len(y_true) != n_samples:
         raise ValueError("As dimensões de p_matrix e y_true devem ser compatíveis.")
-    if not np.issubdtype(y_true.dtype, np.integer):
-        raise ValueError("y_true deve conter índices inteiros de classes.")
-    if np.any(y_true < 0) or np.any(y_true >= n_classes):
-        raise ValueError("y_true contém índices fora do intervalo.")
     if not np.all(np.isfinite(p_matrix)):
         raise ValueError("p_matrix não pode conter NaN ou infinito.")
     if np.any(p_matrix < 0) or np.any(p_matrix > 1):
@@ -486,10 +483,16 @@ def log_loss(y_true: npt.ArrayLike, p_matrix: npt.ArrayLike, epsilon: float=1e-1
     if not np.allclose(p_matrix.sum(axis=1), 1.0):
         raise ValueError("As probabilidades de cada linha devem somar 1.")
 
+    dict_classes = {}
+    for i in range(n_classes):
+        dict_classes[classes[i]] = i
+
     total = 0.0
 
     for i in range(len(y_true)):
-        ind = y_true[i]
+        if y_true[i] not in dict_classes:
+            raise ValueError("y_true contém classes que não estão presentes em classes.")
+        ind = dict_classes[y_true[i]]
         prob = np.clip(p_matrix[i, ind], epsilon, 1.0)
         total += np.log(prob)
 
