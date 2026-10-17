@@ -1,6 +1,11 @@
 import numpy as np
 
 from statstech.base import BaseEstimator, ClassifierMixin
+from statstech.utils.validation import (
+    check_X_y,
+    check_array,
+    check_is_fitted,
+)
 
 
 class LogisticRegression(BaseEstimator, ClassifierMixin):
@@ -65,47 +70,54 @@ class LogisticRegression(BaseEstimator, ClassifierMixin):
         ValueError
             Se algum parâmetro tiver um valor inválido.
         """
-        if (
-            not isinstance(
-                learning_rate, (int, float, np.integer, np.floating)
-            )
-            or isinstance(learning_rate, (bool, np.bool_))
-            or not np.isfinite(learning_rate)
-            or learning_rate <= 0
-        ):
-            raise ValueError("learning_rate deve ser positivo e finito.")
-
-        if (
-            not isinstance(max_iter, (int, np.integer))
-            or isinstance(max_iter, (bool, np.bool_))
-            or max_iter <= 0
-        ):
-            raise ValueError("max_iter deve ser um inteiro positivo.")
-
-        if (
-            not isinstance(tol, (int, float, np.integer, np.floating))
-            or isinstance(tol, (bool, np.bool_))
-            or not np.isfinite(tol)
-            or tol < 0
-        ):
-            raise ValueError("tol deve ser não negativo e finito.")
-
-        if not isinstance(fit_intercept, (bool, np.bool_)):
-            raise ValueError("fit_intercept deve ser booleano.")
-
-        if (
-            not isinstance(lambda_, (int, float, np.integer, np.floating))
-            or isinstance(lambda_, (bool, np.bool_))
-            or not np.isfinite(lambda_)
-            or lambda_ < 0
-        ):
-            raise ValueError("lambda_ deve ser não negativo e finito.")
-
         self.learning_rate = learning_rate
         self.max_iter = max_iter
         self.tol = tol
         self.fit_intercept = fit_intercept
         self.lambda_ = lambda_
+
+    def _check_params(self):
+        """Valida os hiperparâmetros do classificador.
+        Raises
+        ------
+        ValueError
+            Se algum parâmetro tiver um valor inválido.
+        """
+        if (
+            not isinstance(
+                self.learning_rate, (int, float, np.integer, np.floating)
+            )
+            or isinstance(self.learning_rate, (bool, np.bool_))
+            or not np.isfinite(self.learning_rate)
+            or self.learning_rate <= 0
+        ):
+            raise ValueError("learning_rate deve ser positivo e finito.")
+
+        if (
+            not isinstance(self.max_iter, (int, np.integer))
+            or isinstance(self.max_iter, (bool, np.bool_))
+            or self.max_iter <= 0
+        ):
+            raise ValueError("max_iter deve ser um inteiro positivo.")
+
+        if (
+            not isinstance(self.tol, (int, float, np.integer, np.floating))
+            or isinstance(self.tol, (bool, np.bool_))
+            or not np.isfinite(self.tol)
+            or self.tol < 0
+        ):
+            raise ValueError("tol deve ser não negativo e finito.")
+
+        if not isinstance(self.fit_intercept, (bool, np.bool_)):
+            raise ValueError("fit_intercept deve ser booleano.")
+
+        if (
+            not isinstance(self.lambda_, (int, float, np.integer, np.floating))
+            or isinstance(self.lambda_, (bool, np.bool_))
+            or not np.isfinite(self.lambda_)
+            or self.lambda_ < 0
+        ):
+            raise ValueError("lambda_ deve ser não negativo e finito.")
 
     def _loss_and_gradient(self, X, Y, coef, intercept):
         """Calcula a função de perda e seus gradientes.
@@ -194,70 +206,57 @@ class LogisticRegression(BaseEstimator, ClassifierMixin):
             X contiver valores não finitos, y contiver NaN ou houver
             menos de duas classes.
         """
-        if not isinstance(X, np.ndarray) or X.ndim != 2:
-            raise ValueError("X deve ser um array de duas dimensões.")
+        self._check_params()
+        X, y = check_X_y(X, y)
 
-        if not isinstance(y, np.ndarray) or y.ndim != 1:
-            raise ValueError("y deve ser um array de uma dimensão.")
-
-        if X.shape[0] != y.shape[0]:
-            raise ValueError("X e y devem ter o mesmo número de observações.")
-
-        if X.shape[0] == 0:
-            raise ValueError("X não pode estar vazio.")
-
-        if np.any(y != y):
-            raise ValueError("y não pode ter valores NaN.")
-
-        if X.shape[1] == 0:
-            raise ValueError("X deve ter pelo menos uma característica.")
-
-        if not np.all(np.isfinite(X)):
-            raise ValueError("X deve ter apenas valores finitos.")
-
-        self.classes_ = np.unique(y)
-        if len(self.classes_) < 2:
+        classes = np.unique(y)
+        if len(classes) < 2:
             raise ValueError("y deve ter pelo menos duas classes.")
 
-        K = len(self.classes_)
+        K = len(classes)
         p = X.shape[1]
         n = X.shape[0]
 
-        self.coef_ = np.zeros((p, K))
-
-        if self.fit_intercept:
-            self.intercept_ = np.zeros(K)
-
-        y_indices = np.searchsorted(self.classes_, y)
+        y_indices = np.searchsorted(classes, y)
 
         Y = np.zeros((n, K))
         Y[np.arange(n), y_indices] = 1
 
-        self.loss_history_ = []
+        coef = np.zeros((p, K))
+        intercept = np.zeros(K) if self.fit_intercept else None
+        loss_history = []
 
         for iteration in range(self.max_iter):
-            intercept = self.intercept_ if self.fit_intercept else None
-
             loss, gradient, intercept_gradient = self._loss_and_gradient(
-                X, Y, self.coef_, intercept
+                X, Y, coef, intercept
             )
 
             # critério de convergência
-            if len(self.loss_history_) > 0:
-                variation = abs(loss - self.loss_history_[-1])
-                self.loss_history_.append(loss)
+            if len(loss_history) > 0:
+                variation = abs(loss - loss_history[-1])
+                loss_history.append(loss)
 
                 if variation < self.tol:
                     break
             else:
-                self.loss_history_.append(loss)
+                loss_history.append(loss)
 
             # atualiza o intercepto
             if self.fit_intercept:
-                self.intercept_ -= self.learning_rate * intercept_gradient
+                intercept -= self.learning_rate * intercept_gradient
 
             # atualiza os coeficientes
-            self.coef_ -= self.learning_rate * gradient
+            coef -= self.learning_rate * gradient
+
+        self.classes_ = classes
+        self.coef_ = coef
+
+        if self.fit_intercept:
+            self.intercept_ = intercept
+        elif hasattr(self, "intercept_"):
+            del self.intercept_
+
+        self.loss_history_ = loss_history
 
         return self
 
@@ -280,30 +279,17 @@ class LogisticRegression(BaseEstimator, ClassifierMixin):
             Se o modelo não tiver sido treinado ou X tiver dimensões
             incompatíveis, estiver vazio ou contiver valores não finitos.
         """
-        if not hasattr(self, "coef_"):
-            raise ValueError(
-                "O modelo ainda não foi treinado. Chame fit antes."
-            )
-
-        if not isinstance(X, np.ndarray) or X.ndim != 2:
-            raise ValueError("X deve ser um array de duas dimensões.")
+        check_is_fitted(self, attributes=["coef_", "classes_"])
+        X = check_array(X)
 
         if X.shape[1] != self.coef_.shape[0]:
             raise ValueError(
                 "X deve ter o mesmo número de características usado no fit."
             )
-
-        if X.shape[0] == 0:
-            raise ValueError("X não pode estar vazio.")
-
-        if not np.all(np.isfinite(X)):
-            raise ValueError("X deve ter apenas valores finitos.")
-
         if self.fit_intercept:
             z = X @ self.coef_ + self.intercept_
         else:
             z = X @ self.coef_
-
         # evita que a exponencial exploda
         z = z - np.max(z, axis=1, keepdims=True)
 

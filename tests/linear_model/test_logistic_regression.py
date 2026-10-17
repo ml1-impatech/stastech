@@ -350,43 +350,53 @@ def test_regularization_l2():
 
 
 def test_learning_rate_invalid():
+    model = LogisticRegression(learning_rate=0)
+
     with pytest.raises(
         ValueError,
         match="learning_rate deve ser positivo e finito"
     ):
-        LogisticRegression(learning_rate=0)
+        model.fit(np.array([[1], [2]]), np.array([0, 1]))
 
 
 def test_max_iter_invalid():
+    model = LogisticRegression(max_iter=0)
+
     with pytest.raises(
         ValueError,
         match="max_iter deve ser um inteiro positivo"
     ):
-        LogisticRegression(max_iter=0)
+        model.fit(np.array([[1], [2]]), np.array([0, 1]))
 
 
 def test_tol_invalid():
+    model = LogisticRegression(tol=-1)
+
     with pytest.raises(
         ValueError,
         match="tol deve ser não negativo e finito"
     ):
-        LogisticRegression(tol=-1)
+        model.fit(np.array([[1], [2]]), np.array([0, 1]))
 
 
 def test_fit_intercept_invalid():
+    model = LogisticRegression(fit_intercept=1)
+
     with pytest.raises(
         ValueError,
         match="fit_intercept deve ser booleano"
     ):
-        LogisticRegression(fit_intercept=1)
+        model.fit(np.array([[1], [2]]), np.array([0, 1]))
 
 
 def test_lambda_invalid():
+    model = LogisticRegression(lambda_=-1)
+
     with pytest.raises(
         ValueError,
         match="lambda_ deve ser não negativo e finito"
     ):
-        LogisticRegression(lambda_=-1)
+        model.fit(np.array([[1], [2]]), np.array([0, 1]))
 
 
 def test_loss_and_gradient_different_samples():
@@ -410,7 +420,7 @@ def test_fit_X_not_2d():
 
     with pytest.raises(
         ValueError,
-        match="X deve ser um array de duas dimensões",
+        match="Esse array é 1D, precisa ser 2D",
     ):
         model.fit(X, y)
 
@@ -422,7 +432,7 @@ def test_fit_y_not_1d():
 
     with pytest.raises(
         ValueError,
-        match="y deve ser um array de uma dimensão",
+        match=r"y tem formato \(n, 1\), mas precisa ser 1D",
     ):
         model.fit(X, y)
 
@@ -434,7 +444,7 @@ def test_fit_different_samples():
 
     with pytest.raises(
         ValueError,
-        match="X e y devem ter o mesmo número de observações",
+        match="X e y têm tamanhos diferentes",
     ):
         model.fit(X, y)
 
@@ -446,7 +456,7 @@ def test_fit_empty_X():
 
     with pytest.raises(
         ValueError,
-        match="X não pode estar vazio",
+        match="O array está vazio",
     ):
         model.fit(X, y)
 
@@ -458,7 +468,7 @@ def test_fit_y_nan():
 
     with pytest.raises(
         ValueError,
-        match="y não pode ter valores NaN",
+        match="y contém NaN ou valores infinitos",
     ):
         model.fit(X, y)
 
@@ -470,7 +480,7 @@ def test_fit_no_features():
 
     with pytest.raises(
         ValueError,
-        match="X deve ter pelo menos uma característica",
+        match="O array está vazio",
     ):
         model.fit(X, y)
 
@@ -482,7 +492,7 @@ def test_fit_X_non_finite():
 
     with pytest.raises(
         ValueError,
-        match="X deve ter apenas valores finitos",
+        match="X contém NaN ou valores infinitos",
     ):
         model.fit(X, y)
 
@@ -505,7 +515,7 @@ def test_predict_proba_model_not_fitted():
 
     with pytest.raises(
         ValueError,
-        match="O modelo ainda não foi treinado",
+        match="ainda não foi treinado",
     ):
         model.predict_proba(X)
 
@@ -520,7 +530,7 @@ def test_predict_proba_X_not_2d():
 
     with pytest.raises(
         ValueError,
-        match="X deve ser um array de duas dimensões",
+        match="Esse array é 1D, precisa ser 2D",
     ):
         model.predict_proba(X)
 
@@ -550,7 +560,7 @@ def test_predict_proba_empty_X():
 
     with pytest.raises(
         ValueError,
-        match="X não pode estar vazio",
+        match="O array está vazio",
     ):
         model.predict_proba(X)
 
@@ -565,38 +575,46 @@ def test_predict_proba_X_non_finite():
 
     with pytest.raises(
         ValueError,
-        match="X deve ter apenas valores finitos",
+        match="X contém NaN ou valores infinitos",
     ):
         model.predict_proba(X)
 
 
 def test_learning_rate_tipo_invalido():
+    model = LogisticRegression(learning_rate="abc")
+
     with pytest.raises(
         ValueError,
         match="learning_rate deve ser positivo e finito",
     ):
-        LogisticRegression(learning_rate="abc")
+        model.fit(np.array([[1], [2]]), np.array([0, 1]))
 
 
 def test_max_iter_booleano():
+    model = LogisticRegression(max_iter=True)
+
     with pytest.raises(
         ValueError,
         match="max_iter deve ser um inteiro positivo",
     ):
-        LogisticRegression(max_iter=True)
+        model.fit(np.array([[1], [2]]), np.array([0, 1]))
 
 
 def test_tol_tipo_invalido():
+    model = LogisticRegression(tol="abc")
+
     with pytest.raises(
         ValueError,
         match="tol deve ser não negativo e finito",
     ):
-        LogisticRegression(tol="abc")
+        model.fit(np.array([[1], [2]]), np.array([0, 1]))
 
 
 def test_lambda_tipo_invalido():
+    model = LogisticRegression(lambda_="abc")
+
     with pytest.raises(
         ValueError,
         match="lambda_ deve ser não negativo e finito",
     ):
-        LogisticRegression(lambda_="abc")
+        model.fit(np.array([[1], [2]]), np.array([0, 1]))
