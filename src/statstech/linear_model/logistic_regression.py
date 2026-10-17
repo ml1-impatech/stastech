@@ -2,57 +2,146 @@ import numpy as np
 
 from statstech.base import BaseEstimator, ClassifierMixin
 
+
 class LogisticRegression(BaseEstimator, ClassifierMixin):
-    """Implementa a regressão logística."""
+    """Classificador de regressão logística multiclasse com regularização L2.
+
+    Parameters
+    ----------
+    learning_rate : float, default=0.1
+        Taxa de aprendizado usada na descida do gradiente.
+    max_iter : int, default=1000
+        Número máximo de iterações do treinamento.
+    tol : float, default=1e-6
+        Tolerância para o critério de convergência.
+    fit_intercept : bool, default=True
+        Indica se um termo independente deve ser ajustado.
+    lambda_ : float, default=0.01
+        Coeficiente de regularização L2.
+
+    Attributes
+    ----------
+    classes_ : ndarray
+        Classes encontradas durante o treinamento.
+    coef_ : ndarray
+        Matriz de coeficientes estimados.
+    intercept_ : ndarray
+        Vetor de termos independentes, quando fit_intercept=True.
+    loss_history_ : list
+        Valores da função de perda registrados durante o treinamento.
+
+    Notes
+    -----
+    O pré-processamento das características, como a padronização, não é
+    realizado automaticamente. Logo, é recomendado avaliar a escala
+    das variáveis antes do treinamento.
+    """
 
     def __init__(
-            self,
-            learning_rate = 0.1,
-            max_iter = 1000,
-            tol = 1e-6, 
-            fit_intercept = True,
-            lambda_ = 0.01):
+        self,
+        learning_rate=0.1,
+        max_iter=1000,
+        tol=1e-6,
+        fit_intercept=True,
+        lambda_=0.01,
+    ):
+        """Inicializa o classificador.
 
-        if (not isinstance(learning_rate, (int, float, np.integer, np.floating))
+        Parameters
+        ----------
+        learning_rate : float
+            Taxa de aprendizado, estritamente positiva e finita.
+        max_iter : int
+            Número máximo de iterações, inteiro positivo.
+        tol : float
+            Tolerância de convergência, finita e não negativa.
+        fit_intercept : bool
+            Indica se o modelo deve ajustar o intercepto.
+        lambda_ : float
+            Intensidade da regularização L2, finita e não negativa.
+
+        Raises
+        ------
+        ValueError
+            Se algum parâmetro tiver um valor inválido.
+        """
+        if (
+            not isinstance(
+                learning_rate, (int, float, np.integer, np.floating)
+            )
             or isinstance(learning_rate, (bool, np.bool_))
             or not np.isfinite(learning_rate)
-            or learning_rate <= 0):
-
+            or learning_rate <= 0
+        ):
             raise ValueError("learning_rate deve ser positivo e finito.")
 
-        if not isinstance(max_iter, (int, np.integer)) or isinstance(max_iter, (bool, np.bool_)) or max_iter <= 0:
+        if (
+            not isinstance(max_iter, (int, np.integer))
+            or isinstance(max_iter, (bool, np.bool_))
+            or max_iter <= 0
+        ):
             raise ValueError("max_iter deve ser um inteiro positivo.")
 
-        if (not isinstance(tol, (int, float, np.integer, np.floating))
+        if (
+            not isinstance(tol, (int, float, np.integer, np.floating))
             or isinstance(tol, (bool, np.bool_))
             or not np.isfinite(tol)
-            or tol < 0):
-
+            or tol < 0
+        ):
             raise ValueError("tol deve ser não negativo e finito.")
-        
+
         if not isinstance(fit_intercept, (bool, np.bool_)):
             raise ValueError("fit_intercept deve ser booleano.")
 
-        if (not isinstance(lambda_, (int, float, np.integer, np.floating))
+        if (
+            not isinstance(lambda_, (int, float, np.integer, np.floating))
             or isinstance(lambda_, (bool, np.bool_))
             or not np.isfinite(lambda_)
-            or lambda_ < 0):
-
+            or lambda_ < 0
+        ):
             raise ValueError("lambda_ deve ser não negativo e finito.")
-        
+
         self.learning_rate = learning_rate
         self.max_iter = max_iter
         self.tol = tol
         self.fit_intercept = fit_intercept
         self.lambda_ = lambda_
 
-    # função auxiliar para facilitar os testes do gradiente 
     def _loss_and_gradient(self, X, Y, coef, intercept):
+        """Calcula a função de perda e seus gradientes.
+
+        Parameters
+        ----------
+        X : ndarray
+            Matriz de características, com dimensão
+            (n_amostras, n_features).
+        Y : ndarray
+            Matriz indicadora das classes, com dimensão
+            (n_amostras, n_classes).
+        coef : ndarray
+            Matriz atual de coeficientes.
+        intercept : ndarray or None
+            Vetor atual de interceptos, ou None se não for utilizado.
+
+        Returns
+        -------
+        loss : float
+            Valor da função de perda com regularização L2.
+        gradient : ndarray
+            Gradiente da perda em relação aos coeficientes.
+        intercept_gradient : ndarray or None
+            Gradiente em relação aos interceptos, ou None se não utilizados.
+
+        Raises
+        ------
+        ValueError
+            Se X e Y tiverem números diferentes de observações.
+        """
         if X.shape[0] != Y.shape[0]:
             raise ValueError("X e Y devem ter o mesmo número de observações.")
 
         n = X.shape[0]
-        
+
         if self.fit_intercept:
             z = X @ coef + intercept
         else:
@@ -68,24 +157,43 @@ class LogisticRegression(BaseEstimator, ClassifierMixin):
         loss = -np.sum(Y * np.log(P)) / n
 
         if self.lambda_ > 0:
-            L2 = (self.lambda_ / (2*n)) * np.sum(coef ** 2)
+            L2 = (self.lambda_ / (2 * n)) * np.sum(coef**2)
             loss = loss + L2
 
-        gradient = ( X.T @ (P - Y) ) / n 
-    
+        gradient = (X.T @ (P - Y)) / n
+
         if self.lambda_ > 0:
             gradient = gradient + (self.lambda_ / n) * coef
-        
+
         if self.fit_intercept:
-            intercept_gradient = np.mean(P - Y, axis = 0)
+            intercept_gradient = np.mean(P - Y, axis=0)
         else:
             intercept_gradient = None
 
         return loss, gradient, intercept_gradient
-        
 
     def fit(self, X, y):
+        """Ajusta o modelo aos dados de treinamento.
 
+        Parameters
+        ----------
+        X : ndarray
+            Matriz bidimensional de características.
+        y : ndarray
+            Vetor unidimensional com os rótulos das classes.
+
+        Returns
+        -------
+        self : LogisticRegression
+            Instância ajustada do classificador.
+
+        Raises
+        ------
+        ValueError
+            Se as dimensões dos dados forem inválidas, X estiver vazio,
+            X contiver valores não finitos, y contiver NaN ou houver
+            menos de duas classes.
+        """
         if not isinstance(X, np.ndarray) or X.ndim != 2:
             raise ValueError("X deve ser um array de duas dimensões.")
 
@@ -106,17 +214,17 @@ class LogisticRegression(BaseEstimator, ClassifierMixin):
 
         if not np.all(np.isfinite(X)):
             raise ValueError("X deve ter apenas valores finitos.")
-        
+
         self.classes_ = np.unique(y)
         if len(self.classes_) < 2:
             raise ValueError("y deve ter pelo menos duas classes.")
-        
+
         K = len(self.classes_)
         p = X.shape[1]
         n = X.shape[0]
-   
-        self.coef_ = np.zeros((p,K))
-    
+
+        self.coef_ = np.zeros((p, K))
+
         if self.fit_intercept:
             self.intercept_ = np.zeros(K)
 
@@ -126,13 +234,15 @@ class LogisticRegression(BaseEstimator, ClassifierMixin):
         Y[np.arange(n), y_indices] = 1
 
         self.loss_history_ = []
-     
-        for iter in range(self.max_iter):
+
+        for iteration in range(self.max_iter):
             intercept = self.intercept_ if self.fit_intercept else None
 
-            loss, gradient, intercept_gradient = self._loss_and_gradient(X, Y, self.coef_, intercept)
+            loss, gradient, intercept_gradient = self._loss_and_gradient(
+                X, Y, self.coef_, intercept
+            )
 
-            # critério de convergência 
+            # critério de convergência
             if len(self.loss_history_) > 0:
                 variation = abs(loss - self.loss_history_[-1])
                 self.loss_history_.append(loss)
@@ -142,7 +252,7 @@ class LogisticRegression(BaseEstimator, ClassifierMixin):
             else:
                 self.loss_history_.append(loss)
 
-            # atualiza os coeficientes
+            # atualiza o intercepto
             if self.fit_intercept:
                 self.intercept_ -= self.learning_rate * intercept_gradient
 
@@ -152,14 +262,36 @@ class LogisticRegression(BaseEstimator, ClassifierMixin):
         return self
 
     def predict_proba(self, X):
+        """Calcula as probabilidades previstas para cada classe.
+
+        Parameters
+        ----------
+        X : ndarray
+            Matriz bidimensional de características.
+
+        Returns
+        -------
+        prob : ndarray
+            Matriz de probabilidades, com uma coluna por classe.
+
+        Raises
+        ------
+        ValueError
+            Se o modelo não tiver sido treinado ou X tiver dimensões
+            incompatíveis, estiver vazio ou contiver valores não finitos.
+        """
         if not hasattr(self, "coef_"):
-            raise ValueError("O modelo ainda não foi treinado. Chame fit antes.")
+            raise ValueError(
+                "O modelo ainda não foi treinado. Chame fit antes."
+            )
 
         if not isinstance(X, np.ndarray) or X.ndim != 2:
             raise ValueError("X deve ser um array de duas dimensões.")
 
         if X.shape[1] != self.coef_.shape[0]:
-            raise ValueError("X deve ter o mesmo número de características usado no fit.")
+            raise ValueError(
+                "X deve ter o mesmo número de características usado no fit."
+            )
 
         if X.shape[0] == 0:
             raise ValueError("X não pode estar vazio.")
@@ -180,13 +312,26 @@ class LogisticRegression(BaseEstimator, ClassifierMixin):
 
         return prob
 
-
     def predict(self, X):
+        """Prevê a classe de cada observação.
+
+        Parameters
+        ----------
+        X : ndarray
+            Matriz bidimensional de características.
+
+        Returns
+        -------
+        ndarray
+            Vetor com a classe prevista para cada observação.
+
+        Raises
+        ------
+        ValueError
+            Se predict_proba detectar um modelo não treinado
+            ou dados inválidos.
+        """
         prob = self.predict_proba(X)
         predictions = np.argmax(prob, axis=1)
 
         return self.classes_[predictions]
-            
-
-
-   
