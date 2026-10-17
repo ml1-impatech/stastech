@@ -486,7 +486,24 @@ def test_predict_proba_X_non_finite():
         model.predict_proba(X)
 
 
+def test_learning_rate_tipo_invalido():
+    with pytest.raises(ValueError, match="learning_rate deve ser positivo e finito"):
+        LogisticRegression(learning_rate="abc")
 
+
+def test_max_iter_booleano():
+    with pytest.raises(ValueError, match="max_iter deve ser um inteiro positivo"):
+        LogisticRegression(max_iter=True)
+
+
+def test_tol_tipo_invalido():
+    with pytest.raises(ValueError, match="tol deve ser não negativo e finito"):
+        LogisticRegression(tol="abc")
+
+
+def test_lambda_tipo_invalido():
+    with pytest.raises(ValueError, match="lambda_ deve ser não negativo e finito"):
+        LogisticRegression(lambda_="abc")
 
 
 

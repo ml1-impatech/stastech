@@ -13,19 +13,31 @@ class LogisticRegression(BaseEstimator, ClassifierMixin):
             fit_intercept = True,
             lambda_ = 0.01):
 
-        if not np.isfinite(learning_rate) or learning_rate <= 0:
+        if (not isinstance(learning_rate, (int, float, np.integer, np.floating))
+            or isinstance(learning_rate, (bool, np.bool_))
+            or not np.isfinite(learning_rate)
+            or learning_rate <= 0):
+
             raise ValueError("learning_rate deve ser positivo e finito.")
 
-        if not isinstance(max_iter, (int, np.integer)) or isinstance(max_iter, bool) or max_iter <= 0:
+        if not isinstance(max_iter, (int, np.integer)) or isinstance(max_iter, (bool, np.bool_)) or max_iter <= 0:
             raise ValueError("max_iter deve ser um inteiro positivo.")
 
-        if not np.isfinite(tol) or tol < 0:
-            raise ValueError("tol deve ser não negativo e finito.")
+        if (not isinstance(tol, (int, float, np.integer, np.floating))
+            or isinstance(tol, (bool, np.bool_))
+            or not np.isfinite(tol)
+            or tol < 0):
 
+            raise ValueError("tol deve ser não negativo e finito.")
+        
         if not isinstance(fit_intercept, (bool, np.bool_)):
             raise ValueError("fit_intercept deve ser booleano.")
 
-        if not np.isfinite(lambda_) or lambda_ < 0:
+        if (not isinstance(lambda_, (int, float, np.integer, np.floating))
+            or isinstance(lambda_, (bool, np.bool_))
+            or not np.isfinite(lambda_)
+            or lambda_ < 0):
+
             raise ValueError("lambda_ deve ser não negativo e finito.")
         
         self.learning_rate = learning_rate
