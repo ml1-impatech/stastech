@@ -328,3 +328,89 @@ def test_reg_param_infinite():
 
     with pytest.raises(ValueError, match="não negativo"):
         model.fit(X, y)
+
+def test_fit_covariance():
+    X = np.array([
+            [1.0, 2.0],
+            [3.0, 4.0],
+            [5.0, 6.0],
+            [7.0, 8.0],
+    ])
+
+    y = np.array([0, 0, 1, 1])
+
+    model = LinearDiscriminantAnalysis(reg_param=0)
+    model.fit(X, y)
+    expected_covariance = np.array([
+    [2.0, 2.0],
+    [2.0, 2.0],
+    ])
+
+    assert np.allclose(model.covariance_, expected_covariance)
+
+def test_fit_priors_unequal_classes():
+    X = np.array([
+        [1.0, 2.0],
+        [2.0, 1.0],
+        [3.0, 2.0],
+        [4.0, 5.0],
+        [5.0, 4.0],
+        [8.0, 9.0],
+    ])
+
+    y = np.array([0, 0, 0, 0, 1, 1])
+
+    model = LinearDiscriminantAnalysis()
+    model.fit(X, y)
+
+    expected_priors = np.array([4 / 6, 2 / 6])
+
+    assert np.allclose(model.priors_, expected_priors)
+    assert np.isclose(model.priors_.sum(), 1.0)
+
+
+def test_predict_high_accuracy_same_covariance_normals():
+    rng = np.random.default_rng(42)
+
+    mean_0 = np.array([0.0, 0.0])
+    mean_1 = np.array([5.0, 5.0])
+
+    covariance = np.array([
+        [1.0, 0.3],
+        [0.3, 1.0],
+    ])
+
+    X_0 = rng.multivariate_normal(mean_0, covariance, size=200)
+    X_1 = rng.multivariate_normal(mean_1, covariance, size=200)
+
+    X = np.vstack([X_0, X_1])
+    y = np.array([0] * 200 + [1] * 200)
+
+    model = LinearDiscriminantAnalysis()
+    model.fit(X, y)
+
+    predictions = model.predict(X)
+
+    accuracy = np.mean(predictions == y)
+
+    assert accuracy >= 0.95
+
+def test_fit_means():
+    X = np.array([
+        [1.0, 2.0],
+        [3.0, 4.0],
+        [5.0, 6.0],
+        [7.0, 8.0],
+    ])
+
+    y = np.array([0, 0, 1, 1])
+
+    model = LinearDiscriminantAnalysis()
+    model.fit(X, y)
+
+    expected_means = np.array([
+        [2.0, 3.0],
+        [6.0, 7.0],
+    ])
+
+    assert np.allclose(model.means_, expected_means)

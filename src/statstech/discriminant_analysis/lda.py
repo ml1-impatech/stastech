@@ -95,6 +95,12 @@ class LinearDiscriminantAnalysis(BaseEstimator, ClassifierMixin):
 
         X = check_array(X)
 
+        if X.shape[1] != self.means_.shape[1]:
+            raise ValueError(
+                "X deve ter o mesmo número de características "
+                "usado no treinamento."
+            )
+
         scores = []
 
         for i in range(len(self.classes_)):
