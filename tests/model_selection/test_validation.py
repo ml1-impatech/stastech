@@ -1,7 +1,9 @@
 import numpy as np
 import pytest
 
-from statstech.base import BaseEstimator, RegressorMixin
+from statstech.base import BaseEstimator, ClassifierMixin, RegressorMixin
+from statstech.metrics.classification import log_loss
+from statstech.metrics.regression import mean_squared_error
 from statstech.model_selection.split import KFold, LeaveOneOut
 from statstech.model_selection.validation import cross_val_score
 from statstech.utils.validation import NotFittedError, check_is_fitted
@@ -27,6 +29,25 @@ class ConstantScoreRegressor(MeanRegressor):
         return 7.0
 
 
+class ZeroClassifier(ClassifierMixin, BaseEstimator):
+    """Modelo de teste: prevê sempre a classe 0 (a menor).
+
+    As probabilidades são fixas: 0.8 para a classe 0 e 0.2 para a outra.
+    """
+
+    def fit(self, X, y):
+        self.classes_ = np.unique(y)
+        return self
+
+    def predict(self, X):
+        return np.full(len(X), self.classes_[0])
+
+    def predict_proba(self, X):
+        proba = np.full((len(X), 2), 0.2)
+        proba[:, 0] = 0.8
+        return proba
+
+
 def constant_scoring(y_true, y_pred):
     return 10.0
 
@@ -38,6 +59,12 @@ def amp_pred_scoring(y_true, y_pred):
 def make_data(n=20):
     X = np.arange(n).reshape(-1, 1)
     y = np.arange(n) * 2.0
+    return X, y
+
+
+def make_class_data(n=20):
+    X = np.arange(n).reshape(-1, 1)
+    y = np.arange(n) % 2
     return X, y
 
 
@@ -73,10 +100,35 @@ def test_given_scoring_is_used():
     np.testing.assert_allclose(scores, 10.0)
 
 
+def test_str_scoring_is_used():
+    X, y = make_class_data()
+    scores = cross_val_score(ZeroClassifier(), X, y, cv=4, scoring="recall_macro")
+    np.testing.assert_allclose(scores, 0.5)
+
+
+def test_needs_proba_scoring_is_used():
+    X, y = make_class_data()
+    scores = cross_val_score(ZeroClassifier(), X, y, cv=4, scoring="log_loss")
+    proba = np.tile([0.8, 0.2], (5, 1))
+    fold_a = log_loss(np.array([0, 1, 0, 1, 0]), proba, [0, 1])
+    fold_b = log_loss(np.array([1, 0, 1, 0, 1]), proba, [0, 1])
+    expected = np.array([fold_a, fold_b, fold_a, fold_b])
+    np.testing.assert_allclose(scores, expected)
+
+
 def test_given_scoring_right_order():
     X, y = make_data()
     scores = cross_val_score(MeanRegressor(), X, y, cv=4, scoring=amp_pred_scoring)
     np.testing.assert_allclose(scores, 0.0)
+
+
+def test_str_equals_function():
+    X, y = make_data()
+    scores_str_mse = cross_val_score(MeanRegressor(), X, y, cv=4, scoring="mse")
+    scores_func_mse = cross_val_score(
+        MeanRegressor(), X, y, cv=4, scoring=mean_squared_error
+    )
+    np.testing.assert_allclose(scores_str_mse, scores_func_mse)
 
 
 # cross_val_score: parâmetro cv
@@ -118,10 +170,16 @@ def test_cv_accepts_loo():
 
 # cross_val_score: entradas inválidas
 # -----------------------------------
-def test_invalid_scoring_raises():
+def test_int_scoring_raises():
     X, y = make_data()
-    with pytest.raises(ValueError, match="None ou uma função"):
+    with pytest.raises(TypeError, match="scoring deve ser"):
         cross_val_score(MeanRegressor(), X, y, scoring=123)
+
+
+def test_invalid_str_scoring_raises():
+    X, y = make_data()
+    with pytest.raises(ValueError, match="scoring desconhecido"):
+        cross_val_score(MeanRegressor(), X, y, scoring="xyz")
 
 
 def test_X_1d_raises():
@@ -135,3 +193,9 @@ def test_X_y_diff_lengths_raises():
     y = np.arange(18)
     with pytest.raises(ValueError, match="tamanhos diferentes"):
         cross_val_score(MeanRegressor(), X, y, cv=4)
+
+
+def test_needs_proba_scoring_no_predict_proba_raises():
+    X, y = make_data()
+    with pytest.raises(TypeError, match="predict_proba"):
+        cross_val_score(MeanRegressor(), X, y, scoring="log_loss")
