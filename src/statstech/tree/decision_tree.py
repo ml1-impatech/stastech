@@ -341,29 +341,87 @@ class _BaseDecisionTree(BaseEstimator):
         pass
 
 class DecisionTreeRegressor(_BaseDecisionTree, RegressorMixin):
+    """Árvore de decisão (CART) para regressão.
+ 
+    Cada divisão minimiza a soma ponderada da variância dos dois lados
+    (equivalente a minimizar a soma dos quadrados dos resíduos). Cada
+    folha prevê a média de y das amostras que chegam a ela.
+ 
+    Parameters
+    ----------
+    max_depth : int ou None, default=None
+        Profundidade máxima da árvore. Se None, a árvore cresce até
+        todos os nós ficarem puros ou pequenos demais para dividir, o
+        que decora o treino.
+    min_samples_split : int, default=2
+        Número mínimo de amostras para tentar dividir um nó.
+ 
+    Attributes
+    ----------
+    tree_ : _Node
+        Nó raiz da árvore treinada.
+    n_features_in_ : int
+        Número de features vistas no ``fit``.
+    """
+     
+    def _prepare_y(self, y):
+        """Converte y para floats."""
+        return y.astype(float)
+
+    def _decode_predictions(self, values):
+        """Devolve os valores das folhas como floats."""
+        return values.astype(float)
+    
     def _impurity(self, y):
-        def mean(y):
-            result = 
-            return result
-        return mean((y- mean(y))**2)
+        """Variância de y em torno da média (soma dos quadrados / n)."""
+        return np.mean((y- np.mean(y))**2)
 
     def _leaf_value(self, y):
-        pass
+        """Média de y."""
+        return float(np.mean(y))
 
 
 class DecisionTreeClassifier(_BaseDecisionTree, ClassifierMixin):
+    """Árvore de decisão (CART) para classificação.
+ 
+    Cada divisão minimiza a impureza de Gini ponderada dos dois lados.
+    Cada folha prevê a classe majoritária; em caso de empate, a classe
+    de menor índice em ``classes_``.
+ 
+    Parameters
+    ----------
+    max_depth : int ou None, default=None
+        Profundidade máxima da árvore. Se None, a árvore cresce até
+        todos os nós ficarem puros ou pequenos demais para dividir, o
+        que decora o treino.
+    min_samples_split : int, default=2
+        Número mínimo de amostras para tentar dividir um nó.
+ 
+    Attributes
+    ----------
+    tree_ : _Node
+        Nó raiz da árvore treinada.
+    classes_ : ndarray de shape (n_classes,)
+        Rótulos únicos de y, em ordem crescente.
+    n_features_in_ : int
+        Número de features vistas no ``fit``.
+    """
+
+    def _prepare_y(self, y):
+        """Define ``classes_`` e troca cada rótulo pelo seu índice."""
+        self.classes_, y_index = np.unique(y, return_inverse=True)
+        return y_index
+
+    def _decode_predictions(self, values):
+        """Traduz os índices das folhas de volta para os rótulos."""
+        return self.classes_[values.astype(int)]
+
     def _impurity(self, y):
-        Gini = 1 - sum(p_k**2) #p_k é a proporção da classe k em y
+        """Impureza de Gini: 1 - soma(p_k ** 2). Nó puro vale 0."""
         counts = np.bincount(y)
         p = counts/len(y)
-
-        # Nó puro é Gini = 0
-
         return 1 - np.sum(p**2)
 
     def _leaf_value(self, y):
-        # empate: argmax pega o menor índice
-        # fit já deixou os índices inteiros
-
-        return np.argmax(np.bincount(y))
-        
+        """Índice da classe majoritária (empate: menor índice)."""
+        return int(np.argmax(np.bincount(y)))      
