@@ -93,3 +93,81 @@ def test_predict_proba_format():
 
     assert probabilities.shape == (len(X), len(model.classes_))
 
+
+def test_predict_format():
+    X = np.array([
+        [1.0, 2.0],
+        [2.0, 1.0],
+        [4.0, 5.0],
+        [5.0, 4.0],
+        [8.0, 9.0],
+        [9.0, 8.0],
+    ])
+
+    y = np.array([0, 0, 1, 1, 2, 2])
+
+    model = LinearDiscriminantAnalysis()
+    model.fit(X, y)
+
+    predictions = model.predict(X)
+
+    assert predictions.shape == (len(X),)
+
+
+def test_predict_choose_highest_probability():
+    X = np.array([
+        [1.0, 2.0],
+        [2.0, 1.0],
+        [4.0, 5.0],
+        [5.0, 4.0],
+        [8.0, 9.0],
+        [9.0, 8.0],
+    ])
+
+    y = np.array([0, 0, 1, 1, 2, 2])
+
+    model = LinearDiscriminantAnalysis()
+    model.fit(X, y)
+
+    probabilities = model.predict_proba(X)
+    predictions = model.predict(X)
+
+    for i in range(len(X)):
+        index = 0
+
+        for j in range(1, len(model.classes_)):
+            if probabilities[i, j] > probabilities[i, index]:
+                index = j
+
+        assert predictions[i] == model.classes_[index]
+
+
+def test_predict_high_accuracy_separated_data():
+    X = np.array([
+        [1.0, 1.0],
+        [1.0, 2.0],
+        [2.0, 1.0],
+        [5.0, 5.0],
+        [5.0, 6.0],
+        [6.0, 5.0],
+        [9.0, 9.0],
+        [9.0, 10.0],
+        [10.0, 9.0],
+    ])
+
+    y = np.array([0, 0, 0, 1, 1, 1, 2, 2, 2])
+
+    model = LinearDiscriminantAnalysis()
+    model.fit(X, y)
+
+    predictions = model.predict(X)
+
+    correct = 0
+
+    for i in range(len(y)):
+        if predictions[i] == y[i]:
+            correct += 1
+
+    accuracy = correct / len(y)
+
+    assert accuracy >= 0.9
