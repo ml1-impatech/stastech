@@ -4,6 +4,7 @@ import numpy as np
 import pytest
 
 from statstech.linear_model.logistic_regression import LogisticRegression
+from statstech.utils.validation import NotFittedError
 
 
 def test_fit_multiclasse():
@@ -514,7 +515,7 @@ def test_predict_proba_model_not_fitted():
     X = np.array([[1, 2], [3, 4]])
 
     with pytest.raises(
-        ValueError,
+        NotFittedError,
         match="ainda não foi treinado",
     ):
         model.predict_proba(X)
@@ -580,7 +581,7 @@ def test_predict_proba_X_non_finite():
         model.predict_proba(X)
 
 
-def test_learning_rate_tipo_invalido():
+def test_learning_rate_invalid_type():
     model = LogisticRegression(learning_rate="abc")
 
     with pytest.raises(
@@ -590,7 +591,7 @@ def test_learning_rate_tipo_invalido():
         model.fit(np.array([[1], [2]]), np.array([0, 1]))
 
 
-def test_max_iter_booleano():
+def test_max_iter_boolean():
     model = LogisticRegression(max_iter=True)
 
     with pytest.raises(
@@ -600,7 +601,7 @@ def test_max_iter_booleano():
         model.fit(np.array([[1], [2]]), np.array([0, 1]))
 
 
-def test_tol_tipo_invalido():
+def test_tol_invalid_type():
     model = LogisticRegression(tol="abc")
 
     with pytest.raises(
@@ -610,7 +611,7 @@ def test_tol_tipo_invalido():
         model.fit(np.array([[1], [2]]), np.array([0, 1]))
 
 
-def test_lambda_tipo_invalido():
+def test_lambda_invalid_type():
     model = LogisticRegression(lambda_="abc")
 
     with pytest.raises(

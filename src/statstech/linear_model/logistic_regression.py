@@ -64,11 +64,6 @@ class LogisticRegression(BaseEstimator, ClassifierMixin):
             Indica se o modelo deve ajustar o intercepto.
         lambda_ : float
             Intensidade da regularização L2, finita e não negativa.
-
-        Raises
-        ------
-        ValueError
-            Se algum parâmetro tiver um valor inválido.
         """
         self.learning_rate = learning_rate
         self.max_iter = max_iter
@@ -202,6 +197,7 @@ class LogisticRegression(BaseEstimator, ClassifierMixin):
         Raises
         ------
         ValueError
+            Se os dados ou algum hiperparâmetro tiverem valores inválidos.
             Se as dimensões dos dados forem inválidas, X estiver vazio,
             X contiver valores não finitos, y contiver NaN ou houver
             menos de duas classes.
@@ -275,9 +271,11 @@ class LogisticRegression(BaseEstimator, ClassifierMixin):
 
         Raises
         ------
+        NotFittedError
+            Se o modelo não tiver sido treinado.
         ValueError
-            Se o modelo não tiver sido treinado ou X tiver dimensões
-            incompatíveis, estiver vazio ou contiver valores não finitos.
+            Se X tiver dimensões incompatíveis, estiver vazio
+            ou contiver valores não finitos.
         """
         check_is_fitted(self, attributes=["coef_", "classes_"])
         X = check_array(X)
@@ -313,9 +311,11 @@ class LogisticRegression(BaseEstimator, ClassifierMixin):
 
         Raises
         ------
+        NotFittedError
+            Se o modelo ainda não tiver sido treinado.
         ValueError
-            Se predict_proba detectar um modelo não treinado
-            ou dados inválidos.
+            Se X tiver dimensões incompatíveis, estiver vazio
+            ou contiver valores não finitos.
         """
         prob = self.predict_proba(X)
         predictions = np.argmax(prob, axis=1)
