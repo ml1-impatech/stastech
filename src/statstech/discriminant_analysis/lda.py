@@ -9,11 +9,21 @@ from statstech.utils.validation import (
 
 
 class LinearDiscriminantAnalysis(BaseEstimator, ClassifierMixin):
-    def __init__(self, priors=None):
+    def __init__(self, priors=None, reg_param=1e-6):
         self.priors = priors
+        self.reg_param = reg_param
 
     def fit(self, X, y):
         X, y = check_X_y(X, y)
+
+        if(
+            not isinstance(self.reg_param, (int, float, np.integer, np.floating))
+            or not np.isfinite(self.reg_param)
+            or self.reg_param < 0
+        ):
+            raise ValueError(
+                "reg_param deve ser um valor finito e não negativo."
+            )
 
         classes, counts = np.unique(y, return_counts=True)
         n_samples, n_features = X.shape
@@ -68,6 +78,7 @@ class LinearDiscriminantAnalysis(BaseEstimator, ClassifierMixin):
             covariance += centered.T @ centered
 
         covariance /= n_samples - n_classes
+        covariance += self.reg_param * np.eye(n_features)
 
         self.classes_ = classes
         self.priors_ = priors
