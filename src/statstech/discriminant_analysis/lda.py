@@ -21,10 +21,10 @@ class LinearDiscriminantAnalysis(BaseEstimator, ClassifierMixin):
 
         means = []
 
-        for classe in classes:
-            X_classe = X[y == classe]
-            media = X_classe.mean(axis=0)
-            means.append(media)
+        for class_label in classes:
+            X_class = X[y == class_label]
+            mean = X_class.mean(axis=0)
+            means.append(mean)
 
         means = np.array(means)
 
@@ -36,11 +36,11 @@ class LinearDiscriminantAnalysis(BaseEstimator, ClassifierMixin):
         covariance = np.zeros((n_features, n_features))
         
         for i in range(len(classes)):
-            classe = classes[i]
+            class_label = classes[i]
             mean = means[i]
 
-            X_classe = X[y == classe]
-            centered = X_classe - mean
+            X_class = X[y == class_label]
+            centered = X_class - mean
             covariance += centered.T @ centered
 
         covariance /= n_samples - n_classes
