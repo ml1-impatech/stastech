@@ -80,3 +80,8 @@ class LinearDiscriminantAnalysis(BaseEstimator, ClassifierMixin):
         probabilities /= probabilities.sum(axis=1, keepdims=True)
 
         return probabilities
+
+    def predict(self, X):
+        probabilities = self.predict_proba(X)
+        indices = np.argmax(probabilities, axis=1)
+        return self.classes_[indices]
