@@ -19,6 +19,15 @@ class LinearDiscriminantAnalysis(BaseEstimator, ClassifierMixin):
         n_samples, n_features = X.shape
         n_classes = len(classes)
 
+        if n_classes < 2:
+            raise ValueError("O LDA precisa de pelo menos duas classes.")
+
+        if n_samples <= n_classes:
+            raise ValueError(
+                "O número de amostras deve ser maior que "
+                "o número de classes."
+            )
+
         means = []
 
         for class_label in classes:
@@ -32,6 +41,21 @@ class LinearDiscriminantAnalysis(BaseEstimator, ClassifierMixin):
             priors = counts / n_samples
         else:
             priors = np.asarray(self.priors, dtype=float)
+
+            if priors.ndim != 1 or len(priors) != n_classes:
+                raise ValueError(
+                    "priors deve ter um valor para cada classe."
+                )
+
+            if (
+                not np.isfinite(priors).all()
+                or np.any(priors <= 0)
+                or not np.isclose(priors.sum(), 1.0)
+            ):
+                raise ValueError(
+                    "priors deve ter valores positivos e finitos "
+                    "com soma igual a 1."
+                )
 
         covariance = np.zeros((n_features, n_features))
         
@@ -53,11 +77,12 @@ class LinearDiscriminantAnalysis(BaseEstimator, ClassifierMixin):
         return self
 
     def predict_proba(self, X):
-        X = check_array(X)
         check_is_fitted(
             self,
             ["classes_", "priors_", "means_", "covariance_"]
         )
+
+        X = check_array(X)
 
         scores = []
 
@@ -65,9 +90,11 @@ class LinearDiscriminantAnalysis(BaseEstimator, ClassifierMixin):
             mean = self.means_[i]
             prior = self.priors_[i]
 
+            solved_mean = np.linalg.solve(self.covariance_, mean)
+
             score = (
-                X @ np.linalg.solve(self.covariance_, mean)
-                - 0.5 * mean @ np.linalg.solve(self.covariance_, mean)
+                X @ solved_mean
+                - 0.5 * mean @ solved_mean
                 + np.log(prior)
             )
 
