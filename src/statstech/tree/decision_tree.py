@@ -1,5 +1,4 @@
-"""Decision trees (CART) for regression and classification."""
-
+"""Árvores de decisão (CART) para regressão e classificação."""
 import numpy as np
 
 from dataclasses import dataclass
@@ -164,7 +163,7 @@ class _BaseDecisionTree(BaseEstimator):
         X = self._check_X(X)
         y = np.asarray(y)
 
-        if y.dim != 1:
+        if y.dim != 1: # checar no validation
             raise ValueError("y deve ser 1D.")
         if len(y) != X.shape[0]:
             raise ValueError("X e y devem ter o mesmo número de linhas.")
