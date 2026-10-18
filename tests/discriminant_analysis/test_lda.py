@@ -8,6 +8,7 @@ from statstech.discriminant_analysis.lda import (
 )
 from statstech.utils.validation import NotFittedError
 
+
 def test_fit_multiclasse():
     X = np.array([
         [1.0, 2.0],
@@ -174,7 +175,7 @@ def test_predict_high_accuracy_separated_data():
 
     assert accuracy >= 0.9
 
-    
+
 def test_predict_proba_model_not_fitted():
     model = LinearDiscriminantAnalysis()
     X = np.array([[1.0, 2.0], [3.0, 4.0]])
@@ -329,6 +330,7 @@ def test_reg_param_infinite():
     with pytest.raises(ValueError, match="não negativo"):
         model.fit(X, y)
 
+
 def test_fit_covariance():
     X = np.array([
             [1.0, 2.0],
@@ -342,11 +344,12 @@ def test_fit_covariance():
     model = LinearDiscriminantAnalysis(reg_param=0)
     model.fit(X, y)
     expected_covariance = np.array([
-    [2.0, 2.0],
-    [2.0, 2.0],
+        [2.0, 2.0],
+        [2.0, 2.0],
     ])
 
     assert np.allclose(model.covariance_, expected_covariance)
+
 
 def test_fit_priors_unequal_classes():
     X = np.array([
@@ -394,6 +397,7 @@ def test_predict_high_accuracy_same_covariance_normals():
     accuracy = np.mean(predictions == y)
 
     assert accuracy >= 0.95
+
 
 def test_fit_means():
     X = np.array([
