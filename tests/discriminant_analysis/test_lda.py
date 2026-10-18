@@ -6,6 +6,9 @@ from statstech.discriminant_analysis.lda import (
     LinearDiscriminantAnalysis,
 )
 
+import pytest
+from statstech.utils.validation import NotFittedError
+
 def test_fit_multiclasse():
     X = np.array([
         [1.0, 2.0],
@@ -171,3 +174,74 @@ def test_predict_high_accuracy_separated_data():
     accuracy = correct / len(y)
 
     assert accuracy >= 0.9
+
+    
+def test_predict_proba_model_not_fitted():
+    model = LinearDiscriminantAnalysis()
+    X = np.array([[1.0, 2.0], [3.0, 4.0]])
+
+    with pytest.raises(
+        NotFittedError,
+        match="ainda não foi treinado",
+    ):
+        model.predict_proba(X)
+
+
+def test_fit_single_class():
+    model = LinearDiscriminantAnalysis()
+    X = np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]])
+    y = np.array([1, 1, 1])
+
+    with pytest.raises(
+        ValueError,
+        match="pelo menos duas classes",
+    ):
+        model.fit(X, y)
+
+
+def test_fit_samples_not_greater_than_classes():
+    model = LinearDiscriminantAnalysis()
+    X = np.array([[1.0, 2.0], [3.0, 4.0]])
+    y = np.array([0, 1])
+
+    with pytest.raises(
+        ValueError,
+        match="número de amostras deve ser maior",
+    ):
+        model.fit(X, y)
+
+
+def test_predict_proba_X_not_2d():
+    model = LinearDiscriminantAnalysis()
+    model.fit(
+        np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]]),
+        np.array([0, 1, 1]),
+    )
+
+    X = np.array([1.0, 2.0])
+
+    with pytest.raises(
+        ValueError,
+        match="Esse array é 1D, precisa ser 2D",
+    ):
+        model.predict_proba(X)
+
+
+def test_predict_proba_different_features():
+    model = LinearDiscriminantAnalysis()
+    model.fit(
+        np.array([
+            [1.0, 2.0],
+            [3.0, 4.0],
+            [5.0, 6.0],
+        ]),
+        np.array([0, 1, 1]),
+    )
+
+    X = np.array([[1.0, 2.0, 3.0]])
+
+    with pytest.raises(
+        ValueError,
+        match="mesmo número de características",
+    ):
+        model.predict_proba(X)
