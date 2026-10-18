@@ -5,6 +5,7 @@ import numpy as np
 from numpy.typing import ArrayLike, NDArray
 
 from ..base import clone
+from ..metrics.scorers import get_scorer, needs_proba
 from ..utils.validation import check_X_y
 from .split import KFold
 
@@ -33,7 +34,8 @@ def _fit_and_score(
     y: NDArray[Any],
     train_idx: NDArray[np.intp],
     test_idx: NDArray[np.intp],
-    scoring: ScoringCallable | None,
+    scorer: Callable[..., float] | None = None,
+    use_proba: bool = False,
 ) -> float:
     """Treina uma cópia do modelo e pontua no conjunto de teste.
 
@@ -59,9 +61,14 @@ def _fit_and_score(
         Índices ou máscara booleana para filtrar
         as amostras de teste em X e y.
 
-    scoring : callable ou None
+    scorer : callable ou None
         Função com assinatura scoring(y_true, y_pred) que devolve
         um número. Se None, usa o método score do estimator.
+        Se use_proba=True, a assinatura é (y_true, y_pred, classes_).
+
+    use_proba : bool, default=False
+        Se True, usa predict_proba e classes_ em vez de predict e
+        scorer é (y_true, y_pred, classes_)
 
     Returns
     -------
@@ -72,9 +79,11 @@ def _fit_and_score(
     model.fit(X[train_idx], y[train_idx])
 
     X_test, y_test = X[test_idx], y[test_idx]
-    if scoring is None:
+    if scorer is None:
         return model.score(X_test, y_test)
-    return scoring(y_test, model.predict(X_test))
+    if use_proba:
+        return scorer(y_test, model.predict_proba(X_test), model.classes_)
+    return scorer(y_test, model.predict(X_test))
 
 
 def cross_val_score(
@@ -82,7 +91,7 @@ def cross_val_score(
     X: ArrayLike,
     y: ArrayLike,
     cv: int | SplitterProtocol = 5,
-    scoring: ScoringCallable | None = None,
+    scoring: ScoringCallable | str | None = None,
 ) -> NDArray[np.float64]:
     """Avalia um modelo por validação cruzada.
 
@@ -94,7 +103,8 @@ def cross_val_score(
     ----------
     estimator : objeto com fit, predict e score
         Modelo a ser avaliado. Uma cópia nova é criada com clone
-        a cada partição.
+        a cada partição. Com scoring="log_loss", é preciso que
+        tenha predict_proba e classes_
 
     X : array-like de formato (n_amostras, n_features)
         Dados de entrada. Deve ser 2D e numérico, sem NaN ou inf.
@@ -109,9 +119,10 @@ def cross_val_score(
         aceita um divisor já configurado (KFold, LeaveOneOut) que
         tenha o método split.
 
-    scoring : callable ou None, default=None
+    scoring : callable, str ou None, default=None
         Função com assinatura scoring(y_true, y_pred) que devolve
         um número. Se None, usa o método score do estimator.
+        Pode receber um nome como "mse" (ver get_scorer).
 
     Returns
     -------
@@ -124,10 +135,23 @@ def cross_val_score(
         Se X ou y forem inválidos (ver check_X_y): X que não seja 2D
         ou numérico, y que não seja 1D, valores não finitos ou
         tamanhos diferentes.
-        Se scoring não for None nem uma função.
+        Se scoring="log_loss" e um fold de teste tiver uma classe que
+        não apareceu no treino daquele fold.
+    TypeError
+        Se scoring="log_loss" e estimator não tiver predict_proba.
+        Se scoring não for None, um nome desconhecido (str) ou uma função.
     """
-    if scoring is not None and not callable(scoring):
-        raise ValueError("scoring deve ser None ou uma função.")
+    scorer: Callable[..., float] | None
+    if isinstance(scoring, str):
+        scorer = get_scorer(scoring)
+    elif scoring is None or callable(scoring):
+        scorer = scoring
+    else:
+        raise TypeError("scoring deve ser None, um nome (str) ou uma função.")
+
+    use_proba = isinstance(scoring, str) and needs_proba(scoring)
+    if use_proba and not hasattr(estimator, "predict_proba"):
+        raise TypeError(f"scoring={scoring!r} exige um estimador com predict_proba.")
 
     X_arr, y_arr = check_X_y(X, y)
 
@@ -135,7 +159,9 @@ def cross_val_score(
 
     return np.array(
         [
-            _fit_and_score(estimator, X_arr, y_arr, train_idx, test_idx, scoring)
+            _fit_and_score(
+                estimator, X_arr, y_arr, train_idx, test_idx, scorer, use_proba
+            )
             for train_idx, test_idx in splitter.split(X_arr)
         ]
     )
