@@ -119,7 +119,7 @@ class _BaseDecisionTree(BaseEstimator):
                 "For a single feature, use X.reshape(-1,1).")
         return X.astype(float)
 
-    def _check_is_fitted(self):
+    def _check_is_fitted(self): # Procurar no validation, atualizar a main
         """
         Confere que o modelo foi treinado.
         
