@@ -2,6 +2,7 @@ import numpy as np
 
 from statstech.base import BaseEstimator, RegressorMixin
 from statstech.utils.validation import check_X_y, check_array, check_is_fitted
+from statstech.metrics.regression import mean_squared_error 
 
 
 def relu(preactivation: np.ndarray) -> np.ndarray:
@@ -187,8 +188,7 @@ class MLPRegressor(BaseEstimator, RegressorMixin):
                     self.biases_[l] -= self.learning_rate * grad_b[l]
 
             y_pred = self.predict(X)
-            # TODO: mudar para utilizar metrics MSE(y_true, y_pred)
-            self.loss_curve_.append(np.mean((y_pred - y) ** 2))
+            self.loss_curve_.append(mean_squared_error(y, y_pred))
         return self
 
     def predict(self, X):
