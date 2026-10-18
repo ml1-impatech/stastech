@@ -1,12 +1,11 @@
 """Testes unitários para o classificador LinearDiscriminantAnalysis."""
 
 import numpy as np
+import pytest
 
 from statstech.discriminant_analysis.lda import (
     LinearDiscriminantAnalysis,
 )
-
-import pytest
 from statstech.utils.validation import NotFittedError
 
 def test_fit_multiclasse():
@@ -245,3 +244,87 @@ def test_predict_proba_different_features():
         match="mesmo número de características",
     ):
         model.predict_proba(X)
+
+
+def test_priors_wrong_number_of_classes():
+    model = LinearDiscriminantAnalysis(priors=[0.5, 0.5])
+
+    X = np.array([
+        [1.0, 2.0],
+        [2.0, 1.0],
+        [4.0, 5.0],
+        [5.0, 4.0],
+        [8.0, 9.0],
+        [9.0, 8.0],
+    ])
+
+    y = np.array([0, 0, 1, 1, 2, 2])
+
+    with pytest.raises(ValueError, match="um valor para cada classe"):
+        model.fit(X, y)
+
+
+def test_priors_not_sum_one():
+    model = LinearDiscriminantAnalysis(priors=[0.2, 0.2, 0.2])
+
+    X = np.array([
+        [1.0, 2.0],
+        [2.0, 1.0],
+        [4.0, 5.0],
+        [5.0, 4.0],
+        [8.0, 9.0],
+        [9.0, 8.0],
+    ])
+
+    y = np.array([0, 0, 1, 1, 2, 2])
+
+    with pytest.raises(ValueError, match="soma igual a 1"):
+        model.fit(X, y)
+
+
+def test_priors_non_positive():
+    model = LinearDiscriminantAnalysis(priors=[0.5, 0.5, 0.0])
+
+    X = np.array([
+        [1.0, 2.0],
+        [2.0, 1.0],
+        [4.0, 5.0],
+        [5.0, 4.0],
+        [8.0, 9.0],
+        [9.0, 8.0],
+    ])
+
+    y = np.array([0, 0, 1, 1, 2, 2])
+
+    with pytest.raises(ValueError, match="valores positivos e finitos"):
+        model.fit(X, y)
+
+
+def test_reg_param_negative():
+    model = LinearDiscriminantAnalysis(reg_param=-0.1)
+
+    X = np.array([[1.0], [2.0], [4.0], [5.0]])
+    y = np.array([0, 0, 1, 1])
+
+    with pytest.raises(ValueError, match="não negativo"):
+        model.fit(X, y)
+
+
+def test_reg_param_invalid_type():
+    model = LinearDiscriminantAnalysis(reg_param="abc")
+
+    X = np.array([[1.0], [2.0], [4.0], [5.0]])
+    y = np.array([0, 0, 1, 1])
+
+    with pytest.raises(ValueError, match="não negativo"):
+        model.fit(X, y)
+
+
+def test_reg_param_infinite():
+    model = LinearDiscriminantAnalysis(reg_param=np.inf)
+
+    X = np.array([[1.0], [2.0], [4.0], [5.0]])
+    y = np.array([0, 0, 1, 1])
+
+    with pytest.raises(ValueError, match="não negativo"):
+        model.fit(X, y)
