@@ -51,3 +51,32 @@ class LinearDiscriminantAnalysis(BaseEstimator, ClassifierMixin):
         self.covariance_ = covariance
 
         return self
+
+    def predict_proba(self, X):
+        X = check_array(X)
+        check_is_fitted(
+            self,
+            ["classes_", "priors_", "means_", "covariance_"]
+        )
+
+        scores = []
+
+        for i in range(len(self.classes_)):
+            mean = self.means_[i]
+            prior = self.priors_[i]
+
+            score = (
+                X @ np.linalg.solve(self.covariance_, mean)
+                - 0.5 * mean @ np.linalg.solve(self.covariance_, mean)
+                + np.log(prior)
+            )
+
+            scores.append(score)
+
+        scores = np.array(scores).T
+
+        scores = scores - np.max(scores, axis=1, keepdims=True)
+        probabilities = np.exp(scores)
+        probabilities /= probabilities.sum(axis=1, keepdims=True)
+
+        return probabilities
