@@ -1,50 +1,43 @@
-"""Decision trees (CART) for regression and classification."""
+"""Testes das árvores de decisão"""
 
-from dataclasses import dataclass
+import numpy as np
+import pytest
 
-from statstech.base import BaseEstimator, ClassifierMixin, RegressorMixin
-
-
-@dataclass
-class _Node:
-    feature: int | None = None
-    threshold: float | None = None
-    left: "_Node | None" = None
-    right: "_Node | None" = None
-    value: float | None = None  # only in leaves
+from statstech.src.statstech.base import clone
+from statstech.src.statstech.tree.decision_tree import (DecisionTreeClassifier , 
+                                          DecisionTreeRegressor, 
+                                          _Node,
+                                          _node_depth)
 
 
-class _BaseDecisionTree(BaseEstimator):
-    def __init__(self, max_depth=None, min_samples_split=2):
-        pass
+# ----------------------------------------------------------------------
+# Auxiliares
+# ----------------------------------------------------------------------
 
-    def fit(self, X, y):
-        pass
-
-    def predict(self, X):
-        pass
-
-    def _build(self, X, y, depth):  # recursive
-        pass
-
-    def _impurity(self, y):  # each subclass defines
-        pass
-
-    def _leaf_value(self, y):  # each subclass defines
-        pass
+def count_splits(node):
+    """Número de nós internos da subárvore."""
+    if node.feature is None:
+        return 0
+    return 1 + count_splits(node.left) + count_splits(node.right)
 
 
-class DecisionTreeRegressor(_BaseDecisionTree, RegressorMixin):
-    def _impurity(self, y):
-        pass
+@pytest.fixture
+def step_data():
+    """Uma feature; uma única divisão (entre 3 e 10) separa tudo."""
+    X = np.array([[1.0], [2.0], [3.0], [10.0], [11.0], [12.0]])
+    y = np.array([0, 0, 0, 1, 1, 1])
+    return X, y
 
-    def _leaf_value(self, y):
-        pass
+
+@pytest.fixture
+def noisy_data():
+    rng = np.random.default_rng(0)
+    X = rng.normal(size=(200, 3))
+    y = (X[:, 0] + 0.5 * X[:, 1] + rng.normal(scale=0.5, size=200) > 0)
+    return X, y.astype(int)
 
 
-class DecisionTreeClassifier(_BaseDecisionTree, ClassifierMixin):
-    def _impurity(self, y):
-        pass
-
-    def _leaf_value(self, y):
-        pass
+# ----------------------------------------------------------------------
+# _Node e _node_depth
+# ----------------------------------------------------------------------
+ 
