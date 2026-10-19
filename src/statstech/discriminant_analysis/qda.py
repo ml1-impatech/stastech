@@ -48,6 +48,14 @@ class QuadraticDiscriminantAnalysis(BaseEstimator, ClassifierMixin):
 
     
     def predict_proba(self, X):
+        check_is_fitted(
+            self,
+            attributes=[
+            "classes_",
+            "priors_",
+            "means_",
+            "covariances_",],
+            )
         X = check_array(X)
 
         n_samples = X.shape[0]
