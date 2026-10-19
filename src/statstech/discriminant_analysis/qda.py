@@ -84,3 +84,9 @@ class QuadraticDiscriminantAnalysis(BaseEstimator, ClassifierMixin):
         )
 
         return probabilities
+
+    
+    def predict(self, X):
+        probabilities = self.predict_proba(X)
+        indices = np.argmax(probabilities, axis=1)
+        return self.classes_[indices]
