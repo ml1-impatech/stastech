@@ -45,3 +45,34 @@ class QuadraticDiscriminantAnalysis(BaseEstimator, ClassifierMixin):
             self.covariances_[k] = covariance
 
         return self
+
+    
+    def predict_proba(self, X):
+        X = check_array(X)
+
+        n_samples = X.shape[0]
+        n_classes = len(self.classes_)
+
+        scores = np.empty((n_samples, n_classes))
+
+        for k in range(n_classes):
+            centered = X - self.means_[k]
+            covariance = self.covariances_[k]
+
+            solved = np.linalg.solve(covariance, centered.T)
+            quadratic = np.sum(centered * solved.T, axis=1)
+            sign, log_det = np.linalg.slogdet(covariance)
+
+            scores[:, k] = (
+                -0.5 * quadratic
+                - 0.5 * log_det
+                + np.log(self.priors_[k])
+            )
+
+        scores -= np.max(scores, axis=1, keepdims=True)
+        probabilities = np.exp(scores)
+        probabilities /= np.sum(
+            probabilities, axis=1, keepdims=True
+        )
+
+        return probabilities
