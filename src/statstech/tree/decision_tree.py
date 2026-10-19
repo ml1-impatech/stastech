@@ -163,7 +163,7 @@ class _BaseDecisionTree(BaseEstimator):
         X = self._check_X(X)
         y = np.asarray(y)
 
-        if y.dim != 1: # checar no validation
+        if y.ndim != 1: # checar no validation
             raise ValueError("y deve ser 1D.")
         if len(y) != X.shape[0]:
             raise ValueError("X e y devem ter o mesmo número de linhas.")
@@ -217,7 +217,7 @@ class _BaseDecisionTree(BaseEstimator):
 
         return self._decode_predictions(np.array(values))
 
-    def get_depth(self, y, depth):
+    def get_depth(self):
         """
         Devolve a profundidade da árvore treinada.
         
@@ -299,7 +299,7 @@ class _BaseDecisionTree(BaseEstimator):
         # Limiares candidatos: pontos médios entre valores consecutivos distintos e ordenados da coluna j
             unique_values = np.unique(X[:, j]) 
             threshold = (
-                unique_values[:, -1] 
+                unique_values[:-1] 
                 + unique_values[1:]
                 )/2
 
