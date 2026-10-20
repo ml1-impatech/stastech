@@ -248,4 +248,64 @@ def test_fit_does_not_modify_inputs(noisy_data):
     DecisionTreeClassifier(max_depth=3).fit(X, y)
     np.testing.assert_array_equal(X, X0)
     np.testing.assert_array_equal(y, y0)
+
  
+# ----------------------------------------------------------------------
+# Erros esperados
+# ----------------------------------------------------------------------
+ 
+@pytest.mark.parametrize("cls", [DecisionTreeClassifier, DecisionTreeRegressor])
+def test_predict_before_fit_raises(cls):
+    with pytest.raises(RuntimeError):
+        cls().predict(np.zeros((2, 2)))
+ 
+ 
+@pytest.mark.parametrize("cls", [DecisionTreeClassifier, DecisionTreeRegressor])
+def test_get_depth_before_fit_raises(cls):
+    with pytest.raises(RuntimeError):
+        cls().get_depth()
+ 
+ 
+@pytest.mark.parametrize("cls", [DecisionTreeClassifier, DecisionTreeRegressor])
+def test_x_must_be_2d(cls):
+    with pytest.raises(ValueError):
+        cls().fit(np.array([1.0, 2.0, 3.0]), np.array([0, 1, 0]))
+ 
+ 
+@pytest.mark.parametrize("cls", [DecisionTreeClassifier, DecisionTreeRegressor])
+def test_y_must_be_1d(cls):
+    with pytest.raises(ValueError):
+        cls().fit(np.zeros((3, 1)), np.zeros((3, 1)))
+ 
+ 
+@pytest.mark.parametrize("cls", [DecisionTreeClassifier, DecisionTreeRegressor])
+def test_x_y_different_lengths_raise(cls):
+    with pytest.raises(ValueError):
+        cls().fit(np.zeros((3, 1)), np.zeros(4))
+ 
+ 
+@pytest.mark.parametrize("cls", [DecisionTreeClassifier, DecisionTreeRegressor])
+def test_zero_samples_raise(cls):
+    with pytest.raises(ValueError):
+        cls().fit(np.zeros((0, 2)), np.zeros(0))
+ 
+ 
+def test_predict_wrong_number_of_features_raises(step_data):
+    X, y = step_data
+    clf = DecisionTreeClassifier().fit(X, y)
+    with pytest.raises(ValueError):
+        clf.predict(np.zeros((2, 3)))
+ 
+ 
+@pytest.mark.parametrize("max_depth", [0, -1, 1.5, "a"])
+def test_invalid_max_depth_raises(max_depth, step_data):
+    X, y = step_data
+    with pytest.raises(ValueError):
+        DecisionTreeClassifier(max_depth=max_depth).fit(X, y)
+ 
+ 
+@pytest.mark.parametrize("min_samples_split", [1, 0, 2.5])
+def test_invalid_min_samples_split_raises(min_samples_split, step_data):
+    X, y = step_data
+    with pytest.raises(ValueError):
+        DecisionTreeClassifier(min_samples_split=min_samples_split).fit(X, y)
