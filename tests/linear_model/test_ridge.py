@@ -1,16 +1,82 @@
 import numpy as np
 import pytest
 
-from statsteh.linear_model.ridge import Ridge
+from statstech.linear_model.linear_regression import LinearRegression
+from statstech.linear_model.ridge import Ridge
 
-def test_ridge_alpha_zero_metches_linear_LinearRegression():
-    pass
+def test_ridge_alpha_zero_matches_linear_LinearRegression():
+    X = np.array([[1, 2],
+                  [2, 1],
+                  [3, 4],
+                  [4, 3],
+                  [5, 2]],
+                  dtype = float)
+
+    y = np.array([4, 7, 8, 11, 16], dtype = float)
+
+    model_ridge = Ridge(alpha = 0.0)
+    model_ridge.fit(X, y)
+
+    model_linear = LinearRegression()
+    model_linear.fit(X, y)
+
+    np.testing.assert_allclose(model_ridge.coef_, model_linear.coef_, 1e-8)
+    np.testing.assert_allclose(model_ridge.intercept_, model_linear.intercept_, 1e-8)
+
 
 def test_ridge_coefficients_norm_decrease_as_alpha_increases():
-    pass
+    X = np.array([[1, 2],
+                  [2, 1],
+                  [3, 4],
+                  [4, 3],
+                  [5, 2]],
+                  dtype = float)
+
+    y = np.array([4, 7, 8, 11, 16])
+
+    model_alpha_small = Ridge(alpha = 0.1)
+    model_alpha_medium = Ridge(alpha = 10)
+    model_alpha_large = Ridge(alpha = 100.0)
+
+    model_alpha_small.fit(X, y)
+    model_alpha_medium.fit(X, y)
+    model_alpha_large.fit(X, y)
+
+    norm_alpha_small = np.linalg.norm(model_alpha_small.coef_)
+    norm_alpha_medium = np.linalg.norm(model_alpha_medium.coef_)
+    norm_alpha_large = np.linalg.norm(model_alpha_large.coef_)
+
+    assert norm_alpha_small > norm_alpha_medium
+    assert norm_alpha_medium > norm_alpha_large
+
 
 def test_ridge_large_alpha_coefficients_zero_and_intercept_mean_y():
-    pass
+    X = np.array([[1, 2],
+                  [2, 1],
+                  [3, 4],
+                  [4, 3],
+                  [5, 2]],
+                  dtype = float)
+
+    y = np.array([4, 7, 8, 11, 16], dtype = float)
+
+    model = Ridge(alpha = 1e10)
+    model.fit(X, y)
+
+    np.testing.assert_allclose(model.coef_, np.zeros(X.shape[1]), atol = 1e-6)
+    np.testing.assert_allclose(model.intercept_, np.mean(y), atol = 1e-6)
+
 
 def test_ridge_negative_alpha_raises_value_error():
-    pass
+    X = np.array([[1],
+                  [2],
+                  [3],
+                  [4]],
+                  dtype = float)
+
+    y = np.array([3, 6, 9, 12], dtype = float)
+
+    model = Ridge(alpha = -0.1)
+
+    with pytest.raises(ValueError):
+        model.fit(X, y)
