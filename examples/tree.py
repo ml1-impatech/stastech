@@ -46,8 +46,27 @@ for d in depths:
 print("\nSem max_depth o erro de treino vai a zero (a árvore decora o ruído),")
 print("mas o erro de teste volta a subir: isso é overfitting.\n")
 
-# Classificação
 
+# ----------------------------------------------------------------------
+# 2. Classificação: duas classes com fronteira não linear
+# ----------------------------------------------------------------------
+ 
+rng = np.random.default_rng(7)
+Xc = rng.normal(size=(400, 2))
+yc = ((Xc[:, 0] ** 2 + Xc[:, 1] ** 2) > 1.2).astype(int)  # anel
+flip = rng.random(400) < 0.08                             # 8% de ruído
+yc = np.where(flip, 1 - yc, yc)
+Xc_tr, Xc_te, yc_tr, yc_te = split(Xc, yc, seed=1)
+ 
+print("=== Classificação (fronteira circular, 8% de rótulos trocados) ===")
+print(f"{'max_depth':>10} {'acc treino':>12} {'acc teste':>12} {'prof. real':>11}")
+ 
+for d in [1, 2, 3, 4, 6, 8, None]:
+    clf = DecisionTreeClassifier(max_depth=d).fit(Xc_tr, yc_tr)
+    print(
+        f"{str(d):>10} {clf.score(Xc_tr, yc_tr):>12.3f} "
+        f"{clf.score(Xc_te, yc_te):>12.3f} {clf.get_depth():>11}"
+    )
 # Rótulos
 
 # Gráfico
