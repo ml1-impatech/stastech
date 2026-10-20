@@ -21,7 +21,30 @@ def split(X, y, test_size=0.3, seed=0):
 def mse(y_true, y_pred):
     return float(np.mean((y_true - y_pred) ** 2))
 
-# Regressão
+# ----------------------------------------------------------------------
+# 1. Regressão: y = sen(x) + ruído
+# ----------------------------------------------------------------------
+ 
+rng = np.random.default_rng(42)
+X = rng.uniform(-3, 3, size=(300, 1))
+y = np.sin(X[:, 0]) + rng.normal(scale=0.3, size=300)
+X_tr, X_te, y_tr, y_te = split(X, y)
+ 
+print("=== Regressão (y = sen(x) + ruído) ===")
+print(f"{'max_depth':>10} {'MSE treino':>12} {'MSE teste':>12} {'prof. real':>11}")
+ 
+depths = [1, 2, 3, 4, 5, 6, 8, 10, None]
+train_err, test_err = [], []
+for d in depths:
+    reg = DecisionTreeRegressor(max_depth=d).fit(X_tr, y_tr)
+    e_tr = mse(y_tr, reg.predict(X_tr))
+    e_te = mse(y_te, reg.predict(X_te))
+    train_err.append(e_tr)
+    test_err.append(e_te)
+    print(f"{str(d):>10} {e_tr:>12.4f} {e_te:>12.4f} {reg.get_depth():>11}")
+ 
+print("\nSem max_depth o erro de treino vai a zero (a árvore decora o ruído),")
+print("mas o erro de teste volta a subir: isso é overfitting.\n")
 
 # Classificação
 
