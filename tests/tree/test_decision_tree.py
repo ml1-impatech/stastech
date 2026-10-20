@@ -210,3 +210,42 @@ def test_regressor_learns_nonlinear_function_better_than_mean():
     assert mse_tree < 0.1 * mse_mean
  
  
+# ----------------------------------------------------------------------
+# Contrato da biblioteca (get_params, clone, determinismo)
+# ----------------------------------------------------------------------
+ 
+def test_get_and_set_params():
+    clf = DecisionTreeClassifier(max_depth=3, min_samples_split=4)
+    assert clf.get_params() == {"max_depth": 3, "min_samples_split": 4}
+    assert clf.set_params(max_depth=5) is clf
+    assert clf.max_depth == 5
+ 
+ 
+def test_clone_is_untrained_with_same_params(step_data):
+    X, y = step_data
+    clf = DecisionTreeClassifier(max_depth=2).fit(X, y)
+    novo = clone(clf)
+    assert novo.get_params() == clf.get_params()
+    assert not hasattr(novo, "tree_")
+ 
+ 
+def test_fit_returns_self(step_data):
+    X, y = step_data
+    clf = DecisionTreeClassifier()
+    assert clf.fit(X, y) is clf
+ 
+ 
+def test_fit_is_deterministic(noisy_data):
+    X, y = noisy_data
+    p1 = DecisionTreeClassifier(max_depth=4).fit(X, y).predict(X)
+    p2 = DecisionTreeClassifier(max_depth=4).fit(X, y).predict(X)
+    np.testing.assert_array_equal(p1, p2)
+ 
+ 
+def test_fit_does_not_modify_inputs(noisy_data):
+    X, y = noisy_data
+    X0, y0 = X.copy(), y.copy()
+    DecisionTreeClassifier(max_depth=3).fit(X, y)
+    np.testing.assert_array_equal(X, X0)
+    np.testing.assert_array_equal(y, y0)
+ 
