@@ -78,8 +78,3 @@ def test_mismatched_shapes_raises_value_error():
 
     with pytest.raises(ValueError):
         model.fit(X, y)
-    
-
-
-
-
