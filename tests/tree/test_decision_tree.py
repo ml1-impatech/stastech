@@ -138,5 +138,75 @@ def test_identical_rows_with_different_labels_do_not_crash():
     clf = DecisionTreeClassifier().fit(X, y)
     assert clf.tree_.feature is None
     assert clf.predict(X).shape == (4,)
-
-
+ 
+ 
+# ----------------------------------------------------------------------
+# Classificação
+# ----------------------------------------------------------------------
+ 
+def test_string_labels_come_back_as_strings():
+    X = np.array([[1.0], [2.0], [10.0], [11.0]])
+    y = np.array(["não", "não", "sim", "sim"])
+    clf = DecisionTreeClassifier().fit(X, y)
+    pred = clf.predict(np.array([[1.5], [10.5]]))
+    np.testing.assert_array_equal(pred, ["não", "sim"])
+    np.testing.assert_array_equal(clf.classes_, ["não", "sim"])
+ 
+ 
+def test_multiclass_perfect_split():
+    X = np.array([[1.0], [2.0], [10.0], [11.0], [20.0], [21.0]])
+    y = np.array([0, 0, 1, 1, 2, 2])
+    clf = DecisionTreeClassifier().fit(X, y)
+    assert clf.score(X, y) == 1.0
+    assert clf.get_depth() == 2
+ 
+ 
+# ----------------------------------------------------------------------
+# Regressão
+# ----------------------------------------------------------------------
+ 
+def test_regressor_depth_1_predicts_group_means():
+    X = np.array([[1.0], [2.0], [3.0], [10.0], [11.0], [12.0]])
+    y = np.array([1.0, 2.0, 3.0, 10.0, 11.0, 12.0])
+    reg = DecisionTreeRegressor(max_depth=1).fit(X, y)
+    pred = reg.predict(np.array([[0.0], [5.0], [20.0]]))
+    np.testing.assert_allclose(pred, [2.0, 2.0, 11.0])
+ 
+ 
+def test_regressor_unrestricted_reproduces_training_targets():
+    rng = np.random.default_rng(1)
+    X = rng.uniform(-3, 3, size=(80, 1))
+    y = np.sin(X[:, 0]) + rng.normal(scale=0.3, size=80)
+    reg = DecisionTreeRegressor().fit(X, y)
+    np.testing.assert_allclose(reg.predict(X), y)
+ 
+ 
+def test_regressor_constant_target_is_single_leaf():
+    X = np.arange(10, dtype=float).reshape(-1, 1)
+    reg = DecisionTreeRegressor().fit(X, np.full(10, 4.2))
+    assert reg.get_depth() == 0
+    np.testing.assert_allclose(reg.predict(X), 4.2)
+ 
+ 
+def test_deeper_tree_fits_train_better():
+    rng = np.random.default_rng(2)
+    X = rng.uniform(-3, 3, size=(150, 1))
+    y = np.sin(X[:, 0]) + rng.normal(scale=0.2, size=150)
+ 
+    def train_mse(depth):
+        reg = DecisionTreeRegressor(max_depth=depth).fit(X, y)
+        return np.mean((reg.predict(X) - y) ** 2)
+ 
+    assert train_mse(1) > train_mse(3) > train_mse(8)
+ 
+ 
+def test_regressor_learns_nonlinear_function_better_than_mean():
+    rng = np.random.default_rng(3)
+    X = rng.uniform(-3, 3, size=(300, 1))
+    y = np.sin(X[:, 0])
+    reg = DecisionTreeRegressor(max_depth=5).fit(X, y)
+    mse_tree = np.mean((reg.predict(X) - y) ** 2)
+    mse_mean = np.mean((y - y.mean()) ** 2)
+    assert mse_tree < 0.1 * mse_mean
+ 
+ 
