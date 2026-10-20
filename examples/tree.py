@@ -67,6 +67,50 @@ for d in [1, 2, 3, 4, 6, 8, None]:
         f"{str(d):>10} {clf.score(Xc_tr, yc_tr):>12.3f} "
         f"{clf.score(Xc_te, yc_te):>12.3f} {clf.get_depth():>11}"
     )
-# Rótulos
 
-# Gráfico
+
+# ----------------------------------------------------------------------
+# 3. Rótulos em texto
+# ----------------------------------------------------------------------
+ 
+print("\n=== Rótulos em texto ===")
+X_txt = np.array([[1.0], [2.0], [3.0], [10.0], [11.0], [12.0]])
+y_txt = np.array(["baixo", "baixo", "baixo", "alto", "alto", "alto"])
+clf = DecisionTreeClassifier().fit(X_txt, y_txt)
+print("classes_:", clf.classes_)
+print("predict([[2.5], [9.0]]):", clf.predict(np.array([[2.5], [9.0]])))
+ 
+# ----------------------------------------------------------------------
+# 4. Gráfico (opcional)
+# ----------------------------------------------------------------------
+ 
+try:
+    import matplotlib.pyplot as plt
+except ImportError:
+    print("\n(matplotlib não instalado: gráfico ignorado)")
+else:
+    labels = [str(d) for d in depths]
+    fig, axes = plt.subplots(1, 2, figsize=(11, 4))
+ 
+    ax = axes[0]
+    ax.plot(labels, train_err, "o-", label="treino")
+    ax.plot(labels, test_err, "o-", label="teste")
+    ax.set_xlabel("max_depth")
+    ax.set_ylabel("MSE")
+    ax.set_title("Overfitting na árvore de regressão")
+    ax.legend()
+ 
+    ax = axes[1]
+    grid = np.linspace(-3, 3, 400).reshape(-1, 1)
+    ax.scatter(X_tr[:, 0], y_tr, s=8, color="gray", alpha=0.5, label="treino")
+    for d in [2, None]:
+        reg = DecisionTreeRegressor(max_depth=d).fit(X_tr, y_tr)
+        ax.plot(grid[:, 0], reg.predict(grid), label=f"max_depth={d}")
+    ax.set_xlabel("x")
+    ax.set_ylabel("y")
+    ax.set_title("Curvas ajustadas")
+    ax.legend()
+ 
+    fig.tight_layout()
+    plt.show()
+ 
