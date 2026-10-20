@@ -41,3 +41,11 @@ def noisy_data():
 # _Node e _node_depth
 # ----------------------------------------------------------------------
  
+def test_node_depth_leaf_is_zero():
+    assert _node_depth(_Node(value=1.0)) == 0
+
+def test_node_depth_counts_longest_path():
+    leaf = _Node(value=0.0)
+    left = _Node(feature=0, threshold=1.0, left=leaf, right=leaf)
+    root = _Node(feature=0, threshold=2.0, left=left, right=leaf)
+    assert _node_depth(root) == 2
