@@ -32,8 +32,11 @@ class KMeans(BaseEstimator):
             distances = pairwise_distances(X, X[indices])
             d2 = np.min(distances, axis=1)
             sum_d2 = np.sum(d2)
-            probs = d2/sum_d2
-            next_indice = rng.choice(X.shape[0], p=probs)
+            if sum_d2 == 0:
+                next_indice = rng.choice(X.shape[0])
+            else:
+                probs = d2/sum_d2
+                next_indice = rng.choice(X.shape[0], p=probs)
             indices.append(next_indice)
         return X[indices]
 
@@ -43,9 +46,14 @@ class KMeans(BaseEstimator):
             distances = pairwise_distances(X, centers)
             labels = np.argmin(distances, axis=1)
             new_centers = centers.copy()
+            min_distances = np.min(distances, axis=1)
             for j in range(self.n_clusters):
                 if (labels == j).any():
                     new_centers[j] = np.mean(X[labels==j], axis=0)
+                else:
+                    far = np.argmax(min_distances)
+                    new_centers[j] = X[far]
+                    min_distances[far] = 0
             mov = np.sum((new_centers - centers) ** 2)
             n_iter += 1
             centers = new_centers
@@ -67,7 +75,7 @@ class KMeans(BaseEstimator):
         if self.init != "random" and self.init != "k-means++":
             raise ValueError("init deve ser 'random' ou 'k-means++'")
         if self.tol<0:
-            raise ValueError("tol deve ser maior que zero")
+            raise ValueError("tol deve ser maior ou igual que zero")
 
         rng = np.random.default_rng(self.random_state)
         best_inertia = np.inf
