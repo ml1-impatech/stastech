@@ -112,6 +112,7 @@ class LinearRegression( BaseEstimator, RegressorMixin):
 
         if X.shape[1] != self.n_features_in_:
             raise ValueError("X deve possuir o mesmo número de variáveis que em fit")
+        
         y_predicted = X @ self.coef_ + self.intercept_
 
         return y_predicted

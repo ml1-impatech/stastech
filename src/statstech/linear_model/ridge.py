@@ -1,9 +1,14 @@
 import numpy as np
 from  base import BaseEstimator, RegressorMixin
+from statstech.utils.validation import (check_X_y, check_array, check_is_fitted)
 
 class Ridge(BaseEstimator, RegressorMixin):
     """
     Modelo de Regressão Linear com a regularização L2.
+
+    O modelo Ridge estima os coeficientes que minimizam a soma dos quadrados
+    dos resíduos acrescida de um termo de penalização L2. Essa penalização 
+    reduz a magnitude dos coeficientes e pode ajudar a controlar o sobreajuste.
 
     Parameters
     ----------
@@ -37,6 +42,13 @@ class Ridge(BaseEstimator, RegressorMixin):
         self.alpha = alpha
         self.fit_intercept = fit_intercept
 
+        if not np.isfinite(self.alpha) or self.alpha < 0:
+            raise ValueError("alpha deve ser um valor finito não negativo")
+
+        if not isinstance(self.fit_intercept, (bool, np.bool)):
+            raise ValueError("fit_intercept deve ser booleano")
+        
+
     def fit(self, X : np.ndarray, y : np.ndarray) -> "Ridge":
         """
         Ajusta o modelo de regressão Ridge aos dados de treino.
@@ -61,17 +73,8 @@ class Ridge(BaseEstimator, RegressorMixin):
             Se y não for um vetor.
             Se o número de amostras de X e y não são iguais.
         """
-        X = np.asarray(X, dtype = float)
-        y = np.asarray(y, dtype = float)
+        X, y = check_X_y(X, y)
 
-        if X.ndim != 2:
-            raise ValueError("X deve ser uma matriz 2D")
-        
-        if y.ndim != 1:
-            raise ValueError("y deve ser um vetor")
-        
-        if X.shape[0] != y.shape[0]:
-            raise ValueError("X e y devem possuir o mesmo número de amostras")
 
         if self.fit_intercept is True:
              X_mean = np.mean(X, axis = 0)
@@ -122,13 +125,11 @@ class Ridge(BaseEstimator, RegressorMixin):
             Se o modelo não tiver sido treinado.
 
         """
-        X = np.asarray(X, dtype = float)
+        check_is_fitted(self, ["coef_", "intercept_", "n_features_in_"])
+        X = check_array(X)
 
-        if X.ndim != 2:
-            raise ValueError("X deve ser uma matriz 2D")
-
-        if not hasattr(self, "coef_"):
-            raise ValueError("O modelo não foi treinado")
+        if X.shape[1] != self.n_features_in_:
+            raise ValueError("X deve possuir o mesmo número de variáveis que em fit")
 
         y_predicted = X @ self.coef_ + self.intercept_
 
