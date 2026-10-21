@@ -1,11 +1,14 @@
 import numpy as np
 import itertools
 from base import BaseEstimator
+from statstech.utils.validation import (check_array, check_is_fitted)
 
 class PolinomialFeatures(BaseEstimator):
     """
-    Transforma as variáveis de entrada em características polinomiais
-    para implementar a regressão polinomial.
+    Transforma as variáveis de entrada em características polinomiais.
+
+    Gera produtos das variáveis de entrada até o grau máximo especificado,
+    permitindo apresentar relações polinomiais entre as variáveis.
 
     Parameters
     ----------
@@ -23,6 +26,12 @@ class PolinomialFeatures(BaseEstimator):
         
         self.degree = degree
         self.include_bias = include_bias
+
+        if not isinstance(self.degree, (int, np.integer)) or self.degree < 1:
+            raise ValueError("degree deve ser um valor inteiro positivo")
+
+        if not isinstance(self.fit_intercept, (bool, np.bool)):
+            raise ValueError("fit_intercept deve ser booleano")
         
     def fit(self, X : np.ndarray, y : np.ndarray | None = None) -> "PolinomialFeatures":
         """
@@ -49,13 +58,7 @@ class PolinomialFeatures(BaseEstimator):
             Se X estiver vazio
         """
 
-        X = np.asarray(X, dtype = float)
-
-        if X.ndim != 2:
-            raise ValueError("X deve ser uma matriz 2D")
-
-        if X.shape[0] == 0 or X.shape[1] == 0:
-            raise ValueError("X não pode estar vazio")
+        X = check_array(X)
 
         self.n_features_in_ = X.shape[1]
 
@@ -95,16 +98,11 @@ class PolinomialFeatures(BaseEstimator):
             Se o modelo não tiver sido treinado.
             Se o número de features de X for diferente.
         """
-        X = np.asarray(X, dtype = float)
-
-        if X.ndim != 2:
-            raise ValueError("X deve ser uma matriz 2D")
-
-        if not hasattr(self, "combinations_"):
-            raise ValueError("O modelo não foi treinado")
+        check_is_fitted(self, ["combinations_", "n_features_in", "n_output_features_"])
+        X = check_array(X)
 
         if X.shape[1] != self.n_features_in_:
-            raise ValueError("O número de variáveis deve ser igual ao usado em fit")
+            raise ValueError("X deve possuir o mesmo número de variáveis que em fit")
 
         n_samples = X.shape[0]
         columns = []
