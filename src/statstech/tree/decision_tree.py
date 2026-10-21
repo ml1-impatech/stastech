@@ -3,10 +3,11 @@ import numpy as np
 
 from dataclasses import dataclass
 
-from utils import check_X_y, check_is_fitted
-
+from statstech.utils.validation import check_X_y, check_is_fitted, check_array
 from statstech.base import BaseEstimator, ClassifierMixin, RegressorMixin
 
+# Impureza abaixo disso conta como nó puro (evita erro de arredondamento).
+_PURE_TOL = 1e-12
 
 @dataclass
 class _Node:
@@ -14,7 +15,7 @@ class _Node:
     Nó da árvore.
     
     Um nó interno tem ''feature'', ''threshold'', ''left'' e ''right''.
-    Uma folha tem apenas''value''.
+    Uma folha tem apenas ''value''.
     """
     feature: int | None = None
     threshold: float | None = None
@@ -68,7 +69,7 @@ class _BaseDecisionTree(BaseEstimator):
         self.min_samples_split = min_samples_split
 
     # ------------------------------------------------------------------
-    # Validação (temporária: trocar por utils/validation quando existir)
+    # Validação
     # ------------------------------------------------------------------
         
     def _check_params(self):
@@ -83,8 +84,8 @@ class _BaseDecisionTree(BaseEstimator):
         """
         if self.max_depth is not None:
             if (
-                not isinstance(self.max_depth, (int, np.integer)) or
-                self.max_depth < 1
+                not isinstance(self.max_depth, (int, np.integer)) 
+                or self.max_depth < 1
             ):
                 raise ValueError("max_depth deve ser None ou inteiro >= 1.")
         if (
@@ -107,7 +108,7 @@ class _BaseDecisionTree(BaseEstimator):
         X : array-like de shape (n_amostras, n_features)
             Dados de entrada (features).
         y : array-like de shape (n_amostras,)
-            Valores (regressão) ou rótulos (classificação) correspondentes a X.
+            Valores (regressão) ou rótulos (classificação) de X.
             
         Returns
         -------
@@ -123,14 +124,7 @@ class _BaseDecisionTree(BaseEstimator):
         """
         self._check_params()
         X, y = check_X_y(X, y)
-
-        if y.ndim != 1: # checar no validation
-            raise ValueError("y deve ser 1D.")
-        if len(y) != X.shape[0]:
-            raise ValueError("X e y devem ter o mesmo número de linhas.")
-        if len(y) == 0:
-            raise ValueError("Não é possível aplicar o fit com zero amostras.")
-
+        X = np.asarray(X, dtype=float)
         y = self._prepare_y(y)
 
         self.n_features_in_ = X.shape[1]
@@ -144,7 +138,7 @@ class _BaseDecisionTree(BaseEstimator):
         Parameters
         ----------
         X : array-like de shape (n_amostras, n_features)
-            Dados de entrada. Precisa ter o mesmo número de features do ''fit''.
+            Dados de entrada. Precisa ter o mesmo número de features do ``fit``.
 
         Returns
         -------
@@ -153,16 +147,16 @@ class _BaseDecisionTree(BaseEstimator):
         
         Raises
         ------
-        RuntimeError
+        NotFittedError
             Se o modelo ainda não foi treinado.
         ValueError
             Se X não for 2D ou tiver número de features diferente do usado no ''fit''.
         """
         check_is_fitted(self, ["tree_"])
-        X, y = check_X_y(X, y)
+        X = check_array(X)
         if X.shape[1] != self.n_features_in_:
             raise ValueError(
-                f"X tem {X.shape[1]} features, mas o modelo foi fitted com {self.n_features_in_}."
+                f"X tem {X.shape[1]} features, mas o modelo foi treinado com {self.n_features_in_}."
             )
 
         values = []
@@ -191,10 +185,10 @@ class _BaseDecisionTree(BaseEstimator):
             
         Raises
         ------
-        RuntimeError
+        NotFittedError
             Se o modelo ainda não foi treinado.
         """
-        self.check_is_fitted(self, ["tree_"])
+        check_is_fitted(self, ["tree_"])
         return _node_depth(self.tree_)
 
     # ------------------------------------------------------------------
@@ -223,11 +217,67 @@ class _BaseDecisionTree(BaseEstimator):
         if len(y) < self.min_samples_split:
             return True
  
-        if self._impurity(y) <= 1e-12:  # nó puro
+        if self._impurity(y) <= _PURE_TOL:  # nó puro
             return True
  
         return False
-    
+
+    def _best_split(self, X, y):
+        """
+        Acha a melhor divisão ``x_j <= t`` para as amostras (X, y).
+ 
+        Para cada feature, ordena os valores uma única vez e calcula a
+        impureza dos dois lados de todos os cortes de uma vez, com somas
+        acumuladas. Custo O(n log n) por feature, em vez de O(n^2).
+ 
+        Parameters
+        ----------
+        X : ndarray de shape (n_amostras, n_features)
+            Features das amostras que chegam ao nó.
+        y : ndarray de shape (n_amostras,)
+            Alvo preparado por ``_prepare_y``.
+ 
+        Returns
+        -------
+        feature : int ou None
+            Índice da melhor feature. None se nenhum corte separa as amostras (linhas idênticas).
+        threshold : float ou None
+            Limiar da melhor divisão (ponto médio entre dois valores consecutivos distintos).
+        """
+        n_samples, n_features = X.shape
+        n_left = np.arange(1, n_samples)  # tamanho do lado esquerdo
+        n_right = n_samples - n_left
+ 
+        best_feature, best_threshold = None, None
+        best_score = np.inf
+ 
+        for j in range(n_features):
+            order = np.argsort(X[:, j], kind="stable")
+            x_sorted = X[order, j]
+            y_sorted = y[order]
+ 
+            midpoints = (x_sorted[:-1] + x_sorted[1:]) / 2
+            # Só vale cortar entre valores distintos. 
+            # A segunda condição protege contra o ponto médio coincidir com o vizinho por
+            # arredondamento (o lado direito ficaria vazio).
+            valid = midpoints < x_sorted[1:]
+            if not valid.any():
+                continue
+ 
+            imp_left, imp_right = self._split_impurities(
+                y_sorted, n_left, n_right
+            )
+            scores = (n_left * imp_left + n_right * imp_right) / n_samples
+            scores = np.where(valid, scores, np.inf)
+ 
+            k = int(np.argmin(scores))  # empate: primeiro corte
+            if scores[k] < best_score:
+                best_score = scores[k]
+                best_feature = j
+                best_threshold = float(midpoints[k])
+ 
+        return best_feature, best_threshold
+     
     def _build(self, X, y, depth):
         """
         Constrói recursivamente a subárvore para as amostras (X, y).
@@ -246,47 +296,22 @@ class _BaseDecisionTree(BaseEstimator):
         node : _Node
             Folha ou nó interno com a melhor divisão encontrada.
         """
-        n_samples = len(y)
 
         if self._is_leaf(y, depth):
             return _Node(value= self._leaf_value(y))
         
-        best_feature, best_threshold = None, None
-        best_score = np.inf 
-
-        for j in range(X.shape[1]):
-        # Limiares candidatos: pontos médios entre valores consecutivos distintos e ordenados da coluna j
-            unique_values = np.unique(X[:, j]) 
-            threshold = (
-                unique_values[:-1] 
-                + unique_values[1:]
-                )/2
-
-            for t in threshold:
-                mask = X[:, j] <= t #True = vai p esquerda
-                y_left, y_right = y[mask], y[~mask]
-                if len(y_left) == 0 or len(y_right) == 0:
-                    continue #pode acontecer por arredondamento de floats
-
-                score = (
-                    len(y_left)*self._impurity(y_left)
-                    + len(y_right)*self._impurity(y_right)
-                    )/n_samples
-
-                if score < best_score:
-                    best_score = score
-                    best_feature = j
-                    best_threshold = t
-        
-        if best_feature is None: #linhas idênticas
+        feature, threshold = self._best_split(X, y)
+        if feature is None: # linhas idênticas
             return _Node(value=self._leaf_value(y))
-
-        mask = X[:, best_feature] <= best_threshold
-        node = _Node(feature=best_feature, threshold=best_threshold)
-        node.left = self._build(X[mask], y[mask], depth+1)
-        node.right = self._build(X[~mask], y[~mask], depth+1)
-        return node
         
+        mask = X[:, feature] <= threshold
+        return _Node(
+            feature=feature,
+            threshold=threshold,
+            left=self._build(X[mask], y[mask], depth + 1),
+            right=self._build(X[~mask], y[~mask], depth + 1)
+        )
+
 
 class DecisionTreeRegressor(_BaseDecisionTree, RegressorMixin):
     """Árvore de decisão (CART) para regressão.
@@ -322,12 +347,42 @@ class DecisionTreeRegressor(_BaseDecisionTree, RegressorMixin):
     
     def _impurity(self, y):
         """Variância de y em torno da média (soma dos quadrados / n)."""
-        return np.var(y)
+        return float(np.var(y))
 
     def _leaf_value(self, y):
         """Média de y."""
         return float(np.mean(y))
 
+    def _split_impurities(self, y_sorted, n_left, n_right):
+        """
+        Variância dos dois lados de cada corte, para y já ordenado.
+ 
+        Usa Var = E[y^2] - E[y]^2 com somas acumuladas. Centraliza y
+        antes, porque essa fórmula perde precisão quando a média é
+        grande em relação ao desvio.
+ 
+        Parameters
+        ----------
+        y_sorted : ndarray de shape (n_amostras,)
+            Alvo ordenado pela feature candidata.
+        n_left, n_right : ndarray de shape (n_amostras - 1,)
+            Tamanho de cada lado para cada corte.
+ 
+        Returns
+        -------
+        imp_left, imp_right : ndarray de shape (n_amostras - 1,)
+            Variância do lado esquerdo e do direito de cada corte.
+        """
+        y_c = y_sorted - y_sorted.mean()
+        sum_left = np.cumsum(y_c)[:-1]
+        sq_left = np.cumsum(y_c**2)[:-1]
+        sum_right = y_c.sum() - sum_left
+        sq_right = (y_c**2).sum() - sq_left
+ 
+        imp_left = sq_left / n_left - (sum_left / n_left) ** 2
+        imp_right = sq_right / n_right - (sum_right / n_right) ** 2
+        return imp_left, imp_right
+ 
 
 class DecisionTreeClassifier(_BaseDecisionTree, ClassifierMixin):
     """Árvore de decisão (CART) para classificação.
@@ -366,10 +421,37 @@ class DecisionTreeClassifier(_BaseDecisionTree, ClassifierMixin):
 
     def _impurity(self, y):
         """Impureza de Gini: 1 - soma(p_k ** 2). Nó puro vale 0."""
-        counts = np.bincount(y)
-        p = counts/len(y)
-        return 1 - np.sum(p**2)
+        p = np.bincount(y) / len(y)
+        return float(1 - np.sum(p**2))
 
     def _leaf_value(self, y):
         """Índice da classe majoritária (empate: menor índice)."""
         return int(np.argmax(np.bincount(y)))      
+
+    def _split_impurities(self, y_sorted, n_left, n_right):
+        """
+        Gini dos dois lados de cada corte, para y já ordenado.
+ 
+        Usa a contagem acumulada de cada classe (one-hot + cumsum).
+ 
+        Parameters
+        ----------
+        y_sorted : ndarray de shape (n_amostras,)
+            Índices de classe ordenados pela feature candidata.
+        n_left, n_right : ndarray de shape (n_amostras - 1,)
+            Tamanho de cada lado para cada corte.
+ 
+        Returns
+        -------
+        imp_left, imp_right : ndarray de shape (n_amostras - 1,)
+            Gini do lado esquerdo e do direito de cada corte.
+        """
+        one_hot = np.eye(len(self.classes_))[y_sorted]
+        counts_left = np.cumsum(one_hot, axis=0)[:-1]
+        counts_right = one_hot.sum(axis=0) - counts_left
+ 
+        p_left = counts_left / n_left[:, None]
+        p_right = counts_right / n_right[:, None]
+        imp_left = 1 - np.sum(p_left**2, axis=1)
+        imp_right = 1 - np.sum(p_right**2, axis=1)
+        return imp_left, imp_right
