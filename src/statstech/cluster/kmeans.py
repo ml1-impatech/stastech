@@ -29,7 +29,7 @@ class KMeans(BaseEstimator):
         indices = []
         indices.append(indice_init)
         for i in range(1, self.n_clusters):
-            distances = pairwise_distances(X, X[indices])
+            distances = pairwise_distances(X, X[indices], squared=True)
             d2 = np.min(distances, axis=1)
             sum_d2 = np.sum(d2)
             if sum_d2 == 0:
@@ -43,7 +43,7 @@ class KMeans(BaseEstimator):
     def _lloyd(self, X, centers):
         n_iter = 0
         for _ in range (self.max_iter):
-            distances = pairwise_distances(X, centers)
+            distances = pairwise_distances(X, centers, squared=True)
             labels = np.argmin(distances, axis=1)
             new_centers = centers.copy()
             min_distances = np.min(distances, axis=1)
@@ -59,7 +59,7 @@ class KMeans(BaseEstimator):
             centers = new_centers
             if mov <= self.tol:
                 break
-        new_distances = pairwise_distances(X, centers)
+        new_distances = pairwise_distances(X, centers, squared=True)
         inertia = np.sum(np.min(new_distances, axis=1))
         labels = np.argmin(new_distances, axis=1)
         return labels, centers, n_iter, inertia
@@ -103,13 +103,15 @@ class KMeans(BaseEstimator):
         return self
 
     def predict(self, X):
-        attributes = ["labels_", "cluster_centers_", "n_iter_", "inertia_", "n_features_in_"]
+        attributes = ["labels_", "cluster_centers_", "n_iter_",
+                       "inertia_", "n_features_in_"]
         check_is_fitted(self, attributes)
         X = check_array(X)
         if X.shape[1] != self.n_features_in_:
             raise ValueError(
-                f"X tem {X.shape[1]} features mas deveria ter {self.n_features_in_}")
-        new_distances = pairwise_distances(X, self.cluster_centers_)
+                "X tem {X.shape[1]} features "
+                f"mas deveria ter {self.n_features_in_}")
+        new_distances = pairwise_distances(X, self.cluster_centers_, squared=True)
         labels = np.argmin(new_distances, axis=1)
         return labels
 
