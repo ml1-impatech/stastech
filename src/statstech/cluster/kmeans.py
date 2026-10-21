@@ -72,7 +72,15 @@ class KMeans(BaseEstimator):
         return self
 
     def predict(self, X):
-        raise NotImplementedError
+        attributes = ["labels_", "cluster_centers_", "n_iter_", "inertia_", "n_features_in_"]
+        check_is_fitted(self, attributes)
+        X = check_array(X)
+        if X.shape[1] != self.n_features_in_:
+            raise ValueError(
+                f"X tem {X.shape[1]} features mas deveria ter {self.n_features_in_}")
+        new_distances = pairwise_distances(X, self.cluster_centers_)
+        labels = np.argmin(new_distances, axis=1)
+        return labels
 
     def fit_predict(self, X, y=None):
-        raise self.fit(X).labels_
+        return self.fit(X).labels_
