@@ -82,31 +82,111 @@ def test_ridge_negative_alpha_raises_value_error():
         model.fit(X, y)
 
 def test_ridge_default_parameters():
-    pass
+    model = Ridge()
+
+    assert model.alpha == 1.0
+    assert model.fit_intercept is True
 
 def test_ridge_invalid_alpha_raises_value_error():
-    pass
+    with pytest.raises(ValueError):
+        Ridge(alpha = -0.1)
+
 
 def test_ridge_invalid_fit_intercept_raises_value_error():
-    pass
+    with pytest.raises(ValueError):
+        Ridge(fit_intercept = 1)
 
 def test_ridge_fit_returns_self():
-    pass
+    X = np.array([[1, 3],
+                 [4, 7],
+                 [5, 6]],
+                 dtype = float )
 
-def test_ridge_multiple_features():
-    pass
+    y = np.array([3, 5, 7], dtype = float)
+
+    model = Ridge()
+
+    assert model.fit(X, y) is model
+
+def test_ridge_fit_multiple_features():
+    X = np.array([[1, 2],
+                 [2, 1],
+                 [3, 4],
+                 [4, 3]],
+                 dtype = float )
+
+    y = np.array([4, 5, 10, 11], dtype = float)
+
+    model = Ridge()
+    model.fit(X, y)
+
+    assert model.coef_.shape == (2,)
+    assert model.n_features_in_ == 2
+    assert np.isfinite(model.coef_).all()
 
 def test_ridge_fit_without_intercept():
-    pass
+    X = np.array([[1],
+                  [2],
+                  [3]],
+                  dtype = float )
+
+    y = np.array([2, 4, 6], dtype = float)
+
+    model = Ridge(fit_intercept = False)
+    model.fit(X, y)
+
+    np.testing.assert_allclose(model.coef_, [28 / 15])
+    assert model.intercept_ == 0.0
 
 def test_ridge_fit_inconsistent_samples():
-    pass
+    X = np.array([[1],
+                  [2],
+                  [3]],
+                 dtype = float )
+
+    y = np.array([3, 5], dtype = float)
+
+    model = Ridge()
+
+    with pytest.raises(ValueError):
+        model.fit(X, y)
 
 def test_ridge_predict():
-    pass
+    X = np.array([[1],
+                 [2],
+                 [3]],
+                 dtype = float )
+
+    y = np.array([3, 5, 7], dtype = float)
+
+    model = Ridge(alpha = 0.0)
+    model.fit(X, y)
+
+    X_test = np.array([[4], [5]], dtype = float)
+
+    pred = model.predict(X_test)
+
+    np.testing.assert_allclose(pred, [9, 11])
 
 def test_ridge_predict_without_fit():
-    pass
+    model = Ridge()
+    X = np.array([[1], [2]], dtype = float)
+
+    with pytest.raises(ValueError):
+        model.predict(X)
 
 def test_ridge_predict_wrong_number_of_features():
-    pass
+    X_train = np.array([[1, 2],
+                        [2, 3],
+                        [3, 4]],
+                        dtype = float)
+
+    y_train =  np.array([5, 8, 11], dtype = float)
+
+    model = Ridge()
+    model.fit(X_train, y_train)
+
+    X_test = np.array([[7]], dtype = float)
+
+    with pytest.raises(ValueError):
+        model.predict(X_test)
