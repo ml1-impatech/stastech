@@ -80,3 +80,33 @@ def test_ridge_negative_alpha_raises_value_error():
 
     with pytest.raises(ValueError):
         model.fit(X, y)
+
+def test_ridge_default_parameters():
+    pass
+
+def test_ridge_invalid_alpha_raises_value_error():
+    pass
+
+def test_ridge_invalid_fit_intercept_raises_value_error():
+    pass
+
+def test_ridge_fit_returns_self():
+    pass
+
+def test_ridge_multiple_features():
+    pass
+
+def test_ridge_fit_without_intercept():
+    pass
+
+def test_ridge_fit_inconsistent_samples():
+    pass
+
+def test_ridge_predict():
+    pass
+
+def test_ridge_predict_without_fit():
+    pass
+
+def test_ridge_predict_wrong_number_of_features():
+    pass
