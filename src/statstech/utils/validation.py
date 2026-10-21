@@ -1,6 +1,5 @@
 import numpy as np
 
-
 class NotFittedError(ValueError, AttributeError):
     """Erro levantado quando o modelo é usado antes do fit."""
 

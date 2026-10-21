@@ -7,6 +7,7 @@ Gera dados, treina uma MLPRegressor e mostra se a rede aprendeu
 
 import numpy as np
 from statstech.neural_network import MLPRegressor
+from statstech.metrics.regression import mean_squared_error
 
 rng = np.random.default_rng(0)
 
@@ -19,7 +20,7 @@ model = MLPRegressor(
 model.fit(X, y)
 y_pred = model.predict(X)
 
-# TODO: usar MSE de metrics
-print("MSE:", np.mean((y_pred - y) ** 2))
+
+print("MSE:", mean_squared_error(y, y_pred))
 print("Loss na primeira época:", model.loss_curve_[0])
 print("Loss na última época:", model.loss_curve_[-1])
