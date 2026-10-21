@@ -7,7 +7,7 @@ O gráfico só aparece se o matplotlib estiver instalado.
  
 import numpy as np
  
-from statstech.src.statstech.tree.decision_tree import (DecisionTreeClassifier,
+from statstech.tree.decision_tree import (DecisionTreeClassifier,
                                                         DecisionTreeRegressor)
 
 def split(X, y, test_size=0.3, seed=0):
