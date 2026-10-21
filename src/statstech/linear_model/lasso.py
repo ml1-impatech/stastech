@@ -4,7 +4,7 @@ from base import BaseEstimator, RegressorMixin
 class Lasso(BaseEstimator, RegressorMixin):
     """
     Modelo de Regressão Linear com regularização L1.
-
+    
     Parameters
     ----------
     alpha : float, defaut = 1.0
@@ -18,7 +18,7 @@ class Lasso(BaseEstimator, RegressorMixin):
     tol = float, default = 1e-4
         Tolerância usada para verificar a otimização dos coeficientes.
 
-    max_iteration = int, defaut = 1000
+    max_iter = int, defaut = 1000
         Número máximo de iterações para o algoritmo.
 
     Attributes
@@ -32,15 +32,15 @@ class Lasso(BaseEstimator, RegressorMixin):
     n_iteration_ : int
         Número de iterações.
 
-    n_features_in : int
+    n_features_in_ : int
         Número de variáeis calculada pelo modelo.
     """
 
-    def __init__(self, alpha = 1.0, fit_intercept = True, tol = 1e-4, max_iteration = 1000):
+    def __init__(self, alpha = 1.0, fit_intercept = True, tol = 1e-4, max_iter = 1000):
         self.alpha = alpha
-        self.fit_interept = fit_intercept
+        self.fit_intercept = fit_intercept
         self.tol = tol
-        self.max_iteration = max_iteration
+        self.max_iter = max_iter
 
     @staticmethod
     def _sort_threshold(z, threshold):
@@ -53,7 +53,7 @@ class Lasso(BaseEstimator, RegressorMixin):
             Valor em que o operador está sendo aplicado.
 
         threshold : float
-            Limiar utilizado ma transformação.
+            Limiar utilizado na transformação.
 
         Returns
         -------
@@ -93,7 +93,7 @@ class Lasso(BaseEstimator, RegressorMixin):
             Se o número de amostras de X e y não são iguais.
         """
 
-        X = np.asarrya(X, dtype = float)
+        X = np.asarray(X, dtype = float)
         y = np.asarray(y, dtype = float)
 
         if X.ndim != 2:
@@ -102,10 +102,10 @@ class Lasso(BaseEstimator, RegressorMixin):
         if y.ndim != 1:
             raise ValueError("y deve ser um vetor")
 
-        if X.shape[1] != y.shape[1]:
+        if X.shape[0] != y.shape[0]:
             raise ValueError("X e y devem possuir o mesmo número de amostras")
 
-        if self.fit_interept is True:
+        if self.fit_intercept is True:
             X_mean = np.mean(X, axis = 0)
             y_mean = np.mean(y)
 
@@ -118,13 +118,15 @@ class Lasso(BaseEstimator, RegressorMixin):
 
         n_sample, n_features = X_centered.shape
 
+        self.n_features_in_ = n_features
+
         coef = np.zeros(n_features)
 
         col_norms = np.sum(X_centered ** 2, axis = 0)
 
-        threshold = self.alpha / 2
+        threshold = self.alpha 
 
-        for iteration in range(1 , self.max_iteration + 1):
+        for iteration in range(1 , self.max_iter + 1):
             max_change = 0.0
 
             for i in range(n_features):
@@ -145,18 +147,18 @@ class Lasso(BaseEstimator, RegressorMixin):
                 change = abs(new_coef - old_coef)
                 max_change = max(max_change, change)
 
-                if max_change < self.tol:
-                    break
+            if max_change < self.tol:
+                break
 
-            self.coef_ = coef
-            self.n_iteration_ = iteration
+        self.coef_ = coef
+        self.n_iteration_ = iteration
 
-            if self.fit_interept is True:
-                self.intercept_ = (y_mean - X_mean @ self.coef )
-            else:
-                self.intercept_ = 0.0
+        if self.fit_intercept is True:
+            self.intercept_ = (y_mean - X_mean @ self.coef )
+        else:
+            self.intercept_ = 0.0
 
-            return self
+        return self
 
 
     def predict(self, X):
@@ -188,3 +190,5 @@ class Lasso(BaseEstimator, RegressorMixin):
             raise ValueError("X deve ser uma matriz 2D")
 
         y_predicted = X @ self.coef_ + self.intercept_
+
+        return y_predicted
