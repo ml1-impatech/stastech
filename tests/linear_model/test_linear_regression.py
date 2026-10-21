@@ -80,25 +80,89 @@ def test_mismatched_shapes_raises_value_error():
         model.fit(X, y)
 
 def test_fit_multiple_features():
-    pass
+
+    X = np.array([[0, 0],
+                  [1, 0],
+                  [0, 1],
+                  [1, 1]],
+                 dtype = float)
+
+    y = np.array([1, 3, 4, 6], dtype = float)
+
+    model = LinearRegression()
+    model.fit(X, y)
+
+    np.testing.assert_allclose(model.coef_[2, 3])
+    assert model.intercept_ == pytest.approx(1)
 
 def test_fit_without_intercept():
-    pass
+    X = np.array([[1],
+                  [2],
+                  [3]],
+                 dtype = float)
+
+    y = np.array([2, 4, 6], dtype = float)
+
+    model = LinearRegression()
+    model.fit(X, y)
+
+    np.testing.assert_allclose(model.coef_, [2])
+    assert model.intercept_ == 0.0
 
 def test_fit_returns_self():
-    pass
+    X = np.array([[1],
+                  [2],
+                  [3]],
+                 dtype = float)
 
-def test_fit_without_intercept():
-    pass
+    y = np.array([3, 5, 7], dtype = float)
 
-def test_predict_without_intercept():
-    pass
+    model = LinearRegression()
+
+    assert model.fit(X, y) is model
+
+def test_predict_without_fit():
+    model = LinearRegression()
+    X = np.array([[1], [2]])
+
+    with pytest.raises(ValueError):
+        model.predict(X)
 
 def test_predict_wrong_number_of_features():
-    pass
+    X = np.array([[1, 2],
+                  [2, 3],
+                  [3, 4]],
+                 dtype = float)
+
+    y = np.array([5, 8, 11], dtype = float)
+
+    model = LinearRegression()
+    model.fit(X, y)
+
+    with pytest.raises(ValueError):
+        model.predict(np.array[[4]])
 
 def test_predict_output_shape():
-    pass
+    X_train = np.array([[1], [2], [3]],
+                 dtype = float)
+
+    y_train = np.array([3, 5, 7], dtype = float)
+
+    model = LinearRegression()
+    model.fit(X_train, y_train)
+
+    X_test = np.array([[4], [5], [6]])
+    y_pred = model.predict(X_test)
+
+    assert y_pred.shape == (3,)
 
 def test_fit_inconsistent_samples():
-    pass
+    X = np.array([[1],[2], [3]],
+                 dtype = float)
+
+    y = np.array([3, 2], dtype = float)
+
+    model = LinearRegression()
+
+    with pytest.raises(ValueError):
+        model.fit(X, y)
