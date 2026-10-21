@@ -48,6 +48,15 @@ def brute_force_best_score(tree, X, y):
             best = min(best, score)
     return best
 
+def split_score(tree, X, y):
+    """Impureza ponderada do corte na raiz de ``tree`` (max_depth=1)."""
+    root = tree.tree_
+    mask = X[:, root.feature] <= root.threshold
+    return (
+        mask.sum() * tree._impurity(y[mask])
+        + (~mask).sum() * tree._impurity(y[~mask])
+    ) / len(y)
+
 @pytest.fixture
 def step_data():
     """Uma feature; uma única divisão (entre 3 e 10) separa tudo."""
