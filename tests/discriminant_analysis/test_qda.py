@@ -3,6 +3,7 @@ import pytest
 
 from statstech.discriminant_analysis.qda import QuadraticDiscriminantAnalysis
 from statstech.utils.validation import NotFittedError
+from statstech.discriminant_analysis.lda import LinearDiscriminantAnalysis
 
 
 def test_fit():
@@ -196,3 +197,82 @@ def test_predict_numero_incorreto_de_caracteristicas():
 
     with pytest.raises(ValueError):
         model.predict(X_invalido)
+
+
+def test_qda_com_covariancias_diferentes():
+    rng = np.random.default_rng(42)
+
+    X0 = rng.multivariate_normal(
+        mean=[0, 0],
+        cov=[[3, 0], [0, 0.3]],
+        size=400,
+    )
+    X1 = rng.multivariate_normal(
+        mean=[0, 0],
+        cov=[[0.3, 0], [0, 3]],
+        size=400,
+    )
+
+    X = np.vstack([X0, X1])
+    y = np.array([0] * len(X0) + [1] * len(X1))
+
+    indices = rng.permutation(len(y))
+    X, y = X[indices], y[indices]
+
+    corte = int(0.7 * len(y))
+    X_treino, X_teste = X[:corte], X[corte:]
+    y_treino, y_teste = y[:corte], y[corte:]
+
+    qda = QuadraticDiscriminantAnalysis()
+    lda = LinearDiscriminantAnalysis()
+
+    qda.fit(X_treino, y_treino)
+    lda.fit(X_treino, y_treino)
+
+    acuracia_qda = np.mean(qda.predict(X_teste) == y_teste)
+    acuracia_lda = np.mean(lda.predict(X_teste) == y_teste)
+
+    assert acuracia_qda > acuracia_lda
+
+
+def test_qda_com_covariancias_iguais():
+    rng = np.random.default_rng(42)
+
+    cov = [[1.0, 0.3], [0.3, 1.5]]
+
+    X0 = rng.multivariate_normal([-2, 0], cov, size=500)
+    X1 = rng.multivariate_normal([2, 0], cov, size=500)
+
+    X = np.vstack([X0, X1])
+    y = np.array([0] * len(X0) + [1] * len(X1))
+
+    qda = QuadraticDiscriminantAnalysis()
+    lda = LinearDiscriminantAnalysis()
+
+    qda.fit(X, y)
+    lda.fit(X, y)
+
+    pred_qda = qda.predict(X)
+    pred_lda = lda.predict(X)
+
+    assert np.mean(pred_qda == pred_lda) >= 0.95
+
+
+def test_predict_proba_com_regularizacao():
+    X = np.array([
+        [1.0, 2.0],
+        [2.0, 4.0],
+        [5.0, 6.0],
+        [6.0, 8.0],
+    ])
+    y = np.array([0, 0, 1, 1])
+
+    model = QuadraticDiscriminantAnalysis(reg_param=0.1)
+    model.fit(X, y)
+
+    probabilities = model.predict_proba(X)
+
+    assert probabilities.shape == (4, 2)
+    assert np.all(np.isfinite(probabilities))
+    assert np.all(probabilities >= 0)
+    assert np.allclose(probabilities.sum(axis=1), 1.0)
