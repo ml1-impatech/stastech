@@ -1,6 +1,5 @@
 import numpy as np
 import pytest
-from statstech.base import clone
 from statstech.cluster.kmeans import KMeans
 from statstech.utils.validation import NotFittedError
  
@@ -95,3 +94,15 @@ def test_predict_wrong_number_of_features():
     km = KMeans(n_clusters=3, random_state=0).fit(X)
     with pytest.raises(ValueError, match="features"):
         km.predict(np.ones((1, 3)))
+
+def test_integer_data_gives_same_result_as_float():
+    X_int = np.array([[0, 0], [0, 1], [10, 10], [10, 11]])
+    km_int = KMeans(n_clusters=2, random_state=0).fit(X_int)
+    km_float = KMeans(n_clusters=2, random_state=0).fit(X_int.astype(float))
+    np.testing.assert_allclose(km_int.cluster_centers_,
+                               km_float.cluster_centers_)
+  
+def test_kmeanspp_with_repeated_points():
+    X_rep = np.array([[0.0, 0.0]] * 5 + [[1.0, 1.0]] * 5)
+    km = KMeans(n_clusters=3, init="k-means++", random_state=0).fit(X_rep)
+    assert not np.isnan(km.cluster_centers_).any()
