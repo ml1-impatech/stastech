@@ -377,62 +377,62 @@ def test_grid_search_picks_deeper_regression_tree(sine_data):
     assert search.best_estimator_.get_depth() <= 4
     assert search.predict(X).shape == y.shape
 
+
 # ----------------------------------------------------------------------
 # Erros esperados
 # ----------------------------------------------------------------------
  
-@pytest.mark.parametrize("cls", [DecisionTreeClassifier, DecisionTreeRegressor])
+@pytest.mark.parametrize("cls", ALL_TREES)
 def test_predict_before_fit_raises(cls):
     with pytest.raises(NotFittedError):
         cls().predict(np.zeros((2, 2)))
  
  
-@pytest.mark.parametrize("cls", [DecisionTreeClassifier, DecisionTreeRegressor])
+@pytest.mark.parametrize("cls", ALL_TREES)
 def test_get_depth_before_fit_raises(cls):
     with pytest.raises(NotFittedError):
         cls().get_depth()
  
  
-@pytest.mark.parametrize("cls", [DecisionTreeClassifier, DecisionTreeRegressor])
-def test_x_must_be_2d(cls):
-    with pytest.raises(ValueError):
-        cls().fit(np.array([1.0, 2.0, 3.0]), np.array([0, 1, 0]))
- 
- 
-@pytest.mark.parametrize("cls", [DecisionTreeClassifier, DecisionTreeRegressor])
-def test_y_must_be_1d(cls):
-    with pytest.raises(ValueError):
-        cls().fit(np.zeros((3, 1)), np.zeros((3, 1)))
- 
- 
-@pytest.mark.parametrize("cls", [DecisionTreeClassifier, DecisionTreeRegressor])
-def test_x_y_different_lengths_raise(cls):
-    with pytest.raises(ValueError):
-        cls().fit(np.zeros((3, 1)), np.zeros(4))
- 
- 
-@pytest.mark.parametrize("cls", [DecisionTreeClassifier, DecisionTreeRegressor])
-def test_zero_samples_raise(cls):
-    with pytest.raises(ValueError):
+@pytest.mark.parametrize("cls", ALL_TREES)
+def test_fit_validates_X(cls):
+    y = np.array([0, 1, 0])
+    with pytest.raises(ValueError, match="1D"):
+        cls().fit(np.array([1.0, 2.0, 3.0]), y)
+    with pytest.raises(ValueError, match="NaN"):
+        cls().fit(np.array([[1.0], [np.nan], [3.0]]), y)
+    with pytest.raises(ValueError, match="numérico"):
+        cls().fit(np.array([["a"], ["b"], ["c"]]), y)
+    with pytest.raises(ValueError, match="vazio"):
         cls().fit(np.zeros((0, 2)), np.zeros(0))
  
  
-def test_predict_wrong_number_of_features_raises(step_data):
+@pytest.mark.parametrize("cls", ALL_TREES)
+def test_fit_validates_y(cls):
+    with pytest.raises(ValueError, match="1D"):
+        cls().fit(np.zeros((3, 1)), np.zeros((3, 1)))
+    with pytest.raises(ValueError, match="tamanhos diferentes"):
+        cls().fit(np.zeros((3, 1)), np.zeros(4))
+ 
+ 
+def test_predict_validates_X(step_data):
     X, y = step_data
     clf = DecisionTreeClassifier().fit(X, y)
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="1D"):
+        clf.predict(np.array([1.0, 2.0]))
+    with pytest.raises(ValueError, match="features"):
         clf.predict(np.zeros((2, 3)))
  
  
 @pytest.mark.parametrize("max_depth", [0, -1, 1.5, "a"])
 def test_invalid_max_depth_raises(max_depth, step_data):
     X, y = step_data
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="max_depth"):
         DecisionTreeClassifier(max_depth=max_depth).fit(X, y)
  
  
 @pytest.mark.parametrize("min_samples_split", [1, 0, 2.5])
 def test_invalid_min_samples_split_raises(min_samples_split, step_data):
     X, y = step_data
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="min_samples_split"):
         DecisionTreeClassifier(min_samples_split=min_samples_split).fit(X, y)
