@@ -77,7 +77,7 @@ print(f"MSE médio na validação cruzada: {search.best_score_:.4f}")
 print(f"MSE no teste: {mean_squared_error(y_te, search.predict(X_te)):.4f}")
 
 # ----------------------------------------------------------------------
-# 3. Rótulos em texto
+# 4. Rótulos em texto
 # ----------------------------------------------------------------------
  
 print("\n=== Rótulos em texto ===")
@@ -86,9 +86,10 @@ y_txt = np.array(["baixo", "baixo", "baixo", "alto", "alto", "alto"])
 clf = DecisionTreeClassifier().fit(X_txt, y_txt)
 print("classes_:", clf.classes_)
 print("predict([[2.5], [9.0]]):", clf.predict(np.array([[2.5], [9.0]])))
- 
+
+
 # ----------------------------------------------------------------------
-# 4. Gráfico (opcional)
+# 5. Gráfico (opcional)
 # ----------------------------------------------------------------------
  
 try:
@@ -120,4 +121,3 @@ else:
  
     fig.tight_layout()
     plt.show()
- 
