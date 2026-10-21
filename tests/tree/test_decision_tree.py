@@ -72,6 +72,13 @@ def noisy_data():
     y = (X[:, 0] + 0.5 * X[:, 1] + rng.normal(scale=0.5, size=200) > 0)
     return X, y.astype(int)
 
+@pytest.fixture
+def sine_data():
+    rng = np.random.default_rng(4)
+    X = rng.uniform(-3, 3, size=(200, 1))
+    y = np.sin(X[:, 0]) + rng.normal(scale=0.2, size=200)
+    return X, y
+
 
 # ----------------------------------------------------------------------
 # _Node e _node_depth
