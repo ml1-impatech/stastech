@@ -78,3 +78,27 @@ def test_mismatched_shapes_raises_value_error():
 
     with pytest.raises(ValueError):
         model.fit(X, y)
+
+def test_fit_multiple_features():
+    pass
+
+def test_fit_without_intercept():
+    pass
+
+def test_fit_returns_self():
+    pass
+
+def test_fit_without_intercept():
+    pass
+
+def test_predict_without_intercept():
+    pass
+
+def test_predict_wrong_number_of_features():
+    pass
+
+def test_predict_output_shape():
+    pass
+
+def test_fit_inconsistent_samples():
+    pass
