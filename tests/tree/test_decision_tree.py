@@ -3,12 +3,16 @@
 import numpy as np
 import pytest
 
-from statstech.utils.validation import NotFittedError
 from statstech.base import clone
-from statstech.tree.decision_tree import (DecisionTreeClassifier , 
-                                          DecisionTreeRegressor, 
-                                          _Node,
-                                          _node_depth)
+from statstech.model_selection.search import GridSearchCV
+from statstech.model_selection.validation import cross_val_score
+from statstech.tree.decision_tree import (
+    DecisionTreeClassifier,
+    DecisionTreeRegressor,
+    _Node,
+    _node_depth,
+)
+from statstech.utils.validation import NotFittedError
 
 
 # ----------------------------------------------------------------------

@@ -12,7 +12,7 @@ from statstech.model_selection.split import train_test_split
 from statstech.metrics.regression import mean_squared_error
  
 from statstech.tree.decision_tree import (DecisionTreeClassifier,
-                                                        DecisionTreeRegressor)
+                                          DecisionTreeRegressor)
 
 def mean_squared_error(y_true, y_pred):
     return float(np.mean((y_true - y_pred) ** 2))
