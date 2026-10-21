@@ -9,24 +9,25 @@ class LinearRegression( BaseEstimator, RegressorMixin):
     ----------
     fit_intercept : bool, default = True
         Quando verdadeiro, o intercepto é calculado. Quando é falso,
-        o intercepto não é utiliado nos calculos.
+        o intercepto não é utilizado nos cálculos.
 
     Attributes
     ---------
     coef_ : ndarray
-        Coeficientes estimados para as variáeis de entrada.
+        Coeficientes estimados para as variváeis de entrada.
 
     intercept_ : float
         Intercepto calculado pelo modelo.
     
-    n_features_in : int
+    n_features_in_ : int
         Número de variáveis usadas para calcular o modelo.
     """
 
-    def __init__(self, fit_intercept = True):
+    def __init__(self, fit_intercept : bool = True) -> None:
+        
         self.fit_intercept = fit_intercept
 
-    def fit(self, X, y):
+    def fit(self, X : np.ndarray, y : np.ndarray) -> "LinearRegression":
         """ 
         Ajusta o modelo aos dados de treinamento
 
@@ -64,6 +65,8 @@ class LinearRegression( BaseEstimator, RegressorMixin):
         if X.shape[0] != y.shape[0]:
             raise ValueError("X e y devem possuir o mesmo número de amostras")
 
+        self.n_features_in_ = X.shape[1]
+
         if self.fit_intercept is True:
             X_mean = np.mean(X, axis = 0)
             y_mean = np.mean(y)
@@ -86,7 +89,7 @@ class LinearRegression( BaseEstimator, RegressorMixin):
 
         return self
 
-    def predict(self, X):
+    def predict(self, X : np.ndarray) -> np.ndarray:
         """
         Realiza previsões de y com base nos valores fornecidos em X.
 
