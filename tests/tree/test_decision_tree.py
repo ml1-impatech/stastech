@@ -171,10 +171,12 @@ def test_best_split_ignores_constant_feature():
     clf = DecisionTreeClassifier().fit(X, y)
     assert clf.tree_.feature == 1
     assert clf.tree_.threshold == pytest.approx(6.5)
+
  
 # ----------------------------------------------------------------------
 # Estrutura da árvore
 # ----------------------------------------------------------------------
+
 
 def test_pure_node_becomes_leaf():
     X = np.array([[1.0], [2.0], [3.0]])
@@ -231,6 +233,7 @@ def test_identical_rows_with_different_labels_do_not_crash():
 # Classificação
 # ----------------------------------------------------------------------
  
+
 def test_string_labels_come_back_as_strings():
     X = np.array([[1.0], [2.0], [10.0], [11.0]])
     y = np.array(["não", "não", "sim", "sim"])
@@ -252,6 +255,7 @@ def test_multiclass_perfect_split():
 # Regressão
 # ----------------------------------------------------------------------
  
+
 def test_regressor_depth_1_predicts_group_means():
     X = np.array([[1.0], [2.0], [3.0], [10.0], [11.0], [12.0]])
     y = np.array([1.0, 2.0, 3.0, 10.0, 11.0, 12.0])
@@ -275,10 +279,8 @@ def test_regressor_constant_target_is_single_leaf():
     np.testing.assert_allclose(reg.predict(X), 4.2)
  
  
-def test_deeper_tree_fits_train_better():
-    rng = np.random.default_rng(2)
-    X = rng.uniform(-3, 3, size=(150, 1))
-    y = np.sin(X[:, 0]) + rng.normal(scale=0.2, size=150)
+def test_deeper_tree_fits_train_better(sine_data):
+    X, y = sine_data
  
     def train_mse(depth):
         reg = DecisionTreeRegressor(max_depth=depth).fit(X, y)
@@ -295,7 +297,11 @@ def test_regressor_learns_nonlinear_function_better_than_mean():
     mse_tree = np.mean((reg.predict(X) - y) ** 2)
     mse_mean = np.mean((y - y.mean()) ** 2)
     assert mse_tree < 0.1 * mse_mean
- 
+
+def test_regressor_score_is_r2(sine_data):
+    X, y = sine_data
+    reg = DecisionTreeRegressor().fit(X, y)
+    assert reg.score(X, y) == pytest.approx(1.0)  # decora o treino
  
 # ----------------------------------------------------------------------
 # Contrato da biblioteca (get_params, clone, determinismo)
