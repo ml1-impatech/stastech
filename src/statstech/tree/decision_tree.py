@@ -3,6 +3,8 @@ import numpy as np
 
 from dataclasses import dataclass
 
+from utils import check_X_y, check_is_fitted
+
 from statstech.base import BaseEstimator, ClassifierMixin, RegressorMixin
 
 
@@ -90,47 +92,7 @@ class _BaseDecisionTree(BaseEstimator):
             or self.min_samples_split < 2
         ):
             raise ValueError("min_samples_split deve ser inteiro >= 2.")
-
-    @staticmethod
-    def _check_X(X): 
-        """
-        Converte X para um array 2D de floats.
-
-        Parameters
-        ----------
-        X : array-like
-            Dados de entrada.
-
-        Returns
-        -------
-        X : ndarray de shape (n_amostras, n_features)
-            cópia de X como float.
-
-        Raises
-        ------
-        ValueError
-            Se X não for 2D.
-        """
-        X = np.asarray(X)
-        if X.ndim != 2:
-            raise ValueError(
-                "X must be 2D with shape (n_samples, n_features)."
-                "For a single feature, use X.reshape(-1,1).")
-        return X.astype(float)
-
-    def _check_is_fitted(self): # Procurar no validation, atualizar a main
-        """
-        Confere que o modelo foi treinado.
         
-        Raises
-        ------
-        RuntimeError
-            Se ''fit'' ainda não foi chamado.
-        """
-        if not hasattr(self, "tree_"):
-            raise RuntimeError(
-                f"Esta {type(self).__name__} ainda não passou pelo fit. Chame ''fit'' antes."
-            )
 
     # ------------------------------------------------------------------
     # API pública
@@ -160,8 +122,7 @@ class _BaseDecisionTree(BaseEstimator):
             Se não houver nenhuma amostra.
         """
         self._check_params()
-        X = self._check_X(X)
-        y = np.asarray(y)
+        X, y = check_X_y(X, y)
 
         if y.ndim != 1: # checar no validation
             raise ValueError("y deve ser 1D.")
@@ -197,9 +158,8 @@ class _BaseDecisionTree(BaseEstimator):
         ValueError
             Se X não for 2D ou tiver número de features diferente do usado no ''fit''.
         """
-        if not hasattr(self, "tree_"):
-            raise RuntimeError(f"Esta {type(self).__name__} ainda não passou pelo fit. Chame ''fit'' antes.")
-        X = self._check_X(X)
+        check_is_fitted(self, ["tree_"])
+        X, y = check_X_y(X, y)
         if X.shape[1] != self.n_features_in_:
             raise ValueError(
                 f"X tem {X.shape[1]} features, mas o modelo foi fitted com {self.n_features_in_}."
@@ -234,7 +194,7 @@ class _BaseDecisionTree(BaseEstimator):
         RuntimeError
             Se o modelo ainda não foi treinado.
         """
-        self._check_is_fitted()
+        self.check_is_fitted(self, ["tree_"])
         return _node_depth(self.tree_)
 
     # ------------------------------------------------------------------
@@ -362,7 +322,7 @@ class DecisionTreeRegressor(_BaseDecisionTree, RegressorMixin):
     
     def _impurity(self, y):
         """Variância de y em torno da média (soma dos quadrados / n)."""
-        return np.mean((y- np.mean(y))**2)
+        return np.var(y)
 
     def _leaf_value(self, y):
         """Média de y."""
