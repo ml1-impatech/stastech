@@ -24,6 +24,19 @@ class KMeans(BaseEstimator):
         indices = rng.choice(X.shape[0], size=self.n_clusters, replace=False)
         return X[indices]
 
+    def _init_kmeanspp(self, X, rng):
+        indice_init = rng.choice(X.shape[0])
+        indices = []
+        indices.append(indice_init)
+        for i in range(1, self.n_clusters):
+            distances = pairwise_distances(X, X[indices])
+            d2 = np.min(distances, axis=1)
+            sum_d2 = np.sum(d2)
+            probs = d2/sum_d2
+            next_indice = rng.choice(X.shape[0], p=probs)
+            indices.append(next_indice)
+        return X[indices]
+
     def _lloyd(self, X, centers):
         n_iter = 0
         for _ in range (self.max_iter):
@@ -59,7 +72,10 @@ class KMeans(BaseEstimator):
         rng = np.random.default_rng(self.random_state)
         best_inertia = np.inf
         for i in range(self.n_init):
-            init_centers = self._init_random(X, rng)
+            if self.init == "random":
+                init_centers = self._init_random(X, rng)
+            else:
+                init_centers = self._init_kmeanspp(X, rng)
             labels, centers, n_iter, inertia = self._lloyd(X, init_centers)
             if inertia < best_inertia:
                 best_inertia = inertia
