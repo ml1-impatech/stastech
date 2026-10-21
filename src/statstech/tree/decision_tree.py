@@ -312,6 +312,22 @@ class _BaseDecisionTree(BaseEstimator):
             right=self._build(X[~mask], y[~mask], depth + 1)
         )
 
+# ------------------------------------------------------------------
+# Funções que cada subclasse deve definir:
+# ------------------------------------------------------------------    def _prepare_y(self, y):
+        raise NotImplementedError
+
+    def _impurity(self, y):
+        raise NotImplementedError
+
+    def _leaf_value(self, y):
+        raise NotImplementedError
+
+    def _split_impurities(self, y_sorted, n_left, n_right):
+        raise NotImplementedError
+
+    def _decode_predictions(self, values):
+        raise NotImplementedError
 
 class DecisionTreeRegressor(_BaseDecisionTree, RegressorMixin):
     """Árvore de decisão (CART) para regressão.
