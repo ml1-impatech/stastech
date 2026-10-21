@@ -315,6 +315,7 @@ class _BaseDecisionTree(BaseEstimator):
 # ------------------------------------------------------------------
 # Funções que cada subclasse deve definir:
 # ------------------------------------------------------------------    def _prepare_y(self, y):
+    def _prepare_y(self, y):
         raise NotImplementedError
 
     def _impurity(self, y):
