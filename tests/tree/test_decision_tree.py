@@ -116,17 +116,61 @@ def test_classifier_leaf_value_majority_and_tie():
     assert clf._leaf_value(np.array([0, 0, 1, 1])) == 0
 
 def test_regressor_impurity_is_variance():
-    X = np.array([[1.0], [2.0], [3.0]])
-    y = np.array(([1, 1, 1]))
-    clf = DecisionTreeClassifier().fit(X, y)
-    assert clf.tree_.feature is None
-    assert clf.get_depth() == 0
-    np.testing.assert_array_equal(clf.predict(X), y)
+    reg = DecisionTreeRegressor()
+    # média 2, desvios (-1, 0, 1) -> variância (1 + 0 + 1) / 3
+    assert reg._impurity(np.array([1.0, 2.0, 3.0])) == pytest.approx(2 / 3)
+    assert reg._impurity(np.array([5.0, 5.0, 5.0])) == pytest.approx(0.0)
 
 def test_regressor_leaf_value_is_mean():
     reg = DecisionTreeRegressor()
     assert reg._leaf_value(np.array([1.0, 2.0, 6.0])) == pytest.approx(3.0)
 
+
+# ----------------------------------------------------------------------
+# Busca da melhor divisão (_best_split)
+# ----------------------------------------------------------------------
+ 
+ 
+@pytest.mark.parametrize("seed", [0, 1, 2, 3])
+def test_best_split_matches_brute_force_classifier(seed):
+    rng = np.random.default_rng(seed)
+    X = rng.normal(size=(60, 3))
+    y = (X[:, 0] + rng.normal(scale=0.7, size=60) > 0).astype(int)
+    clf = DecisionTreeClassifier(max_depth=1).fit(X, y)
+    assert split_score(clf, X, y) == pytest.approx(
+        brute_force_best_score(clf, X, y)
+    )
+ 
+ 
+@pytest.mark.parametrize("seed", [0, 1, 2, 3])
+def test_best_split_matches_brute_force_regressor(seed):
+    rng = np.random.default_rng(seed)
+    X = rng.normal(size=(60, 3))
+    y = np.sin(X[:, 1]) + rng.normal(scale=0.3, size=60)
+    reg = DecisionTreeRegressor(max_depth=1).fit(X, y)
+    assert split_score(reg, X, y) == pytest.approx(
+        brute_force_best_score(reg, X, y)
+    )
+ 
+ 
+def test_best_split_regressor_with_large_mean():
+    # média muito maior que o desvio: testa a estabilidade numérica
+    rng = np.random.default_rng(5)
+    X = rng.normal(size=(80, 2))
+    y = 1e6 + (X[:, 0] > 0) + rng.normal(scale=0.01, size=80)
+    reg = DecisionTreeRegressor(max_depth=1).fit(X, y)
+    assert reg.tree_.feature == 0
+    assert split_score(reg, X, y) == pytest.approx(
+        brute_force_best_score(reg, X, y), rel=1e-6
+    )
+ 
+ 
+def test_best_split_ignores_constant_feature():
+    X = np.column_stack([np.ones(6), [1.0, 2.0, 3.0, 10.0, 11.0, 12.0]])
+    y = np.array([0, 0, 0, 1, 1, 1])
+    clf = DecisionTreeClassifier().fit(X, y)
+    assert clf.tree_.feature == 1
+    assert clf.tree_.threshold == pytest.approx(6.5)
  
 # ----------------------------------------------------------------------
 # Estrutura da árvore
