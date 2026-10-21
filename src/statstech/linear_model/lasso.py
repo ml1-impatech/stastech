@@ -1,10 +1,16 @@
 import numpy as np
 from base import BaseEstimator, RegressorMixin
+from statstech.utils.validation import (check_array, check_X_y, check_is_fitted)
 
 class Lasso(BaseEstimator, RegressorMixin):
     """
     Modelo de Regressão Linear com regularização L1.
-    
+
+    O modelo Lasso estima os coeficientes que minimizam a soma dos quadrados
+    dos resíduos acrescida de um termo de penalização L1. Essa penalização 
+    pode levar alguns coneficientes a valerem zero, realizando seleção de 
+    variáveis
+
     Parameters
     ----------
     alpha : float, defaut = 1.0
@@ -41,11 +47,18 @@ class Lasso(BaseEstimator, RegressorMixin):
                 fit_intercept : bool = True,
                 tol : float = 1e-4,
                 max_iter : int = 1000) -> None:
-        
+
         self.alpha = alpha
         self.fit_intercept = fit_intercept
         self.tol = tol
         self.max_iter = max_iter
+
+        if not np.isfinite(self.alpha) or self.alpha < 0:
+            raise ValueError("alpha deve ser um valor finito não negativo")
+
+
+        if np.isfinite(self.tol) or self.tol < 0:
+            raise ValueError("tol deve ser um valor finito não negativo")
 
     @staticmethod
     def _sort_threshold(z : float, threshold : float) -> float:
@@ -74,6 +87,7 @@ class Lasso(BaseEstimator, RegressorMixin):
             return 0.0
 
     def fit(self, X : np.ndarray , y : np.ndarray) -> "Lasso":
+
         """
         Ajusta o modelo de regressão Lasso aos dados de treino.
 
@@ -97,18 +111,7 @@ class Lasso(BaseEstimator, RegressorMixin):
             Se X não for um vetor.
             Se o número de amostras de X e y não são iguais.
         """
-
-        X = np.asarray(X, dtype = float)
-        y = np.asarray(y, dtype = float)
-
-        if X.ndim != 2:
-            raise ValueError("X deve ser uma matriz 2d")
-
-        if y.ndim != 1:
-            raise ValueError("y deve ser um vetor")
-
-        if X.shape[0] != y.shape[0]:
-            raise ValueError("X e y devem possuir o mesmo número de amostras")
+        X, y = check_X_y(X, y)
 
         if self.fit_intercept is True:
             X_mean = np.mean(X, axis = 0)
@@ -185,14 +188,15 @@ class Lasso(BaseEstimator, RegressorMixin):
         ValueError
             Se X não é uma matriz 2D.
             Se o modelo não tiver sido treinado.
+            Se X e y não possuem o mesmo número de amostras
         """
-        X = np.asarray(X, dtype = float)
 
-        if not hasattr(self, "coef_"):
-            raise ValueError("O modelo não foi treinado")
+        check_is_fitted(self, ["coef_","intercept_", "n_features_in_"])
+        X = check_array(X)
 
-        if X.ndim != 2:
-            raise ValueError("X deve ser uma matriz 2D")
+
+        if X.shape != self.n_features_in:
+            raise ValueError("X deve possuir o mesmo número de variáveis que em fit")
 
         y_predicted = X @ self.coef_ + self.intercept_
 
