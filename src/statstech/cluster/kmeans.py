@@ -66,16 +66,23 @@ class KMeans(BaseEstimator):
 
     def fit(self, X, y=None):
         X = check_array(X)
-        if type(self.n_clusters) is not int or self.n_clusters < 1 or self.n_clusters>len(X):
-            raise ValueError(f"O número de clusters precisa ser inteiro entre 1 e {len(X)}")
-        if type(self.n_init) is not int or self.n_init<1:
+        X = X.astype(float)
+        if ((not isinstance(self.n_clusters, (int, np.integer)) 
+            or isinstance(self.n_clusters, bool)) or self.n_clusters < 1 
+            or self.n_clusters>len(X)):
+            raise ValueError("O número de clusters precisa ser "
+                             f"inteiro entre 1 e {len(X)}")
+        if (not isinstance(self.n_init, (int, np.integer)) 
+            or isinstance(self.n_init, bool)) or self.n_init<1:
             raise ValueError("n_init precisa ser inteiro e pelo menos 1")
-        if type(self.max_iter) is not int or self.max_iter<1:
+        if (not isinstance(self.max_iter, (int, np.integer)) or
+            isinstance(self.max_iter, bool)) or self.max_iter<1:
             raise ValueError("max_iter precisa ser inteiro e pelo menos 1")
         if self.init != "random" and self.init != "k-means++":
             raise ValueError("init deve ser 'random' ou 'k-means++'")
-        if self.tol<0:
-            raise ValueError("tol deve ser maior ou igual que zero")
+        if (not isinstance(self.tol, (int, float, np.integer, np.floating))
+            or isinstance(self.tol, bool) or self.tol < 0):
+            raise ValueError("tol deve ser um número maior ou igual a zero")
 
         rng = np.random.default_rng(self.random_state)
         best_inertia = np.inf
