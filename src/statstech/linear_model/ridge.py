@@ -26,15 +26,18 @@ class Ridge(BaseEstimator, RegressorMixin):
     intercept_ : float
         Intercepto calculado pelo modelo.
 
-    n_features_in : int
+    n_features_in_ : int
         Número de variáveis utilizadas para calcular o modelo.
     """
 
-    def __init__(self, alpha = 1.0, fit_intercept = True):
+    def __init__(self,
+                alpha : float = 1.0,
+                fit_intercept : bool = True) -> None:
+        
         self.alpha = alpha
         self.fit_intercept = fit_intercept
 
-    def fit(self, X, y):
+    def fit(self, X : np.ndarray, y : np.ndarray) -> "Ridge":
         """
         Ajusta o modelo de regressão Ridge aos dados de treino.
 
@@ -82,11 +85,12 @@ class Ridge(BaseEstimator, RegressorMixin):
              y_centered = y
 
         n_features = X.shape[1]
+        self.n_features_in_ = n_features
 
         I = np.eye(n_features)
 
-        A = X_centered.T @ y_centered + self.alpha * I
-        b = X_centered.T * y_centered
+        A = X_centered.T @ X_centered + self.alpha * I
+        b = X_centered.T @ y_centered
 
         self.coef_ = np.linalg.solve(A, b)
 
@@ -97,7 +101,7 @@ class Ridge(BaseEstimator, RegressorMixin):
 
         return self      
 
-    def predict(self, X):
+    def predict(self, X : np.ndarray) -> np.ndarray:
         """
         Realiza previsões de y com base nos valores fornecidos em X.
 
