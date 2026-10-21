@@ -21,185 +21,185 @@ def blobs():
 # ---------------- Classificador ----------------
 
 
-def test_exemplo_feito_a_mao():
+def test_hand_made_example():
     X = np.array([[0.0], [1.0], [2.0], [10.0], [11.0]])
     y = np.array([0, 0, 0, 1, 1])
-    modelo = KNeighborsClassifier(n_neighbors=3).fit(X, y)
+    model = KNeighborsClassifier(n_neighbors=3).fit(X, y)
     # 1.4 -> vizinhos 1.0, 2.0, 0.0 (todos da classe 0)
     # 9.0 -> vizinhos 10.0, 11.0, 2.0 (dois votos para a classe 1)
-    pred = modelo.predict(np.array([[1.4], [9.0]]))
+    pred = model.predict(np.array([[1.4], [9.0]]))
     assert np.array_equal(pred, [0, 1])
 
 
-def test_k1_acerta_100_por_cento_no_treino():
+def test_k1_is_100_percent_accurate_on_training_data():
     rng = np.random.default_rng(1)
     X = rng.normal(size=(30, 3))
     y = rng.integers(0, 3, size=30)
-    modelo = KNeighborsClassifier(n_neighbors=1).fit(X, y)
-    assert modelo.score(X, y) == 1.0
+    model = KNeighborsClassifier(n_neighbors=1).fit(X, y)
+    assert model.score(X, y) == 1.0
 
 
-def test_k_igual_ao_numero_de_amostras_preve_classe_majoritaria():
+def test_k_equal_to_n_samples_predicts_majority_class():
     X = np.array([[0.0], [1.0], [2.0], [3.0], [4.0]])
     y = np.array([1, 1, 1, 0, 0])
-    modelo = KNeighborsClassifier(n_neighbors=5).fit(X, y)
-    pred = modelo.predict(np.array([[100.0], [-50.0], [3.5]]))
+    model = KNeighborsClassifier(n_neighbors=5).fit(X, y)
+    pred = model.predict(np.array([[100.0], [-50.0], [3.5]]))
     assert np.all(pred == 1)
 
 
-def test_rotulos_de_texto_voltam_como_texto():
+def test_text_labels_come_back_as_text():
     X = np.array([[0.0], [1.0], [10.0], [11.0]])
     y = np.array(["nao", "nao", "sim", "sim"])
-    modelo = KNeighborsClassifier(n_neighbors=1).fit(X, y)
-    pred = modelo.predict(np.array([[0.2], [10.4]]))
+    model = KNeighborsClassifier(n_neighbors=1).fit(X, y)
+    pred = model.predict(np.array([[0.2], [10.4]]))
     assert list(pred) == ["nao", "sim"]
-    assert list(modelo.classes_) == ["nao", "sim"]
+    assert list(model.classes_) == ["nao", "sim"]
 
 
-def test_predict_proba_em_0_1_e_soma_1(blobs):
+def test_predict_proba_in_0_1_and_sums_to_1(blobs):
     X, y = blobs
-    modelo = KNeighborsClassifier(n_neighbors=5).fit(X, y)
-    proba = modelo.predict_proba(X)
+    model = KNeighborsClassifier(n_neighbors=5).fit(X, y)
+    proba = model.predict_proba(X)
     assert proba.shape == (20, 2)
     assert np.all(proba >= 0) and np.all(proba <= 1)
     np.testing.assert_allclose(proba.sum(axis=1), 1.0)
 
 
-def test_predict_proba_proporcao_de_votos():
+def test_predict_proba_vote_proportion():
     X = np.array([[0.0], [1.0], [2.0], [10.0]])
     y = np.array([0, 0, 1, 1])
-    modelo = KNeighborsClassifier(n_neighbors=3).fit(X, y)
+    model = KNeighborsClassifier(n_neighbors=3).fit(X, y)
     # vizinhos de 0.5: 0.0 (c0), 1.0 (c0), 2.0 (c1) -> [2/3, 1/3]
-    proba = modelo.predict_proba(np.array([[0.5]]))
+    proba = model.predict_proba(np.array([[0.5]]))
     np.testing.assert_allclose(proba, [[2 / 3, 1 / 3]])
 
 
-def test_empate_no_voto_vence_a_menor_classe():
+def test_vote_tie_picks_smallest_class():
     X = np.array([[0.0], [2.0]])
     y = np.array([5, 3])
-    modelo = KNeighborsClassifier(n_neighbors=2).fit(X, y)
+    model = KNeighborsClassifier(n_neighbors=2).fit(X, y)
     # 1 voto para cada classe: vence a menor (3)
-    assert modelo.predict(np.array([[1.0]]))[0] == 3
+    assert model.predict(np.array([[1.0]]))[0] == 3
 
 
-def test_multiclasse(blobs):
+def test_multiclass(blobs):
     X, y = blobs
     X3 = np.vstack([X, X[:10] + 20.0])
     y3 = np.concatenate([y, np.full(10, 2)])
-    modelo = KNeighborsClassifier(n_neighbors=3).fit(X3, y3)
-    assert modelo.score(X3, y3) == 1.0
-    assert modelo.predict_proba(X3).shape == (30, 3)
+    model = KNeighborsClassifier(n_neighbors=3).fit(X3, y3)
+    assert model.score(X3, y3) == 1.0
+    assert model.predict_proba(X3).shape == (30, 3)
 
 
-def test_classes_ordenadas_e_guarda_treino(blobs):
+def test_classes_are_sorted_and_stores_training_data(blobs):
     X, y = blobs
-    modelo = KNeighborsClassifier().fit(X, y)
-    assert np.array_equal(modelo.classes_, [0, 1])
-    assert modelo.X_train_.shape == X.shape
-    assert modelo.y_train_.shape == y.shape
+    model = KNeighborsClassifier().fit(X, y)
+    assert np.array_equal(model.classes_, [0, 1])
+    assert model.X_train_.shape == X.shape
+    assert model.y_train_.shape == y.shape
 
 
-def test_fit_devolve_self_e_copia_os_dados(blobs):
+def test_fit_returns_self_and_copies_data(blobs):
     X, y = blobs
-    modelo = KNeighborsClassifier()
-    assert modelo.fit(X, y) is modelo
+    model = KNeighborsClassifier()
+    assert model.fit(X, y) is model
     X_original = X.copy()
     X[0, 0] = 999.0  # mexer no X do usuário não pode afetar o modelo
-    np.testing.assert_allclose(modelo.X_train_[0], X_original[0])
+    np.testing.assert_allclose(model.X_train_[0], X_original[0])
 
 
-def test_get_params_e_clone():
+def test_get_params_and_clone():
     from statstech.base import clone
 
-    modelo = KNeighborsClassifier(n_neighbors=7)
-    assert modelo.get_params() == {"n_neighbors": 7}
-    novo = clone(modelo)
-    assert novo.n_neighbors == 7 and not hasattr(novo, "X_train_")
+    model = KNeighborsClassifier(n_neighbors=7)
+    assert model.get_params() == {"n_neighbors": 7}
+    new_model = clone(model)
+    assert new_model.n_neighbors == 7 and not hasattr(new_model, "X_train_")
 
 
-def test_predict_antes_do_fit_levanta_erro():
+def test_predict_before_fit_raises_error():
     with pytest.raises(NotFittedError):
         KNeighborsClassifier().predict(np.zeros((1, 2)))
     with pytest.raises(NotFittedError):
         KNeighborsClassifier().predict_proba(np.zeros((1, 2)))
 
 
-def test_x_e_y_com_tamanhos_diferentes():
+def test_x_and_y_with_different_sizes():
     with pytest.raises(ValueError, match="tamanhos diferentes"):
         KNeighborsClassifier().fit(np.zeros((4, 2)), np.zeros(3))
 
 
 @pytest.mark.parametrize("k", [0, -1, 2.5, "3", None, True])
-def test_n_neighbors_invalido(k):
+def test_invalid_n_neighbors(k):
     X = np.zeros((5, 2))
     y = np.array([0, 1, 0, 1, 0])
     with pytest.raises(ValueError, match="n_neighbors"):
         KNeighborsClassifier(n_neighbors=k).fit(X, y)
 
 
-def test_n_neighbors_maior_que_amostras():
+def test_n_neighbors_greater_than_n_samples():
     X = np.zeros((3, 2))
     y = np.array([0, 1, 0])
     with pytest.raises(ValueError, match="maior que o número de amostras"):
         KNeighborsClassifier(n_neighbors=4).fit(X, y)
 
 
-def test_numero_de_features_diferente_no_predict(blobs):
+def test_different_number_of_features_in_predict(blobs):
     X, y = blobs
-    modelo = KNeighborsClassifier().fit(X, y)
+    model = KNeighborsClassifier().fit(X, y)
     with pytest.raises(ValueError, match="mesmo número de features"):
-        modelo.predict(np.zeros((2, 5)))
+        model.predict(np.zeros((2, 5)))
 
 
-def test_x_com_nan_levanta_erro(blobs):
+def test_x_with_nan_raises_error(blobs):
     X, y = blobs
-    modelo = KNeighborsClassifier().fit(X, y)
-    X_ruim = X.copy()
-    X_ruim[0, 0] = np.nan
+    model = KNeighborsClassifier().fit(X, y)
+    X_bad = X.copy()
+    X_bad[0, 0] = np.nan
     with pytest.raises(ValueError, match="NaN"):
-        modelo.predict(X_ruim)
+        model.predict(X_bad)
 
 
 # ---------------- Regressor ----------------
 
 
-def test_regressor_media_dos_vizinhos():
+def test_regressor_mean_of_neighbors():
     X = np.array([[0.0], [1.0], [2.0]])
     y = np.array([0.0, 10.0, 20.0])
-    modelo = KNeighborsRegressor(n_neighbors=2).fit(X, y)
+    model = KNeighborsRegressor(n_neighbors=2).fit(X, y)
     # 0.4 -> vizinhos 0.0 e 1.0 -> média de 0 e 10
-    np.testing.assert_allclose(modelo.predict(np.array([[0.4]])), [5.0])
+    np.testing.assert_allclose(model.predict(np.array([[0.4]])), [5.0])
 
 
-def test_regressor_k1_reproduz_y_no_treino():
+def test_regressor_k1_reproduces_y_on_training_data():
     rng = np.random.default_rng(3)
     X = rng.normal(size=(25, 2))
     y = rng.normal(size=25)
-    modelo = KNeighborsRegressor(n_neighbors=1).fit(X, y)
-    np.testing.assert_allclose(modelo.predict(X), y)
+    model = KNeighborsRegressor(n_neighbors=1).fit(X, y)
+    np.testing.assert_allclose(model.predict(X), y)
 
 
-def test_regressor_k_igual_a_n_preve_a_media_de_y():
+def test_regressor_k_equal_to_n_predicts_mean_of_y():
     X = np.arange(6, dtype=float).reshape(-1, 1)
     y = np.array([1.0, 2.0, 3.0, 4.0, 5.0, 6.0])
-    modelo = KNeighborsRegressor(n_neighbors=6).fit(X, y)
-    np.testing.assert_allclose(modelo.predict(np.array([[100.0]])), [3.5])
+    model = KNeighborsRegressor(n_neighbors=6).fit(X, y)
+    np.testing.assert_allclose(model.predict(np.array([[100.0]])), [3.5])
 
 
-def test_regressor_score_r2_perfeito_com_k1():
+def test_regressor_perfect_r2_score_with_k1():
     X = np.arange(8, dtype=float).reshape(-1, 1)
     y = X.ravel() ** 2
-    modelo = KNeighborsRegressor(n_neighbors=1).fit(X, y)
-    assert modelo.score(X, y) == pytest.approx(1.0)
+    model = KNeighborsRegressor(n_neighbors=1).fit(X, y)
+    assert model.score(X, y) == pytest.approx(1.0)
 
 
-def test_regressor_y_de_texto_levanta_erro():
+def test_regressor_text_y_raises_error():
     with pytest.raises(ValueError, match="numérico"):
         KNeighborsRegressor(n_neighbors=1).fit(
             np.zeros((2, 1)), np.array(["a", "b"])
         )
 
 
-def test_regressor_antes_do_fit():
+def test_regressor_before_fit():
     with pytest.raises(NotFittedError):
         KNeighborsRegressor().predict(np.zeros((1, 1)))

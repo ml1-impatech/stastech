@@ -18,12 +18,12 @@ y = np.array([0, 0, 0, 1, 1, 1])
 scaler = StandardScaler().fit(X)
 X_scaled = scaler.transform(X)
 
-modelo = KNeighborsClassifier(n_neighbors=3).fit(X_scaled, y)
+model = KNeighborsClassifier(n_neighbors=3).fit(X_scaled, y)
 
-X_novo = scaler.transform(np.array([[0.3, 0.3], [5.2, 5.1]]))
-print("Classes previstas:", modelo.predict(X_novo))
-print("Probabilidades:\n", modelo.predict_proba(X_novo))
-print("Acurácia no treino:", modelo.score(X_scaled, y))
+X_new = scaler.transform(np.array([[0.3, 0.3], [5.2, 5.1]]))
+print("Classes previstas:", model.predict(X_new))
+print("Probabilidades:\n", model.predict_proba(X_new))
+print("Acurácia no treino:", model.score(X_scaled, y))
 
 # ---- Regressão ----
 # y = 2x: a previsão é a média do y dos vizinhos.
