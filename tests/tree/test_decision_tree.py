@@ -322,10 +322,11 @@ def test_clone_is_untrained_with_same_params(step_data):
     assert not hasattr(novo, "tree_")
  
  
-def test_fit_returns_self(step_data):
+@pytest.mark.parametrize("cls", ALL_TREES)
+def test_fit_returns_self(cls, step_data):
     X, y = step_data
-    clf = DecisionTreeClassifier()
-    assert clf.fit(X, y) is clf
+    model = cls()
+    assert model.fit(X, y) is model
  
  
 def test_fit_is_deterministic(noisy_data):
@@ -342,7 +343,14 @@ def test_fit_does_not_modify_inputs(noisy_data):
     np.testing.assert_array_equal(X, X0)
     np.testing.assert_array_equal(y, y0)
 
- 
+def test_refit_replaces_previous_tree(step_data):
+    X, y = step_data
+    clf = DecisionTreeClassifier().fit(X, y)
+    clf.fit(X[:3], y[:3])  # só uma classe: vira uma folha
+    assert clf.get_depth() == 0
+    np.testing.assert_array_equal(clf.classes_, [0])
+
+
 # ----------------------------------------------------------------------
 # Erros esperados
 # ----------------------------------------------------------------------
