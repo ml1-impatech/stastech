@@ -343,6 +343,7 @@ def test_fit_does_not_modify_inputs(noisy_data):
     np.testing.assert_array_equal(X, X0)
     np.testing.assert_array_equal(y, y0)
 
+
 def test_refit_replaces_previous_tree(step_data):
     X, y = step_data
     clf = DecisionTreeClassifier().fit(X, y)
@@ -350,6 +351,31 @@ def test_refit_replaces_previous_tree(step_data):
     assert clf.get_depth() == 0
     np.testing.assert_array_equal(clf.classes_, [0])
 
+
+
+# ----------------------------------------------------------------------
+# Integração com o resto da biblioteca
+# ----------------------------------------------------------------------
+ 
+ 
+def test_cross_val_score_with_classifier(noisy_data):
+    X, y = noisy_data
+    scores = cross_val_score(DecisionTreeClassifier(max_depth=3), X, y, cv=4)
+    assert scores.shape == (4,)
+    assert np.all(scores > 0.5)  # melhor que chute em dados quase separáveis
+ 
+ 
+def test_grid_search_picks_deeper_regression_tree(sine_data):
+    X, y = sine_data
+    search = GridSearchCV(
+        DecisionTreeRegressor(),
+        {"max_depth": [1, 4]},
+        cv=3,
+        scoring="mse",
+    ).fit(X, y)
+    assert search.best_params_ == {"max_depth": 4}
+    assert search.best_estimator_.get_depth() <= 4
+    assert search.predict(X).shape == y.shape
 
 # ----------------------------------------------------------------------
 # Erros esperados
