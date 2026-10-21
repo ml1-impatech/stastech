@@ -69,4 +69,29 @@ def test_empty_cluster_does_not_produce_nan():
     labels, centers, _, _ = km._lloyd(X, start)
     assert not np.isnan(centers).any()
     assert len(np.unique(labels)) == 3
+
+@pytest.mark.parametrize(
+    "params",
+    [
+        {"n_clusters": 0},
+        {"n_clusters": 91},
+        {"n_clusters": 2.0},
+        {"n_clusters": True},
+        {"n_init": 0},
+        {"max_iter": 0},
+        {"tol": -1},
+        {"init": "aleatorio"},
+    ],
+)
+def test_invalid_params(params):
+    with pytest.raises(ValueError):
+        KMeans(**params).fit(X)
  
+def test_predict_before_fit():
+    with pytest.raises(NotFittedError):
+        KMeans().predict(X)
+ 
+def test_predict_wrong_number_of_features():
+    km = KMeans(n_clusters=3, random_state=0).fit(X)
+    with pytest.raises(ValueError, match="features"):
+        km.predict(np.ones((1, 3)))
