@@ -291,9 +291,8 @@ class _BaseDecisionTree(BaseEstimator):
         if self._is_leaf(y, depth):
             return _Node(value= self._leaf_value(y))
         
-        # Busca da melhor divisão
         best_feature, best_threshold = None, None
-        best_score = np.inf #infinito
+        best_score = np.inf 
 
         for j in range(X.shape[1]):
         # Limiares candidatos: pontos médios entre valores consecutivos distintos e ordenados da coluna j
@@ -328,17 +327,6 @@ class _BaseDecisionTree(BaseEstimator):
         node.right = self._build(X[~mask], y[~mask], depth+1)
         return node
         
-    def _prepare_y(self, y):
-        pass
-
-    def _decode_predictions(self, values):
-        pass
-
-    def _impurity(self, y):  # cada subclasse define
-        pass
-
-    def _leaf_value(self, y):  # cada subclasse define
-        pass
 
 class DecisionTreeRegressor(_BaseDecisionTree, RegressorMixin):
     """Árvore de decisão (CART) para regressão.
