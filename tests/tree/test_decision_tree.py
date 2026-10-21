@@ -14,6 +14,8 @@ from statstech.tree.decision_tree import (
 )
 from statstech.utils.validation import NotFittedError
 
+ALL_TREES = [DecisionTreeRegressor, DecisionTreeClassifier]
+
 
 # ----------------------------------------------------------------------
 # Auxiliares
@@ -25,6 +27,26 @@ def count_splits(node):
         return 0
     return 1 + count_splits(node.left) + count_splits(node.right)
 
+def brute_force_best_score(tree, X, y):
+    """Menor impureza ponderada entre TODOS os cortes possíveis.
+ 
+    Implementação lenta e óbvia (um corte por vez), usada como
+    referência para conferir a busca por somas acumuladas do
+    ``_best_split``. Compara scores, e não limiares, porque cortes
+    empatados podem ser escolhidos em ordem diferente.
+    """
+    n = len(y)
+    best = np.inf
+    for j in range(X.shape[1]):
+        values = np.unique(X[:, j])
+        for t in (values[:-1] + values[1:]) / 2:
+            mask = X[:, j] <= t
+            score = (
+                mask.sum() * tree._impurity(y[mask])
+                + (~mask).sum() * tree._impurity(y[~mask])
+            ) / n
+            best = min(best, score)
+    return best
 
 @pytest.fixture
 def step_data():
