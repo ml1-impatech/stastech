@@ -1,9 +1,9 @@
 import numpy as np
 import pytest
 
+from statstech.discriminant_analysis.lda import LinearDiscriminantAnalysis
 from statstech.discriminant_analysis.qda import QuadraticDiscriminantAnalysis
 from statstech.utils.validation import NotFittedError
-from statstech.discriminant_analysis.lda import LinearDiscriminantAnalysis
 
 
 def test_fit():
@@ -27,7 +27,7 @@ def test_fit():
     assert model.covariances_.shape == (2, 2, 2)
 
 
-def test_fit_reg_param_invalido():
+def test_fit_invalid_reg_param():
     X = np.array([[1.0], [2.0], [3.0], [4.0]])
     y = np.array([0, 0, 1, 1])
 
@@ -47,7 +47,7 @@ def test_fit_reg_param_nan():
         model.fit(X, y)
 
 
-def test_fit_reg_param_infinito():
+def test_fit_infinite_reg_param():
     X = np.array([[1.0], [2.0], [3.0], [4.0]])
     y = np.array([0, 0, 1, 1])
 
@@ -57,7 +57,7 @@ def test_fit_reg_param_infinito():
         model.fit(X, y)
 
 
-def test_fit_reg_param_booleano():
+def test_fit_boolean_reg_param():
     X = np.array([[1.0], [2.0], [3.0], [4.0]])
     y = np.array([0, 0, 1, 1])
 
@@ -67,7 +67,7 @@ def test_fit_reg_param_booleano():
         model.fit(X, y)
 
 
-def test_fit_uma_classe():
+def test_fit_single_class():
     X = np.array([[1.0], [2.0], [3.0]])
     y = np.array([0, 0, 0])
 
@@ -77,7 +77,7 @@ def test_fit_uma_classe():
         model.fit(X, y)
 
 
-def test_fit_classe_com_uma_observacao():
+def test_fit_class_with_one_sample():
     X = np.array([[1.0], [2.0], [3.0]])
     y = np.array([0, 1, 1])
 
@@ -87,7 +87,7 @@ def test_fit_classe_com_uma_observacao():
         model.fit(X, y)
 
 
-def test_fit_quantidades_de_observacoes_diferentes():
+def test_fit_mismatched_sample_counts():
     X = np.array([[1.0], [2.0], [3.0], [4.0]])
     y = np.array([0, 0, 1])
 
@@ -95,7 +95,6 @@ def test_fit_quantidades_de_observacoes_diferentes():
 
     with pytest.raises(ValueError):
         model.fit(X, y)
-
 
 
 def test_predict_proba():
@@ -121,16 +120,15 @@ def test_predict_proba():
     assert np.allclose(probabilities.sum(axis=1), 1.0)
 
 
-def test_predict_proba_modelo_nao_treinado():
+def test_predict_proba_unfitted_model():
     X = np.array([[1.0, 2.0]])
 
-    model = QuadraticDiscriminantAnalysis() 
-    
+    model = QuadraticDiscriminantAnalysis()
     with pytest.raises(NotFittedError):
         model.predict_proba(X)
 
 
-def test_predict_proba_numero_incorreto_de_caracteristicas():
+def test_predict_proba_wrong_number_of_features():
     X = np.array([
         [1.0, 2.0],
         [1.5, 1.8],
@@ -144,10 +142,10 @@ def test_predict_proba_numero_incorreto_de_caracteristicas():
     model = QuadraticDiscriminantAnalysis()
     model.fit(X, y)
 
-    X_invalido = np.array([[1.0, 2.0, 3.0]])
+    X_invalid = np.array([[1.0, 2.0, 3.0]])
 
     with pytest.raises(ValueError):
-        model.predict_proba(X_invalido)
+        model.predict_proba(X_invalid)
 
 
 def test_predict():
@@ -171,7 +169,7 @@ def test_predict():
     assert np.mean(predictions == y) >= 0.8
 
 
-def test_predict_modelo_nao_treinado():
+def test_predict_unfitted_model():
     X = np.array([[1.0, 2.0]])
     model = QuadraticDiscriminantAnalysis()
 
@@ -179,7 +177,7 @@ def test_predict_modelo_nao_treinado():
         model.predict(X)
 
 
-def test_predict_numero_incorreto_de_caracteristicas():
+def test_predict_wrong_number_of_features():
     X = np.array([
         [1.0, 2.0],
         [1.5, 1.8],
@@ -193,13 +191,13 @@ def test_predict_numero_incorreto_de_caracteristicas():
     model = QuadraticDiscriminantAnalysis()
     model.fit(X, y)
 
-    X_invalido = np.array([[1.0, 2.0, 3.0]])
+    X_invalid = np.array([[1.0, 2.0, 3.0]])
 
     with pytest.raises(ValueError):
-        model.predict(X_invalido)
+        model.predict(X_invalid)
 
 
-def test_qda_com_covariancias_diferentes():
+def test_qda_with_different_covariances():
     rng = np.random.default_rng(42)
 
     X0 = rng.multivariate_normal(
@@ -219,23 +217,23 @@ def test_qda_com_covariancias_diferentes():
     indices = rng.permutation(len(y))
     X, y = X[indices], y[indices]
 
-    corte = int(0.7 * len(y))
-    X_treino, X_teste = X[:corte], X[corte:]
-    y_treino, y_teste = y[:corte], y[corte:]
+    split_index = int(0.7 * len(y))
+    X_train, X_test = X[:split_index], X[split_index:]
+    y_train, y_test = y[:split_index], y[split_index:]
 
     qda = QuadraticDiscriminantAnalysis()
     lda = LinearDiscriminantAnalysis()
 
-    qda.fit(X_treino, y_treino)
-    lda.fit(X_treino, y_treino)
+    qda.fit(X_train, y_train)
+    lda.fit(X_train, y_train)
 
-    acuracia_qda = np.mean(qda.predict(X_teste) == y_teste)
-    acuracia_lda = np.mean(lda.predict(X_teste) == y_teste)
+    qda_accuracy = np.mean(qda.predict(X_test) == y_test)
+    lda_accuracy = np.mean(lda.predict(X_test) == y_test)
 
-    assert acuracia_qda > acuracia_lda
+    assert qda_accuracy > lda_accuracy
 
 
-def test_qda_com_covariancias_iguais():
+def test_qda_with_equal_covariances():
     rng = np.random.default_rng(42)
 
     cov = [[1.0, 0.3], [0.3, 1.5]]
@@ -258,7 +256,7 @@ def test_qda_com_covariancias_iguais():
     assert np.mean(pred_qda == pred_lda) >= 0.95
 
 
-def test_predict_proba_com_regularizacao():
+def test_predict_proba_with_regularization():
     X = np.array([
         [1.0, 2.0],
         [2.0, 4.0],
@@ -278,7 +276,7 @@ def test_predict_proba_com_regularizacao():
     assert np.allclose(probabilities.sum(axis=1), 1.0)
 
 
-def test_predict_proba_com_covariancia_singular():
+def test_predict_proba_with_singular_covariance():
     X = np.array([
         [1.0, 2.0],
         [2.0, 4.0],
@@ -292,3 +290,49 @@ def test_predict_proba_com_covariancia_singular():
 
     with pytest.raises(ValueError):
         model.predict_proba(X)
+
+
+def test_fit_priors_and_means():
+    X = np.array([
+        [1.0, 2.0],
+        [3.0, 4.0],
+        [5.0, 6.0],
+        [7.0, 8.0],
+        [9.0, 10.0],
+    ])
+    y = np.array([0, 0, 1, 1, 1])
+
+    model = QuadraticDiscriminantAnalysis()
+    model.fit(X, y)
+
+    assert np.allclose(model.priors_, [2/5, 3/5])
+
+    mean_0 = np.mean(X[y == 0], axis=0)
+    mean_1 = np.mean(X[y == 1], axis=0)
+
+    assert np.allclose(model.means_[0], mean_0)
+    assert np.allclose(model.means_[1], mean_1)
+
+
+def test_fit_covariance_regularization():
+    X = np.array([
+        [1.0, 2.0],
+        [2.0, 4.0],
+        [5.0, 6.0],
+        [6.0, 8.0],
+    ])
+    y = np.array([0, 0, 1, 1])
+
+    reg_param = 0.1
+    model = QuadraticDiscriminantAnalysis(reg_param=reg_param)
+    model.fit(X, y)
+
+    for k, class_label in enumerate(model.classes_):
+        X_k = X[y == class_label]
+        expected_covariance = np.cov(X_k, rowvar=False)
+        expected_covariance += reg_param * np.eye(X.shape[1])
+
+        assert np.allclose(
+            model.covariances_[k],
+            expected_covariance,
+        )
