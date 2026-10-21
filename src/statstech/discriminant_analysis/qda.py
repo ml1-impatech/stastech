@@ -15,11 +15,19 @@ class QuadraticDiscriminantAnalysis(BaseEstimator, ClassifierMixin):
     
     def fit(self, X, y):
         X, y = check_X_y(X, y)
+        if (not isinstance(self.reg_param,(int, float, np.integer, np.floating))
+        or isinstance(self.reg_param, (bool, np.bool_))
+        or not np.isfinite(self.reg_param)
+        or self.reg_param < 0):
+            raise ValueError("reg_param deve ser um valor finito e não negativo.")
 
         n_samples, n_features = X.shape
 
         self.classes_ = np.unique(y)
         n_classes = len(self.classes_)
+
+        if n_classes < 2:
+            raise ValueError("O QDA precisa de pelo menos duas classes.")
 
         self.priors_ = np.empty(n_classes)
         self.means_ = np.empty((n_classes, n_features))
@@ -31,8 +39,10 @@ class QuadraticDiscriminantAnalysis(BaseEstimator, ClassifierMixin):
             X_k = X[y == classe]
             n_k = X_k.shape[0]
 
-            self.priors_[k] = n_k / n_samples
+            if n_k < 2:
+                raise ValueError("Cada classe deve ter pelo menos duas observações.")
 
+            self.priors_[k] = n_k / n_samples
             self.means_[k] = np.mean(X_k, axis=0)
 
             X_centered = X_k - self.means_[k]
@@ -58,6 +68,9 @@ class QuadraticDiscriminantAnalysis(BaseEstimator, ClassifierMixin):
             )
         X = check_array(X)
 
+        if X.shape[1] != self.means_.shape[1]:
+            raise ValueError("X deve ter o mesmo número de características usado no fit.")
+
         n_samples = X.shape[0]
         n_classes = len(self.classes_)
 
@@ -67,9 +80,13 @@ class QuadraticDiscriminantAnalysis(BaseEstimator, ClassifierMixin):
             centered = X - self.means_[k]
             covariance = self.covariances_[k]
 
+            sign, log_det = np.linalg.slogdet(covariance)
+
+            if sign <= 0:
+                raise ValueError("A matriz de covariância deve terdeterminante positivo.")
+
             solved = np.linalg.solve(covariance, centered.T)
             quadratic = np.sum(centered * solved.T, axis=1)
-            sign, log_det = np.linalg.slogdet(covariance)
 
             scores[:, k] = (
                 -0.5 * quadratic
