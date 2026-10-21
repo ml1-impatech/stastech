@@ -3,6 +3,7 @@
 import numpy as np
 
 from statstech.base import BaseEstimator, TransformerMixin
+from statstech.utils.validation import check_array, check_is_fitted
 
 
 class StandardScaler(BaseEstimator, TransformerMixin):
@@ -28,8 +29,6 @@ class StandardScaler(BaseEstimator, TransformerMixin):
         Colunas constantes têm ``scale_`` igual a 1.
     n_features_in_ : int
         Número de colunas vistas no ``fit``.
-
-
     """
 
     def __init__(self, with_mean: bool = True, with_std: bool = True):
@@ -56,11 +55,7 @@ class StandardScaler(BaseEstimator, TransformerMixin):
         ValueError
             Se ``X`` não for 2D, estiver vazio ou contiver NaN.
         """
-        # 1. validar X (2D, não vazio, sem NaN) e converter para float
-        # 2. calcular média e desvio de cada coluna (axis=0)
-        # 3. trocar desvio zero por 1
-        # 4. guardar mean_, scale_ e n_features_in_
-        # 5. devolver self
+        X = check_array(X).astype(float)
         self.mean_ = np.mean(X, axis=0)
         self.scale_ = np.std(X, axis=0)
         self.scale_ = np.where(self.scale_ == 0, 1.0, self.scale_)
@@ -86,11 +81,18 @@ class StandardScaler(BaseEstimator, TransformerMixin):
             Se ``fit`` não foi chamado, ``X`` for inválido ou o número de
             colunas for diferente do visto no ``fit``.
         """
-        # 1. conferir que o fit foi feito
-        # 2. validar X e conferir o número de colunas
-        # 3. aplicar (X - mean_) / scale_, respeitando with_mean e with_std
-        # 4. devolver o array novo
-        return (X - self.mean_) / self.scale_
+        check_is_fitted(self)
+        X = check_array(X).astype(float)
+        if X.shape[1] != self.n_features_in_:
+            raise ValueError(
+                f"X tem {X.shape[1]} features, mas o scaler foi ajustado "
+                f"com {self.n_features_in_}."
+            )
+        if self.with_mean:
+            X = X - self.mean_
+        if self.with_std:
+            X = X / self.scale_
+        return X
 
     def inverse_transform(self, X: np.ndarray) -> np.ndarray:
         """Desfaz a padronização, voltando às unidades originais.
@@ -111,5 +113,15 @@ class StandardScaler(BaseEstimator, TransformerMixin):
             Se ``fit`` não foi chamado, ``X`` for inválido ou o número de
             colunas for diferente do visto no ``fit``.
         """
-        # a conta ao contrário: X * scale_ + mean_ (respeitando os parâmetros)
-        return (X * self.scale_) + self.mean_
+        check_is_fitted(self)
+        X = check_array(X).astype(float)
+        if X.shape[1] != self.n_features_in_:
+            raise ValueError(
+                f"X tem {X.shape[1]} features, mas o scaler foi ajustado "
+                f"com {self.n_features_in_}."
+            )
+        if self.with_std:
+            X = X * self.scale_
+        if self.with_mean:
+            X = X + self.mean_
+        return X
