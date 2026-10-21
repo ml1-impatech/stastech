@@ -13,7 +13,7 @@ class _Node:
     """
     Nó da árvore.
     
-    Um nó interno tem ''feature'', ''threshold'', ''left'' e ''rignt''.
+    Um nó interno tem ''feature'', ''threshold'', ''left'' e ''right''.
     Uma folha tem apenas''value''.
     """
     feature: int | None = None
@@ -29,7 +29,7 @@ def _node_depth(node): # função auxiliar
     Parameters
     ----------
     node : _Node
-        Raís da subárvore.
+        Raíz da subárvore.
 
     Returns
     -------
@@ -106,7 +106,7 @@ class _BaseDecisionTree(BaseEstimator):
         ----------
         X : array-like de shape (n_amostras, n_features)
             Dados de entrada (features).
-        Y : array-like de shape (n_amostras,)
+        y : array-like de shape (n_amostras,)
             Valores (regressão) ou rótulos (classificação) correspondentes a X.
             
         Returns
