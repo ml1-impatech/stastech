@@ -147,3 +147,52 @@ def test_predict_proba_numero_incorreto_de_caracteristicas():
 
     with pytest.raises(ValueError):
         model.predict_proba(X_invalido)
+
+
+def test_predict():
+    X = np.array([
+        [1.0, 2.0],
+        [1.5, 1.8],
+        [2.0, 2.2],
+        [5.0, 6.0],
+        [5.5, 5.8],
+        [6.0, 6.2],
+    ])
+    y = np.array([0, 0, 0, 1, 1, 1])
+
+    model = QuadraticDiscriminantAnalysis()
+    model.fit(X, y)
+
+    predictions = model.predict(X)
+
+    assert predictions.shape == (6,)
+    assert np.all(np.isin(predictions, model.classes_))
+    assert np.mean(predictions == y) >= 0.8
+
+
+def test_predict_modelo_nao_treinado():
+    X = np.array([[1.0, 2.0]])
+    model = QuadraticDiscriminantAnalysis()
+
+    with pytest.raises(NotFittedError):
+        model.predict(X)
+
+
+def test_predict_numero_incorreto_de_caracteristicas():
+    X = np.array([
+        [1.0, 2.0],
+        [1.5, 1.8],
+        [2.0, 2.2],
+        [5.0, 6.0],
+        [5.5, 5.8],
+        [6.0, 6.2],
+    ])
+    y = np.array([0, 0, 0, 1, 1, 1])
+
+    model = QuadraticDiscriminantAnalysis()
+    model.fit(X, y)
+
+    X_invalido = np.array([[1.0, 2.0, 3.0]])
+
+    with pytest.raises(ValueError):
+        model.predict(X_invalido)
