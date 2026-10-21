@@ -6,19 +6,21 @@ O gráfico só aparece se o matplotlib estiver instalado.
 """
  
 import numpy as np
+
+from statstech.metrics.regression import mean_squared_error
  
 from statstech.tree.decision_tree import (DecisionTreeClassifier,
                                                         DecisionTreeRegressor)
 
-def split(X, y, test_size=0.3, seed=0):
+def train_test_split(X, y, test_size=0.3, random_state=0):
     """Divisão treino/teste simples (trocar por train_test_split depois)."""
-    rng = np.random.default_rng(seed)
+    rng = np.random.default_rng(random_state)
     idx = rng.permutation(len(y))
     n_test = int(len(y) * test_size)
     te, tr = idx[:n_test], idx[n_test:]
     return X[tr], X[te], y[tr], y[te]
 
-def mse(y_true, y_pred):
+def mean_squared_error(y_true, y_pred):
     return float(np.mean((y_true - y_pred) ** 2))
 
 # ----------------------------------------------------------------------
@@ -28,7 +30,7 @@ def mse(y_true, y_pred):
 rng = np.random.default_rng(42)
 X = rng.uniform(-3, 3, size=(300, 1))
 y = np.sin(X[:, 0]) + rng.normal(scale=0.3, size=300)
-X_tr, X_te, y_tr, y_te = split(X, y)
+X_tr, X_te, y_tr, y_te = train_test_split(X, y)
  
 print("=== Regressão (y = sen(x) + ruído) ===")
 print(f"{'max_depth':>10} {'MSE treino':>12} {'MSE teste':>12} {'prof. real':>11}")
@@ -37,8 +39,8 @@ depths = [1, 2, 3, 4, 5, 6, 8, 10, None]
 train_err, test_err = [], []
 for d in depths:
     reg = DecisionTreeRegressor(max_depth=d).fit(X_tr, y_tr)
-    e_tr = mse(y_tr, reg.predict(X_tr))
-    e_te = mse(y_te, reg.predict(X_te))
+    e_tr = mean_squared_error(y_tr, reg.predict(X_tr))
+    e_te = mean_squared_error(y_te, reg.predict(X_te))
     train_err.append(e_tr)
     test_err.append(e_te)
     print(f"{str(d):>10} {e_tr:>12.4f} {e_te:>12.4f} {reg.get_depth():>11}")
@@ -56,7 +58,7 @@ Xc = rng.normal(size=(400, 2))
 yc = ((Xc[:, 0] ** 2 + Xc[:, 1] ** 2) > 1.2).astype(int)  # anel
 flip = rng.random(400) < 0.08                             # 8% de ruído
 yc = np.where(flip, 1 - yc, yc)
-Xc_tr, Xc_te, yc_tr, yc_te = split(Xc, yc, seed=1)
+Xc_tr, Xc_te, yc_tr, yc_te = train_test_split(Xc, yc, seed=1)
  
 print("=== Classificação (fronteira circular, 8% de rótulos trocados) ===")
 print(f"{'max_depth':>10} {'acc treino':>12} {'acc teste':>12} {'prof. real':>11}")

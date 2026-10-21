@@ -3,6 +3,7 @@
 import numpy as np
 import pytest
 
+from statstech.utils.validation import NotFittedError
 from statstech.base import clone
 from statstech.tree.decision_tree import (DecisionTreeClassifier , 
                                           DecisionTreeRegressor, 
@@ -256,13 +257,13 @@ def test_fit_does_not_modify_inputs(noisy_data):
  
 @pytest.mark.parametrize("cls", [DecisionTreeClassifier, DecisionTreeRegressor])
 def test_predict_before_fit_raises(cls):
-    with pytest.raises(RuntimeError):
+    with pytest.raises(NotFittedError):
         cls().predict(np.zeros((2, 2)))
  
  
 @pytest.mark.parametrize("cls", [DecisionTreeClassifier, DecisionTreeRegressor])
 def test_get_depth_before_fit_raises(cls):
-    with pytest.raises(RuntimeError):
+    with pytest.raises(NotFittedError):
         cls().get_depth()
  
  
