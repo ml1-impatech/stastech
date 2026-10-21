@@ -19,7 +19,7 @@ from statstech.tree import DecisionTreeClassifier, DecisionTreeRegressor
 rng = np.random.default_rng(42)
 X = rng.uniform(-3, 3, size=(300, 1))
 y = np.sin(X[:, 0]) + rng.normal(scale=0.3, size=300)
-X_tr, X_te, y_tr, y_te = train_test_split(X, y)
+X_tr, X_te, y_tr, y_te = train_test_split(X, y, test_size=0.3, random_state=0)
  
 print("=== Regressão (y = sen(x) + ruído) ===")
 print(f"{'max_depth':>10} {'MSE treino':>12} {'MSE teste':>12} {'prof. real':>11}")
@@ -32,11 +32,10 @@ for d in depths:
     e_te = mean_squared_error(y_te, reg.predict(X_te))
     train_err.append(e_tr)
     test_err.append(e_te)
-    print(f"{str(d):>10} {e_tr:>12.4f} {e_te:>12.4f} {reg.get_depth():>11}")
+    print(f"{d!s:>10} {e_tr:>12.4f} {e_te:>12.4f} {reg.get_depth():>11}")
  
 print("\nSem max_depth o erro de treino vai a zero (a árvore decora o ruído),")
 print("mas o erro de teste volta a subir: isso é overfitting.\n")
-
 
 # ----------------------------------------------------------------------
 # 2. Classificação: duas classes com fronteira não linear
@@ -45,9 +44,11 @@ print("mas o erro de teste volta a subir: isso é overfitting.\n")
 rng = np.random.default_rng(7)
 Xc = rng.normal(size=(400, 2))
 yc = ((Xc[:, 0] ** 2 + Xc[:, 1] ** 2) > 1.2).astype(int)  # anel
-flip = rng.random(400) < 0.08                             # 8% de ruído
+flip = rng.random(400) < 0.08  # 8% de ruído
 yc = np.where(flip, 1 - yc, yc)
-Xc_tr, Xc_te, yc_tr, yc_te = train_test_split(Xc, yc, seed=1)
+Xc_tr, Xc_te, yc_tr, yc_te = train_test_split(
+    Xc, yc, test_size=0.3, random_state=1, stratify=yc
+)
  
 print("=== Classificação (fronteira circular, 8% de rótulos trocados) ===")
 print(f"{'max_depth':>10} {'acc treino':>12} {'acc teste':>12} {'prof. real':>11}")
@@ -55,10 +56,25 @@ print(f"{'max_depth':>10} {'acc treino':>12} {'acc teste':>12} {'prof. real':>11
 for d in [1, 2, 3, 4, 6, 8, None]:
     clf = DecisionTreeClassifier(max_depth=d).fit(Xc_tr, yc_tr)
     print(
-        f"{str(d):>10} {clf.score(Xc_tr, yc_tr):>12.3f} "
+        f"{d!s:>10} {clf.score(Xc_tr, yc_tr):>12.3f} "
         f"{clf.score(Xc_te, yc_te):>12.3f} {clf.get_depth():>11}"
     )
 
+
+# ----------------------------------------------------------------------
+# 3. Escolhendo max_depth com validação cruzada
+# ----------------------------------------------------------------------
+ 
+print("\n=== GridSearchCV para max_depth (regressão) ===")
+search = GridSearchCV(
+    DecisionTreeRegressor(),
+    {"max_depth": [1, 2, 3, 4, 5, 6, 8, 10, None]},
+    cv=5,
+    scoring="mse",
+).fit(X_tr, y_tr)
+print("melhor max_depth:", search.best_params_["max_depth"])
+print(f"MSE médio na validação cruzada: {search.best_score_:.4f}")
+print(f"MSE no teste: {mean_squared_error(y_te, search.predict(X_te)):.4f}")
 
 # ----------------------------------------------------------------------
 # 3. Rótulos em texto
