@@ -276,3 +276,19 @@ def test_predict_proba_com_regularizacao():
     assert np.all(np.isfinite(probabilities))
     assert np.all(probabilities >= 0)
     assert np.allclose(probabilities.sum(axis=1), 1.0)
+
+
+def test_predict_proba_com_covariancia_singular():
+    X = np.array([
+        [1.0, 2.0],
+        [2.0, 4.0],
+        [5.0, 6.0],
+        [6.0, 8.0],
+    ])
+    y = np.array([0, 0, 1, 1])
+
+    model = QuadraticDiscriminantAnalysis(reg_param=0.0)
+    model.fit(X, y)
+
+    with pytest.raises(ValueError):
+        model.predict_proba(X)
