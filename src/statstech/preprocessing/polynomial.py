@@ -12,24 +12,27 @@ class PolinomialFeatures(BaseEstimator):
     degree : int, default = 2
         Grau máximo do polinômio gerado
 
-    include_bias : bool, default = True
+    include_bias : bool, default = False
         Quando verdadeiro, adiciona a coluna do intercepto 
         prenchida com uns na matriz.
     """
 
-    def __init__(self, degree = 2, include_bias = False):
+    def __init__(self,
+                 degree : int = 2,
+                 include_bias : bool = False) -> None:
+        
         self.degree = degree
         self.include_bias = include_bias
         
-    def fit(self, X, y = None):
+    def fit(self, X : np.ndarray, y : np.ndarray | None = None) -> "PolinomialFeatures":
         """
         Calcula as combinações de características polinomiais 
-        com base dos dados de treino.
+        com base nos dados de treino.
 
-        Paramenters
+        Parameters
         -----------
         X : array-like, shape (n_samples, n_features)
-            Dados de treinamentos utilizadas para realizar o cálculo das combinações.
+            Dados de treinamentos utilizados para realizar o cálculo das combinações.
 
         y : array-like, shape (n_samples,)
             Não utilizado. Mantido por padrão de interface.
@@ -66,12 +69,12 @@ class PolinomialFeatures(BaseEstimator):
         if self.include_bias is True:
             n_out += 1
 
-        self.n_output_features = n_out
+        self.n_output_features_ = n_out
 
         return self
 
 
-    def transform(self, X):
+    def transform(self, X : np.ndarray) -> np.ndarray:
         """
         Gera a matriz de características polinomiais a partir de X.
 
@@ -82,7 +85,7 @@ class PolinomialFeatures(BaseEstimator):
 
         Returns 
         -------
-        X_poly : ndarray, shape (n_samples, n_output_features)
+        X_poly : ndarray, shape (n_samples, n_output_features_)
             Matriz com as características polinomiais.
 
         Raises
@@ -103,7 +106,7 @@ class PolinomialFeatures(BaseEstimator):
         if X.shape[1] != self.n_features_in_:
             raise ValueError("O número de variáveis deve ser igual ao usado em fit")
 
-        n_samples, n_features = X.shape
+        n_samples = X.shape[0]
         columns = []
 
         if self.include_bias is True:
@@ -117,7 +120,7 @@ class PolinomialFeatures(BaseEstimator):
 
         return X_poly
 
-    def fit_transform(self, X, y = None):
+    def fit_transform(self, X : np.ndarray, y : np.ndarray | None = None) -> np.ndarray:
         """
         Ajusta o estimador e realiza a transformação da matriz de entrada.
 
@@ -126,13 +129,13 @@ class PolinomialFeatures(BaseEstimator):
         X : array-like, shape (n_samples, n_features)
             Matriz com os dados a serem ajustados e treinados.
 
-        y : array-like, shape (n_sample,)
+        y : array-like, shape (n_samples,)
             Não utilizado. Mantido por padrão da interface.
 
         Returns
         -------
-        X_poly : ndarray, shape (n_samples, n_output_features)
+        X_poly : ndarray, shape (n_samples, n_output_features_)
             Matriz com as características polinomiais.
         """
-        X_poly = self.fit(X).transform(X)
+        X_poly = self.fit(X, y).transform(X)
         return X_poly
