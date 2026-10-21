@@ -3,8 +3,8 @@
 import numpy as np
 import pytest
 
-from statstech.src.statstech.base import clone
-from statstech.src.statstech.tree.decision_tree import (DecisionTreeClassifier , 
+from statstech.base import clone
+from statstech.tree.decision_tree import (DecisionTreeClassifier , 
                                           DecisionTreeRegressor, 
                                           _Node,
                                           _node_depth)
