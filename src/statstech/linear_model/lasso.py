@@ -36,14 +36,19 @@ class Lasso(BaseEstimator, RegressorMixin):
         Número de variáeis calculada pelo modelo.
     """
 
-    def __init__(self, alpha = 1.0, fit_intercept = True, tol = 1e-4, max_iter = 1000):
+    def __init__(self,
+                alpha : float = 1.0,
+                fit_intercept : bool = True,
+                tol : float = 1e-4,
+                max_iter : int = 1000) -> None:
+        
         self.alpha = alpha
         self.fit_intercept = fit_intercept
         self.tol = tol
         self.max_iter = max_iter
 
     @staticmethod
-    def _sort_threshold(z, threshold):
+    def _sort_threshold(z : float, threshold : float) -> float:
         """
         Aplica o operador de limiarização suave.
 
@@ -68,7 +73,7 @@ class Lasso(BaseEstimator, RegressorMixin):
         else:
             return 0.0
 
-    def fit(self, X, y):
+    def fit(self, X : ArrayLike, y : ArrayLike) -> "Lasso":
         """
         Ajusta o modelo de regressão Lasso aos dados de treino.
 
@@ -161,7 +166,7 @@ class Lasso(BaseEstimator, RegressorMixin):
         return self
 
 
-    def predict(self, X):
+    def predict(self, X : ArrayLike) -> np.ndrray:
         """
         Realiza previsões de y com base nos valores fornecidos em X.
 
