@@ -73,7 +73,7 @@ class Lasso(BaseEstimator, RegressorMixin):
         else:
             return 0.0
 
-    def fit(self, X : ArrayLike, y : ArrayLike) -> "Lasso":
+    def fit(self, X : np.ndarray , y : np.ndarray) -> "Lasso":
         """
         Ajusta o modelo de regressão Lasso aos dados de treino.
 
@@ -166,7 +166,7 @@ class Lasso(BaseEstimator, RegressorMixin):
         return self
 
 
-    def predict(self, X : ArrayLike) -> np.ndrray:
+    def predict(self, X : np.ndarray) -> np.ndrray:
         """
         Realiza previsões de y com base nos valores fornecidos em X.
 
