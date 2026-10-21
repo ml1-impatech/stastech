@@ -84,7 +84,8 @@ class _BaseDecisionTree(BaseEstimator):
         """
         if self.max_depth is not None:
             if (
-                not isinstance(self.max_depth, (int, np.integer)) 
+                isinstance(self.max_depth, bool)
+                or not isinstance(self.max_depth, (int, np.integer))
                 or self.max_depth < 1
             ):
                 raise ValueError("max_depth deve ser None ou inteiro >= 1.")
