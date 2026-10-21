@@ -7,18 +7,12 @@ O gráfico só aparece se o matplotlib estiver instalado.
  
 import numpy as np
 
+from statstech.model_selection.split import train_test_split
+
 from statstech.metrics.regression import mean_squared_error
  
 from statstech.tree.decision_tree import (DecisionTreeClassifier,
                                                         DecisionTreeRegressor)
-
-def train_test_split(X, y, test_size=0.3, random_state=0):
-    """Divisão treino/teste simples (trocar por train_test_split depois)."""
-    rng = np.random.default_rng(random_state)
-    idx = rng.permutation(len(y))
-    n_test = int(len(y) * test_size)
-    te, tr = idx[:n_test], idx[n_test:]
-    return X[tr], X[te], y[tr], y[te]
 
 def mean_squared_error(y_true, y_pred):
     return float(np.mean((y_true - y_pred) ** 2))
