@@ -1,9 +1,13 @@
 import numpy as np
 from base import BaseEstimator, RegressorMixin
+from statstech.utils.validation import (check_X_y, check_array, check_is_fitted)
 
 class LinearRegression( BaseEstimator, RegressorMixin):
     """ 
     Modelo de regressão linear baseado em mínimos quadrados.
+
+    O modelo estima os coeficientes que minimizam a soma dos quadrados 
+    das diferenças entre os valores observados e os valores previstos.
 
     Parameters
     ----------
@@ -12,7 +16,7 @@ class LinearRegression( BaseEstimator, RegressorMixin):
         o intercepto não é utilizado nos cálculos.
 
     Attributes
-    ---------
+    ----------
     coef_ : ndarray
         Coeficientes estimados para as variváeis de entrada.
 
@@ -27,9 +31,12 @@ class LinearRegression( BaseEstimator, RegressorMixin):
         
         self.fit_intercept = fit_intercept
 
+        if not isinstance(self.fit_intercept, (bool, np.bool)):
+            raise ValueError("fit_intercept deve ser booleano")
+
     def fit(self, X : np.ndarray, y : np.ndarray) -> "LinearRegression":
         """ 
-        Ajusta o modelo aos dados de treinamento
+        Ajusta o modelo aos dados de treinamento.
 
         Parameters
         ----------
@@ -53,17 +60,7 @@ class LinearRegression( BaseEstimator, RegressorMixin):
             Se o número de amostras de X e y não são iguais.
         """
 
-        X = np.asarray(X, dtype = float)
-        y = np.asarray(y, dtype = float)
-
-        if X.ndim != 2:
-            raise ValueError("X deve ser uma matriz 2D")
-
-        if y.ndim != 1:
-            raise ValueError("y deve ser um vetor")
-
-        if X.shape[0] != y.shape[0]:
-            raise ValueError("X e y devem possuir o mesmo número de amostras")
+        X, y = check_X_y(X, y)
 
         self.n_features_in_ = X.shape[1]
 
@@ -110,14 +107,11 @@ class LinearRegression( BaseEstimator, RegressorMixin):
             Se o modelo não tiver sido treinado.
                 
         """
-        X = np.asarray(X, dtype = float)
+        check_is_fitted(self, ["coef_", "intercept_", "n_features_in_"])
+        X = check_array(X)
 
-        if X.ndim != 2:
-            raise ValueError("X deve ser uma matriz 2D")
-
-        if not hasattr(self, "coef_"):
-            raise ValueError("O modelo não foi treinado") 
-
+        if X.shape[1] != self.n_features_in_:
+            raise ValueError("X deve possuir o mesmo número de variáveis que em fit")
         y_predicted = X @ self.coef_ + self.intercept_
 
         return y_predicted
