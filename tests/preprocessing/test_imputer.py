@@ -19,7 +19,7 @@ def X():
     ])
 
 
-def test_mean_preenche_com_a_media(X):
+def test_mean_fills_with_mean(X):
     imputer = SimpleImputer(strategy="mean").fit(X)
     np.testing.assert_allclose(imputer.statistics_, [8 / 3, 50 / 3])
     Z = imputer.transform(X)
@@ -27,59 +27,59 @@ def test_mean_preenche_com_a_media(X):
     np.testing.assert_allclose(Z[1, 1], 50 / 3)
 
 
-def test_median_preenche_com_a_mediana(X):
+def test_median_fills_with_median(X):
     imputer = SimpleImputer(strategy="median").fit(X)
     np.testing.assert_allclose(imputer.statistics_, [2.0, 10.0])
 
 
-def test_most_frequent_preenche_com_o_valor_mais_comum(X):
+def test_most_frequent_fills_with_most_common_value(X):
     imputer = SimpleImputer(strategy="most_frequent").fit(X)
     # coluna 1: 10 aparece duas vezes. Coluna 0: tudo único, menor = 1.
     np.testing.assert_allclose(imputer.statistics_, [1.0, 10.0])
 
 
-def test_nao_sobra_nan(X):
-    for estrategia in ("mean", "median", "most_frequent"):
-        Z = SimpleImputer(strategy=estrategia).fit_transform(X)
+def test_no_nan_left(X):
+    for strat in ("mean", "median", "most_frequent"):
+        Z = SimpleImputer(strategy=strat).fit_transform(X)
         assert not np.isnan(Z).any()
 
 
-def test_valores_que_nao_eram_nan_ficam_iguais(X):
+def test_values_that_were_not_nan_stay_equal(X):
     Z = SimpleImputer().fit_transform(X)
-    presentes = ~np.isnan(X)
-    np.testing.assert_array_equal(Z[presentes], X[presentes])
+    present = ~np.isnan(X)
+    np.testing.assert_array_equal(Z[present], X[present])
 
 
-def test_nao_altera_o_x_original(X):
-    copia = X.copy()
+def test_does_not_change_original_x(X):
+    X_copy = X.copy()
     SimpleImputer().fit_transform(X)
-    np.testing.assert_array_equal(X, copia)  # NaN == NaN neste assert
+    np.testing.assert_array_equal(X, X_copy)  # NaN == NaN neste assert
 
 
-def test_usa_valores_do_treino_no_teste():
-    treino = np.array([[2.0], [4.0]])  # média 3
-    teste = np.array([[NAN], [100.0]])
-    imputer = SimpleImputer().fit(treino)
-    np.testing.assert_allclose(imputer.transform(teste), [[3.0], [100.0]])
+def test_uses_training_values_on_test():
+    train = np.array([[2.0], [4.0]])  # média 3
+    test = np.array([[NAN], [100.0]])
+    imputer = SimpleImputer().fit(train)
+    np.testing.assert_allclose(imputer.transform(test), [[3.0], [100.0]])
 
 
-def test_coluna_inteira_nan_levanta_erro():
+def test_all_nan_column_raises_error():
     X = np.array([[1.0, NAN], [2.0, NAN]])
     with pytest.raises(ValueError, match="só têm NaN"):
         SimpleImputer().fit(X)
 
 
-def test_strategy_invalida():
+def test_invalid_strategy():
     with pytest.raises(ValueError, match="strategy"):
         SimpleImputer(strategy="moda").fit([[1.0], [2.0]])
 
 
-def test_infinito_levanta_erro():
+def test_infinity_raises_error():
     with pytest.raises(ValueError, match="infinitos"):
         SimpleImputer().fit([[1.0], [np.inf]])
 
 
-def test_antes_do_fit_e_colunas_erradas(X):
+def test_before_fit_and_wrong_number_of_columns(X):
     with pytest.raises(NotFittedError):
         SimpleImputer().transform(X)
     imputer = SimpleImputer().fit(X)

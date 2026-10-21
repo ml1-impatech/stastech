@@ -7,33 +7,33 @@ from statstech.preprocessing.imputer import SimpleImputer
 from statstech.preprocessing.scalers import MinMaxScaler, StandardScaler
 
 # Dados numéricos com um valor faltando (NaN).
-X_treino = np.array([[1.0, 200.0], [2.0, np.nan], [3.0, 400.0]])
-X_teste = np.array([[np.nan, 300.0]])
+X_train = np.array([[1.0, 200.0], [2.0, np.nan], [3.0, 400.0]])
+X_test = np.array([[np.nan, 300.0]])
 
 # 1) Preencher NaN: o valor vem do treino e é reaproveitado no teste.
-imputer = SimpleImputer(strategy="mean").fit(X_treino)
-X_treino = imputer.transform(X_treino)
-X_teste = imputer.transform(X_teste)
-print("Treino sem NaN:\n", X_treino)
-print("Teste sem NaN:\n", X_teste)
+imputer = SimpleImputer(strategy="mean").fit(X_train)
+X_train = imputer.transform(X_train)
+X_test = imputer.transform(X_test)
+print("Treino sem NaN:\n", X_train)
+print("Teste sem NaN:\n", X_test)
 
 # 2) Padronizar: média 0 e desvio 1 (ajustado só no treino).
-scaler = StandardScaler().fit(X_treino)
-print("Padronizado:\n", scaler.transform(X_treino))
+scaler = StandardScaler().fit(X_train)
+print("Padronizado:\n", scaler.transform(X_train))
 print("Voltando ao original:\n",
-      scaler.inverse_transform(scaler.transform(X_treino)))
+      scaler.inverse_transform(scaler.transform(X_train)))
 
 # 3) Escalar para o intervalo [0, 1].
-print("Min-max:\n", MinMaxScaler().fit_transform(X_treino))
+print("Min-max:\n", MinMaxScaler().fit_transform(X_train))
 
 # 4) Variáveis categóricas: colunas 0/1 (one-hot).
-cores = np.array([["azul"], ["verde"], ["azul"], ["vermelho"]])
-encoder = OneHotEncoder(drop="first").fit(cores)
+colors = np.array([["azul"], ["verde"], ["azul"], ["vermelho"]])
+encoder = OneHotEncoder(drop="first").fit(colors)
 print("Categorias:", encoder.categories_)
-print("One-hot (sem a 1ª categoria):\n", encoder.transform(cores))
+print("One-hot (sem a 1ª categoria):\n", encoder.transform(colors))
 
 # 5) Rótulos do alvo y: texto -> 0, 1, ...
 label = LabelEncoder()
-codigos = label.fit_transform(["sim", "nao", "sim"])
-print("Códigos:", codigos)
-print("De volta:", label.inverse_transform(codigos))
+codes = label.fit_transform(["sim", "nao", "sim"])
+print("Códigos:", codes)
+print("De volta:", label.inverse_transform(codes))
