@@ -24,7 +24,7 @@ def _validate_class_index( c_matrix: list[list[int]], class_k: int) -> None:
         raise ValueError("class_k está fora do intervalo válido.")
 
 
-def confusion_matrix(y_true: list[int], y_pred: list[int], classes: list[int]) -> list[list[int]]:
+def confusion_matrix(y_true: list[int], y_pred: list[int], classes: list) -> list[list[int]]:
     """Calcula a matriz de confusão para um problema de classificação.
     
     A matriz de confusão compara as classes reais com as classes previstas. 
@@ -36,7 +36,7 @@ def confusion_matrix(y_true: list[int], y_pred: list[int], classes: list[int]) -
         Lista dos valores reais correspondentes às previsões em y_pred.
     y_pred: list[float]
         Lista de predições baseadas nas observações.
-    classes: list[int]
+    classes: list
         A lista de possíveis classes do problema de classificação.
 
     Returns

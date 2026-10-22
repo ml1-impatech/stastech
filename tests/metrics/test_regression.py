@@ -25,7 +25,7 @@ from statstech.metrics.regression import (
 
 
 
-def test_validate_inputs_returns_1d_float64_arrays(y_true, y_pred):
+def test_validate_inputs_returns_2d_float64_arrays(y_true, y_pred):
     result_y_true, result_y_pred = _validate_regression_inputs(y_true, y_pred)
 
     assert isinstance(result_y_pred, np.ndarray)
