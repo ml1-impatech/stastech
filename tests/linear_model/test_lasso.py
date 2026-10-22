@@ -63,3 +63,36 @@ def test_lasso_soft_threshold_function_with_manual_values():
     assert Lasso._sort_threshold(-1.0, threshold) == 0.0
     assert Lasso._sort_threshold(2.0, threshold) == 0.0
     assert Lasso._sort_threshold(-2.0, threshold) == 0.0
+
+def test_lasso_defaut_parameter():
+    pass
+
+def test_lasso_invalid_alpha_raises_value_error():
+    pass
+
+def test_lasso_invalid_tol_raises_value_error():
+    pass
+
+def test_lasso_invalid_max_iter_raises_value_error():
+    pass
+
+def test_lasso_invalid_fit_intercept_raises_value_error():
+    pass
+
+def test_lasso_fit_returs_self():
+    pass
+
+def test_lasso_fit_without_intercept():
+    pass
+
+def test_lasso_fit_inconsistent_samples():
+    pass
+
+def test_lasso_predict():
+    pass
+
+def test_lasso_predict_without_fit():
+    pass
+
+def test_lasso_predict_wrong_number_of_features():
+    pass
