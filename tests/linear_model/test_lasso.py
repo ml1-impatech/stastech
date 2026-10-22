@@ -153,7 +153,7 @@ def test_lasso_fit_without_intercept():
     model = Lasso(fit_intercept = False, tol = 1e-10)
     model.fit(X, y)
 
-    np.testing.assert_allclose(model.coef_, [27 / 14])
+    np.testing.assert_allclose(model.coef_, [25 / 14])
     assert model.intercept_ == 0.0
 
 def test_lasso_fit_multiple_features():

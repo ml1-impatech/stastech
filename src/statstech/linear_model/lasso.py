@@ -77,14 +77,14 @@ class Lasso(BaseEstimator, RegressorMixin):
         if not isinstance(self.fit_intercept, (bool, np.bool_)):
             raise ValueError("fit_intercept deve ser booleano")
         
-        if (not np.isfinite(self.tol)
-            or not isinstance(self.tol, (int, float, np.integer, np.floating))
+        if (not isinstance(self.tol, (int, float, np.integer, np.floating))
+            or not np.isfinite(self.tol)
             or self.tol < 0):
             raise ValueError("tol deve ser um valor finito não negativo")
 
         if (isinstance(self.max_iter, (bool, np.bool_))
             or not isinstance(self.max_iter, (int, np.integer))
-            or self.max_iter < 0):
+            or self.max_iter <= 0):
             raise ValueError("max_iter deve ser um valor inteiro positivo")
           
             
