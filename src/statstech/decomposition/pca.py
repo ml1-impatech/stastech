@@ -1,18 +1,31 @@
+"""Análise de componentes principais.
+ 
+Contém a classe PCA, que reduz a dimensão dos dados projetando-os
+nas direções de maior variância, calculadas pela SVD.
+"""
+ 
 import numpy as np
+from numpy.typing import ArrayLike
+ 
 from statstech.base import BaseEstimator, TransformerMixin
-from statstech.utils.validation import check_array, check_is_fitted
-
-
+from statstech.utils.validation import (
+    check_array,
+    check_is_fitted,
+    check_n_features,
+)
+ 
+ 
 class PCA(BaseEstimator, TransformerMixin):
     """Análise de componentes principais (PCA).
-
+ 
     Encontra as direções em que os dados mais variam a partir da SVD
     do X centralizado. As linhas de Vt são as componentes, e a variância
     de cada uma é s_i² / (n - 1).
+ 
     O PCA só centraliza os dados, não padroniza. Se as features
     estiverem em escalas muito diferentes, recomenda-se usar o
     StandardScaler antes.
-
+ 
     Parameters
     ----------
     n_components : int, float ou None, default=None
@@ -21,7 +34,7 @@ class PCA(BaseEstimator, TransformerMixin):
         entre n_amostras e n_features, o próprio n_components. Se float
         entre 0 e 1, o menor número de componentes em que a variância
         acumulada atinge essa fração.
-
+ 
     Attributes
     ----------
     components_ : ndarray de formato (n_components_, n_features)
@@ -38,25 +51,25 @@ class PCA(BaseEstimator, TransformerMixin):
     n_features_in_ : int
         Número de features vistas no fit.
     """
-
-    def __init__(self, n_components=None):
+ 
+    def __init__(self, n_components: int | float | None = None) -> None:
         self.n_components = n_components
-
-    def fit(self, X, y=None):
+ 
+    def fit(self, X: ArrayLike, y: None = None) -> "PCA":
         """Aprende as componentes principais de X.
-
+ 
         Parameters
         ----------
         X : array-like de formato (n_amostras, n_features)
             Dados de treino.
         y : None
             Ignorado. Existe só para manter o padrão.
-
+ 
         Returns
         -------
         self : PCA
             O próprio modelo, treinado.
-
+ 
         Raises
         ------
         ValueError
@@ -107,21 +120,23 @@ class PCA(BaseEstimator, TransformerMixin):
         self.explained_variance_ = variances[:k]
         self.explained_variance_ratio_ = ratios[:k]
         return self
-
-    def transform(self, X):
-        """Pega dados de treino ou novos e escreve cada ponto nas
-        coordenadas das componentes que o fit aprendeu.
-
+ 
+    def transform(self, X: ArrayLike) -> np.ndarray:
+        """Projeta X nas componentes aprendidas no fit.
+ 
+        Recebe dados de treino ou novos e escreve cada ponto nas
+        coordenadas das componentes principais.
+ 
         Parameters
         ----------
         X : array-like de formato (n_amostras, n_features)
             Dados de treino ou novos.
-
+ 
         Returns
         -------
         Z : ndarray de formato (n_amostras, n_components_)
             Coordenadas de cada ponto nas componentes principais.
-
+ 
         Raises
         ------
         NotFittedError
@@ -132,28 +147,26 @@ class PCA(BaseEstimator, TransformerMixin):
         attributes = ["mean_", "components_", "n_features_in_"]
         check_is_fitted(self, attributes)
         X = check_array(X)
-        if X.shape[1] != self.n_features_in_:
-            raise ValueError(
-                f"X tem {X.shape[1]} features mas deveria ter {self.n_features_in_}"
-            )
+        check_n_features(X, self.n_features_in_)
         Xc = X - self.mean_
         return Xc @ self.components_.T
-
-    def inverse_transform(self, Z):
-        """Recebe as coordenadas Z e reconstrói os pontos no espaço original
+ 
+    def inverse_transform(self, Z: ArrayLike) -> np.ndarray:
+        """Reconstrói os pontos no espaço original a partir de Z.
+ 
         Com todas as componentes, a reconstrução é exata. Com menos,
         é a melhor aproximação de posto n_components_.
-
+ 
         Parameters
         ----------
         Z : array-like de formato (n_amostras, n_components_)
             Coordenadas nas componentes principais.
-
+ 
         Returns
         -------
         X : ndarray de formato (n_amostras, n_features)
             Pontos reconstruídos no espaço original.
-
+ 
         Raises
         ------
         NotFittedError
@@ -171,3 +184,4 @@ class PCA(BaseEstimator, TransformerMixin):
         Zd = Z @ self.components_
         Zdc = Zd + self.mean_
         return Zdc
+    
