@@ -21,8 +21,8 @@ class _Node:
     """
     Nó da árvore.
     
-    Um nó interno tem ´´feature´´, ´´threshold´´, ´´left´´ e ´´right´´.
-    Uma folha tem apenas ´´value´´.
+    Um nó interno tem ``feature``, ``threshold``, ``left`` e ``right``.
+    Uma folha tem apenas ``value``.
     """
     feature: int | None = None
     threshold: float | None = None
@@ -32,7 +32,7 @@ class _Node:
 
 def _node_depth(node: _Node) -> int: # função auxiliar
     """
-    Devolve a profundidade da subárvore que começa em ´´node´´.
+    Devolve a profundidade da subárvore que começa em ``node``.
     
     Parameters
     ----------
@@ -45,7 +45,7 @@ def _node_depth(node: _Node) -> int: # função auxiliar
         Número de divisões no caminho mais longo até uma folha.
         Uma folha tem profundidade 0
     """
-    if node.feature is None:
+    if node.feature is None or node.left is None or node.right is None:
         return 0
     return 1 + max(_node_depth(node.left), _node_depth(node.right))
 
@@ -86,8 +86,8 @@ class _BaseDecisionTree(BaseEstimator):
         Raises
         ------
         ValueError
-            Se ´´max_depth´´ não for None nem um inteiro >= 1,
-            ou se ´´min_samples_split´´ não for um inteiro >= 2.
+            Se ``max_depth`` não for None nem um inteiro >= 1,
+            ou se ``min_samples_split`` não for um inteiro >= 2.
         """
         if self.max_depth is not None:
             if (
@@ -158,7 +158,7 @@ class _BaseDecisionTree(BaseEstimator):
         NotFittedError
             Se o modelo ainda não foi treinado.
         ValueError
-            Se X não for 2D ou tiver número de features diferente do usado no ´´fit´´.
+            Se X não for 2D ou tiver número de features diferente do usado no ``fit``.
         """
         check_is_fitted(self, ["tree_"])
         X = check_array(X)
@@ -183,7 +183,7 @@ class _BaseDecisionTree(BaseEstimator):
         """
         Devolve a profundidade da árvore treinada.
         
-        Útil para estudar overfitting: sem ´´max_depth´´ a profundidade cresce até a árvore decorar o treino.
+        Útil para estudar overfitting: sem ``max_depth`` a profundidade cresce até a árvore decorar o treino.
         
         Returns
         -------
@@ -295,7 +295,7 @@ class _BaseDecisionTree(BaseEstimator):
         X : ndarray de shape (n_amostras, n_features)
             Features das amostras que chegam ao nó.
         y : ndarray de shape (n_amostras,)
-            Alvo preparado por ´´_prepare_y´´.
+            Alvo preparado por ``_prepare_y``.
         depth : int
             Profundidade do nó atual.
             

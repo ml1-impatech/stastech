@@ -434,7 +434,7 @@ def test_predict_validates_X(step_data):
         clf.predict(np.zeros((2, 3)))
 
 
-@pytest.mark.parametrize("max_depth", [0, -1, 1.5, "a"])
+@pytest.mark.parametrize("max_depth", [0, -1, 1.5, "a", True, False])
 def test_invalid_max_depth_raises(max_depth, step_data):
     X, y = step_data
     with pytest.raises(ValueError, match="max_depth"):
