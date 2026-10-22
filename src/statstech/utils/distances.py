@@ -39,16 +39,9 @@ def pairwise_distances(
         Se A ou B forem inválidos, se tiverem números de features
         diferentes, se a métrica não existir ou se squared=True for
         usado com outra métrica que não a euclidiana.
-
-    Examples
-    --------
-    >>> pairwise_distances([[0, 0]], [[3, 4]])
-    array([[5.]])
     """
     if metric not in _METRICS:
-        raise ValueError(
-            f"Métrica '{metric}' inválida. Opções: {list(_METRICS)}"
-        )
+        raise ValueError(f"Métrica '{metric}' inválida. Opções: {list(_METRICS)}")
     if squared and metric != "euclidean":
         raise ValueError("squared=True só vale para a métrica euclidiana.")
 

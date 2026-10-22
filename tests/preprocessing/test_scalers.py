@@ -10,8 +10,7 @@ from statstech.utils.validation import NotFittedError
 @pytest.fixture
 def X():
     rng = np.random.default_rng(0)
-    return rng.normal(loc=[5.0, -3.0, 100.0], scale=[1.0, 4.0, 30.0],
-                      size=(50, 3))
+    return rng.normal(loc=[5.0, -3.0, 100.0], scale=[1.0, 4.0, 30.0], size=(50, 3))
 
 
 # ---------------- StandardScaler ----------------
@@ -29,16 +28,12 @@ def test_standard_hand_made_example():
     scaler = StandardScaler().fit([[1.0], [2.0], [3.0]])
     np.testing.assert_allclose(scaler.mean_, [2.0])
     np.testing.assert_allclose(scaler.scale_, [np.sqrt(2 / 3)])
-    np.testing.assert_allclose(
-        scaler.transform([[2.0]]), [[0.0]], atol=1e-12
-    )
+    np.testing.assert_allclose(scaler.transform([[2.0]]), [[0.0]], atol=1e-12)
 
 
 def test_standard_inverse_transform(X):
     scaler = StandardScaler().fit(X)
-    np.testing.assert_allclose(
-        scaler.inverse_transform(scaler.transform(X)), X
-    )
+    np.testing.assert_allclose(scaler.inverse_transform(scaler.transform(X)), X)
 
 
 def test_standard_uses_training_statistics_on_test():
@@ -110,9 +105,7 @@ def test_minmax_hand_made_example():
     scaler = MinMaxScaler().fit([[0.0], [5.0], [10.0]])
     np.testing.assert_allclose(scaler.data_min_, [0.0])
     np.testing.assert_allclose(scaler.data_max_, [10.0])
-    np.testing.assert_allclose(
-        scaler.transform([[2.5]]), [[0.25]]
-    )
+    np.testing.assert_allclose(scaler.transform([[2.5]]), [[0.25]])
 
 
 def test_minmax_custom_feature_range():
@@ -123,16 +116,12 @@ def test_minmax_custom_feature_range():
 
 def test_minmax_inverse_transform(X):
     scaler = MinMaxScaler(feature_range=(2, 5)).fit(X)
-    np.testing.assert_allclose(
-        scaler.inverse_transform(scaler.transform(X)), X
-    )
+    np.testing.assert_allclose(scaler.inverse_transform(scaler.transform(X)), X)
 
 
 def test_minmax_test_outside_training_range_is_not_clipped():
     scaler = MinMaxScaler().fit([[0.0], [10.0]])
-    np.testing.assert_allclose(
-        scaler.transform([[20.0], [-10.0]]), [[2.0], [-1.0]]
-    )
+    np.testing.assert_allclose(scaler.transform([[20.0], [-10.0]]), [[2.0], [-1.0]])
 
 
 def test_minmax_constant_column_does_not_give_nan():

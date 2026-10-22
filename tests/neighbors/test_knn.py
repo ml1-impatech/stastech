@@ -129,11 +129,19 @@ def test_x_and_y_with_different_sizes():
         KNeighborsClassifier().fit(np.zeros((4, 2)), np.zeros(3))
 
 
-@pytest.mark.parametrize("k", [0, -1, 2.5, "3", None, True])
-def test_invalid_n_neighbors(k):
+@pytest.mark.parametrize("k", [0, -1])
+def test_n_neighbors_less_than_1(k):
     X = np.zeros((5, 2))
     y = np.array([0, 1, 0, 1, 0])
     with pytest.raises(ValueError, match="n_neighbors"):
+        KNeighborsClassifier(n_neighbors=k).fit(X, y)
+
+
+@pytest.mark.parametrize("k", [2.5, "3", None, True])
+def test_n_neighbors_not_an_integer(k):
+    X = np.zeros((5, 2))
+    y = np.array([0, 1, 0, 1, 0])
+    with pytest.raises(TypeError, match="n_neighbors"):
         KNeighborsClassifier(n_neighbors=k).fit(X, y)
 
 
@@ -147,7 +155,7 @@ def test_n_neighbors_greater_than_n_samples():
 def test_different_number_of_features_in_predict(blobs):
     X, y = blobs
     model = KNeighborsClassifier().fit(X, y)
-    with pytest.raises(ValueError, match="mesmo número de features"):
+    with pytest.raises(ValueError, match="treinado com"):
         model.predict(np.zeros((2, 5)))
 
 
@@ -195,9 +203,7 @@ def test_regressor_perfect_r2_score_with_k1():
 
 def test_regressor_text_y_raises_error():
     with pytest.raises(ValueError, match="numérico"):
-        KNeighborsRegressor(n_neighbors=1).fit(
-            np.zeros((2, 1)), np.array(["a", "b"])
-        )
+        KNeighborsRegressor(n_neighbors=1).fit(np.zeros((2, 1)), np.array(["a", "b"]))
 
 
 def test_regressor_before_fit():

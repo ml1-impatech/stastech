@@ -29,9 +29,7 @@ def test_matches_double_loop_computation():
     rng = np.random.default_rng(0)
     A = rng.normal(size=(5, 3))
     B = rng.normal(size=(7, 3))
-    expected = np.array(
-        [[np.sqrt(np.sum((a - b) ** 2)) for b in B] for a in A]
-    )
+    expected = np.array([[np.sqrt(np.sum((a - b) ** 2)) for b in B] for a in A])
     np.testing.assert_allclose(pairwise_distances(A, B), expected)
 
 
@@ -68,9 +66,7 @@ def test_invalid_metric():
 
 def test_squared_with_manhattan_raises_error():
     with pytest.raises(ValueError, match="squared"):
-        pairwise_distances(
-            [[0.0]], [[1.0]], metric="manhattan", squared=True
-        )
+        pairwise_distances([[0.0]], [[1.0]], metric="manhattan", squared=True)
 
 
 def test_1d_input_raises_error():

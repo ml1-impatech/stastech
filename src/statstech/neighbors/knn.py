@@ -10,6 +10,7 @@ from statstech.utils.distances import pairwise_distances
 from statstech.utils.validation import (
     check_array,
     check_is_fitted,
+    check_n_features,
     check_X_y,
 )
 
@@ -33,7 +34,7 @@ class _BaseKNN(BaseEstimator):
 
         k = self.n_neighbors
         if isinstance(k, bool) or not isinstance(k, (int, np.integer)):
-            raise ValueError("n_neighbors deve ser um número inteiro.")
+            raise TypeError("n_neighbors deve ser um número inteiro.")
         if k < 1:
             raise ValueError("n_neighbors deve ser pelo menos 1.")
         if k > X.shape[0]:
@@ -59,11 +60,7 @@ class _BaseKNN(BaseEstimator):
         check_is_fitted(self, ["X_train_", "y_train_"])
         X = check_array(X)
 
-        if X.shape[1] != self.X_train_.shape[1]:
-            raise ValueError(
-                "X deve ter o mesmo número de features usado no "
-                f"treino ({self.X_train_.shape[1]}), mas tem {X.shape[1]}."
-            )
+        check_n_features(X, self.X_train_.shape[1])
 
         distances = pairwise_distances(X, self.X_train_)
         order = np.argsort(distances, axis=1, kind="stable")
@@ -91,17 +88,6 @@ class KNeighborsClassifier(_BaseKNN, ClassifierMixin):
         Cópia dos dados de treino.
     y_train_ : ndarray de formato (n_amostras,)
         Cópia dos rótulos de treino.
-
-    References
-    ----------
-    James et al., An Introduction to Statistical Learning, 2.2.3.
-
-    Examples
-    --------
-    >>> X = [[0.0], [1.0], [10.0], [11.0]]
-    >>> y = ["a", "a", "b", "b"]
-    >>> KNeighborsClassifier(n_neighbors=1).fit(X, y).predict([[9.0]])
-    array(['b'], dtype='<U1')
     """
 
     def fit(self, X: ArrayLike, y: ArrayLike) -> Self:
@@ -121,9 +107,11 @@ class KNeighborsClassifier(_BaseKNN, ClassifierMixin):
 
         Raises
         ------
+        TypeError
+            Se n_neighbors não for um número inteiro.
         ValueError
-            Se X ou y forem inválidos, se n_neighbors não for um inteiro
-            positivo ou se for maior que o número de amostras.
+            Se X ou y forem inválidos, se n_neighbors for menor que 1 ou
+            se for maior que o número de amostras.
         """
         self._fit_base(X, y)
         self.classes_ = np.unique(self.y_train_)
@@ -207,17 +195,6 @@ class KNeighborsRegressor(_BaseKNN, RegressorMixin):
         Cópia dos dados de treino.
     y_train_ : ndarray de formato (n_amostras,)
         Cópia do alvo de treino.
-
-    References
-    ----------
-    James et al., An Introduction to Statistical Learning, 3.5.
-
-    Examples
-    --------
-    >>> X = [[0.0], [1.0], [2.0]]
-    >>> y = [0.0, 10.0, 20.0]
-    >>> KNeighborsRegressor(n_neighbors=2).fit(X, y).predict([[0.4]])
-    array([5.])
     """
 
     def fit(self, X: ArrayLike, y: ArrayLike) -> Self:
@@ -237,10 +214,12 @@ class KNeighborsRegressor(_BaseKNN, RegressorMixin):
 
         Raises
         ------
+        TypeError
+            Se n_neighbors não for um número inteiro.
         ValueError
             Se X ou y forem inválidos, se y não for numérico, se
-            n_neighbors não for um inteiro positivo ou se for maior que
-            o número de amostras.
+            n_neighbors for menor que 1 ou se for maior que o número de
+            amostras.
         """
         self._fit_base(X, y)
         if not np.issubdtype(self.y_train_.dtype, np.number):

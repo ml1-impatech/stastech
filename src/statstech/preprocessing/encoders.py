@@ -5,8 +5,12 @@ from typing import Self
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
 
-from statstech.base import BaseEstimator
-from statstech.utils.validation import check_array, check_is_fitted
+from statstech.base import BaseEstimator, TransformerMixin
+from statstech.utils.validation import (
+    check_array,
+    check_is_fitted,
+    check_n_features,
+)
 
 
 class LabelEncoder(BaseEstimator):
@@ -20,12 +24,6 @@ class LabelEncoder(BaseEstimator):
     classes_ : ndarray de formato (n_classes,)
         Rótulos únicos, em ordem crescente. A posição do rótulo em
         classes_ é o seu código.
-
-    Examples
-    --------
-    >>> enc = LabelEncoder().fit(["gato", "cão", "gato"])
-    >>> enc.transform(["cão", "gato"])
-    array([0, 1])
     """
 
     def __init__(self) -> None:
@@ -36,9 +34,7 @@ class LabelEncoder(BaseEstimator):
         """Converte para array e exige 1D não vazio."""
         y = np.asarray(y)
         if y.ndim != 1:
-            raise ValueError(
-                f"y deve ser 1D, mas tem {y.ndim} dimensões."
-            )
+            raise ValueError(f"y deve ser 1D, mas tem {y.ndim} dimensões.")
         if y.shape[0] == 0:
             raise ValueError("y está vazio.")
         return y
@@ -91,8 +87,7 @@ class LabelEncoder(BaseEstimator):
         unknown = ~np.isin(y, self.classes_)
         if unknown.any():
             raise ValueError(
-                "y contém rótulos não vistos no fit: "
-                f"{np.unique(y[unknown]).tolist()}"
+                f"y contém rótulos não vistos no fit: {np.unique(y[unknown]).tolist()}"
             )
         return np.searchsorted(self.classes_, y)
 
@@ -143,13 +138,11 @@ class LabelEncoder(BaseEstimator):
         if not np.issubdtype(codes.dtype, np.integer):
             raise ValueError("Os códigos devem ser números inteiros.")
         if codes.min() < 0 or codes.max() >= len(self.classes_):
-            raise ValueError(
-                f"Códigos devem estar entre 0 e {len(self.classes_) - 1}."
-            )
+            raise ValueError(f"Códigos devem estar entre 0 e {len(self.classes_) - 1}.")
         return self.classes_[codes]
 
 
-class OneHotEncoder(BaseEstimator):
+class OneHotEncoder(BaseEstimator, TransformerMixin):
     """Transforma colunas categóricas em colunas 0/1 (uma por categoria).
 
     Uma coluna com valores {A, B, C} vira três colunas: "é A?", "é B?"
@@ -182,18 +175,9 @@ class OneHotEncoder(BaseEstimator):
     -----
     O X de entrada deve ter um único tipo (tudo texto ou tudo
     número): converta antes se houver mistura.
-
-    Examples
-    --------
-    >>> enc = OneHotEncoder().fit([["a"], ["b"]])
-    >>> enc.transform([["b"], ["a"]])
-    array([[0., 1.],
-           [1., 0.]])
     """
 
-    def __init__(
-        self, handle_unknown: str = "error", drop: str | None = None
-    ) -> None:
+    def __init__(self, handle_unknown: str = "error", drop: str | None = None) -> None:
         """Guarda os hiperparâmetros."""
         self.handle_unknown = handle_unknown
         self.drop = drop
@@ -201,9 +185,7 @@ class OneHotEncoder(BaseEstimator):
     def _check_params(self) -> None:
         """Valida os hiperparâmetros."""
         if self.handle_unknown not in ("error", "ignore"):
-            raise ValueError(
-                "handle_unknown deve ser 'error' ou 'ignore'."
-            )
+            raise ValueError("handle_unknown deve ser 'error' ou 'ignore'.")
         if self.drop not in (None, "first"):
             raise ValueError("drop deve ser None ou 'first'.")
 
@@ -234,9 +216,7 @@ class OneHotEncoder(BaseEstimator):
         self.n_features_in_ = X.shape[1]
 
         n_drop = 1 if self.drop == "first" else 0
-        self.n_features_out_ = sum(
-            len(cats) - n_drop for cats in self.categories_
-        )
+        self.n_features_out_ = sum(len(cats) - n_drop for cats in self.categories_)
         return self
 
     def transform(self, X: ArrayLike) -> NDArray[np.float64]:
@@ -264,11 +244,7 @@ class OneHotEncoder(BaseEstimator):
         self._check_params()
         X = check_array(X, ensure_numeric=False)
 
-        if X.shape[1] != self.n_features_in_:
-            raise ValueError(
-                f"X tem {X.shape[1]} features, mas o codificador foi "
-                f"ajustado com {self.n_features_in_}."
-            )
+        check_n_features(X, self.n_features_in_)
 
         blocks = []
         for j, cats in enumerate(self.categories_):
@@ -289,27 +265,3 @@ class OneHotEncoder(BaseEstimator):
             blocks.append(block)
 
         return np.hstack(blocks)
-
-    def fit_transform(
-        self, X: ArrayLike, y: None = None
-    ) -> NDArray[np.float64]:
-        """Faz fit e transform de uma vez.
-
-        Parameters
-        ----------
-        X : array-like de formato (n_amostras, n_features)
-            Dados categóricos.
-        y : None
-            Ignorado.
-
-        Returns
-        -------
-        X_new : ndarray de formato (n_amostras, n_features_out_)
-            Matriz de 0 e 1.
-
-        Raises
-        ------
-        ValueError
-            Se X for inválido ou os hiperparâmetros forem inválidos.
-        """
-        return self.fit(X).transform(X)
