@@ -49,3 +49,9 @@ código em cada modelo e mantém cada módulo com uma responsabilidade.
 
 - Instalável por `pip install git+https://github.com/ml1-impatech/statstech.git`.
 
+## 7. Análise discriminante (LDA e QDA)
+
+- **Regularização:** `LDA` e `QDA` utilizam `reg_param=1e-6` como valor padrão.
+- **Validação de `reg_param`:** ambos os classificadores rejeitam valores negativos, não finitos e booleanos.
+- **Priors personalizadas:** `QDA` aceita o parâmetro `priors`, assim como `LDA`. Quando `priors=None`, as probabilidades a priori são estimadas pelas frequências das classes no conjunto de treinamento. 
+
