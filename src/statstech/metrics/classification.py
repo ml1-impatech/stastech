@@ -264,6 +264,8 @@ def precision_score(c_matrix: list[list[int]], class_k: int | None = None) -> fl
     ------
     ValueError
         Se tp+fp for igual a zero, tornando a métrica indefinida.
+        Se class_k for None e existir ValueError para toda classe em c_matrix, causando 
+        métrica indefinida para toda iteração do "for".
     """
     if class_k == None:
         return macro_precision(c_matrix)
@@ -299,6 +301,8 @@ def recall_score(c_matrix: list[list[int]], class_k: int | None = None) -> float
     ------
     ValueError
         Se tp+fn for igual a zero, tornando a métrica indefinida.
+        Se class_k for None e existir ValueError para toda classe em c_matrix, causando 
+        métrica indefinida para toda iteração do "for".
     """
     if class_k == None:
         return macro_recall(c_matrix)
@@ -334,6 +338,8 @@ def specificity_score(c_matrix: list[list[int]], class_k: int | None = None) -> 
     ------
     ValueError
         Se tn+fp for igual a zero, tornando a métrica indefinida.
+        Se class_k for None e existir ValueError para toda classe em c_matrix, causando 
+        métrica indefinida para toda iteração do "for".
     """
     if class_k == None:
         return macro_specificity(c_matrix)    
@@ -369,6 +375,8 @@ def f1_score(c_matrix: list[list[int]], class_k: int | None = None) -> float:
     ------
     ValueError
         Se o denominador do f1 for igual a zero, tornando a métrica indefinida.
+        Se class_k for None e existir ValueError para toda classe em c_matrix, causando 
+        métrica indefinida para toda iteração do "for".
     """
     if class_k == None:
         return macro_f1(c_matrix)
