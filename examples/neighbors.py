@@ -8,10 +8,16 @@ from statstech.utils.distances import pairwise_distances
 
 # ---- Classificação ----
 # Dois grupos de pontos: perto de (0, 0) e perto de (5, 5).
-X = np.array([
-    [0.0, 0.0], [0.5, 0.2], [0.1, 0.8],
-    [5.0, 5.0], [5.5, 4.8], [4.7, 5.3],
-])
+X = np.array(
+    [
+        [0.0, 0.0],
+        [0.5, 0.2],
+        [0.1, 0.8],
+        [5.0, 5.0],
+        [5.5, 4.8],
+        [4.7, 5.3],
+    ]
+)
 y = np.array([0, 0, 0, 1, 1, 1])
 
 # O KNN usa distâncias, então padronizamos antes.
