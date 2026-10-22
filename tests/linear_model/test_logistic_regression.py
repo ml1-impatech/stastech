@@ -318,6 +318,11 @@ def test_fit_intercept_false():
 
     assert predictions.shape == y.shape
     assert np.any(model.coef_ != 0)
+    assert hasattr(model, "intercept_")
+    np.testing.assert_array_equal(
+        model.intercept_,
+        np.zeros(len(model.classes_)),
+    )
 
 
 def test_regularization_l2():
@@ -334,8 +339,8 @@ def test_regularization_l2():
     ])
     y = np.array([0, 0, 0, 1, 1, 1, 2, 2, 2])
 
-    model_without_l2 = LogisticRegression(max_iter=1000, lambda_=0)
-    model_with_l2 = LogisticRegression(max_iter=1000, lambda_=1)
+    model_without_l2 = LogisticRegression(max_iter=1000, alpha=0)
+    model_with_l2 = LogisticRegression(max_iter=1000, alpha=1)
 
     model_without_l2.fit(X, y)
     model_with_l2.fit(X, y)
@@ -391,11 +396,11 @@ def test_fit_intercept_invalid():
 
 
 def test_lambda_invalid():
-    model = LogisticRegression(lambda_=-1)
+    model = LogisticRegression(alpha=-1)
 
     with pytest.raises(
         ValueError,
-        match="lambda_ deve ser não negativo e finito"
+        match="alpha deve ser não negativo e finito"
     ):
         model.fit(np.array([[1], [2]]), np.array([0, 1]))
 
@@ -612,10 +617,10 @@ def test_tol_invalid_type():
 
 
 def test_lambda_invalid_type():
-    model = LogisticRegression(lambda_="abc")
+    model = LogisticRegression(alpha="abc")
 
     with pytest.raises(
         ValueError,
-        match="lambda_ deve ser não negativo e finito",
+        match="alpha deve ser não negativo e finito",
     ):
         model.fit(np.array([[1], [2]]), np.array([0, 1]))
