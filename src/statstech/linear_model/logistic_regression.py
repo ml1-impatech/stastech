@@ -1,3 +1,5 @@
+"""Implementação do classificador de regressão logística."""
+
 import numpy as np
 
 from statstech.base import BaseEstimator, ClassifierMixin
@@ -51,29 +53,16 @@ class LogisticRegression(BaseEstimator, ClassifierMixin):
         fit_intercept=True,
         alpha=0.01,
     ):
-        """Inicializa o classificador.
-
-        Parameters
-        ----------
-        learning_rate : float
-            Taxa de aprendizado, estritamente positiva e finita.
-        max_iter : int
-            Número máximo de iterações, inteiro positivo.
-        tol : float
-            Tolerância de convergência, finita e não negativa.
-        fit_intercept : bool
-            Indica se o modelo deve ajustar o intercepto.
-        alpha : float
-            Intensidade da regularização L2, finita e não negativa.
-        """
+        """Guarda os hiperparâmetros."""
         self.learning_rate = learning_rate
         self.max_iter = max_iter
         self.tol = tol
         self.fit_intercept = fit_intercept
         self.alpha = alpha
 
-    def _check_params(self):
+    def _check_params(self) -> None:
         """Valida os hiperparâmetros do classificador.
+
         Raises
         ------
         ValueError
@@ -115,7 +104,13 @@ class LogisticRegression(BaseEstimator, ClassifierMixin):
         ):
             raise ValueError("alpha deve ser não negativo e finito.")
 
-    def _loss_and_gradient(self, X, Y, coef, intercept):
+    def _loss_and_gradient(
+        self,
+        X: np.ndarray,
+        Y: np.ndarray,
+        coef: np.ndarray,
+        intercept: np.ndarray | None,
+    ) -> tuple[float, np.ndarray, np.ndarray | None]:
         """Calcula a função de perda e seus gradientes.
 
         Parameters
@@ -180,13 +175,18 @@ class LogisticRegression(BaseEstimator, ClassifierMixin):
 
         return loss, gradient, intercept_gradient
 
-    def fit(self, X, y):
+    def fit(
+        self,
+        X: np.ndarray,
+        y: np.ndarray,
+    ) -> "LogisticRegression":
         """Ajusta o modelo aos dados de treinamento.
 
         Parameters
         ----------
-        X : ndarray
-            Matriz bidimensional de características.
+        X : ndarray of shape (n_samples, n_features)
+            Matriz de características, com uma linha por amostra
+            e uma coluna por característica.
         y : ndarray
             Vetor unidimensional com os rótulos das classes.
 
@@ -257,13 +257,14 @@ class LogisticRegression(BaseEstimator, ClassifierMixin):
 
         return self
 
-    def predict_proba(self, X):
+    def predict_proba(self, X: np.ndarray) -> np.ndarray:
         """Calcula as probabilidades previstas para cada classe.
 
         Parameters
         ----------
-        X : ndarray
-            Matriz bidimensional de características.
+        X : ndarray of shape (n_samples, n_features)
+            Matriz de características, com uma linha por amostra
+            e uma coluna por característica.
 
         Returns
         -------
@@ -285,7 +286,7 @@ class LogisticRegression(BaseEstimator, ClassifierMixin):
             raise ValueError(
                 "X deve ter o mesmo número de características usado no fit."
             )
-       
+
         z = X @ self.coef_ + self.intercept_
         # evita que a exponencial exploda
         z = z - np.max(z, axis=1, keepdims=True)
@@ -295,13 +296,14 @@ class LogisticRegression(BaseEstimator, ClassifierMixin):
 
         return prob
 
-    def predict(self, X):
+    def predict(self, X: np.ndarray) -> np.ndarray:
         """Prevê a classe de cada observação.
 
         Parameters
         ----------
-        X : ndarray
-            Matriz bidimensional de características.
+        X : ndarray of shape (n_samples, n_features)
+            Matriz bidimensional de características, com uma linha por amostra
+            e uma coluna por característica.
 
         Returns
         -------
