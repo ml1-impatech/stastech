@@ -13,7 +13,6 @@ from statstech.utils.validation import check_array, check_is_fitted, check_X_y
 
 _T = TypeVar("_T", bound="_BaseDecisionTree")
 
-# Impureza abaixo disso conta como nó puro (evita erro de arredondamento).
 _PURE_TOL = 1e-12
 
 
@@ -30,10 +29,10 @@ class _Node:
     threshold: float | None = None
     left: "_Node | None" = None
     right: "_Node | None" = None
-    value: float | None = None  # só nas folhas
+    value: float | None = None
 
 
-def _node_depth(node: _Node) -> int:  # função auxiliar
+def _node_depth(node: _Node) -> int:
     """
     Devolve a profundidade da subárvore que começa em ``node``.
 
@@ -64,7 +63,8 @@ class _BaseDecisionTree(BaseEstimator):
     ----------
     max_depth : int ou None, default=None
         Profundidade máxima da árvore.
-        Se None, a árvore cresce até todos os nós ficarem puros ou pequenos demais para dividir.
+        Se None, a árvore cresce até todos os nós ficarem puros ou pequenos
+        demais para dividir.
     min_samples_split : int, default=2
         Número mínimo de amostras para tentar dividir um nó.
 
@@ -81,10 +81,6 @@ class _BaseDecisionTree(BaseEstimator):
     ) -> None:
         self.max_depth = max_depth
         self.min_samples_split = min_samples_split
-
-    # ------------------------------------------------------------------
-    # Validação
-    # ------------------------------------------------------------------
 
     def _check_params(self) -> None:
         """
@@ -108,10 +104,6 @@ class _BaseDecisionTree(BaseEstimator):
             or self.min_samples_split < 2
         ):
             raise ValueError("min_samples_split deve ser inteiro >= 2.")
-
-    # ------------------------------------------------------------------
-    # API pública
-    # ------------------------------------------------------------------
 
     def fit(self: _T, X: ArrayLike, y: ArrayLike) -> _T:
         """
@@ -170,17 +162,17 @@ class _BaseDecisionTree(BaseEstimator):
         X = check_array(X)
         if X.shape[1] != self.n_features_in_:
             raise ValueError(
-                f"X tem {X.shape[1]} features, mas o modelo foi treinado com {self.n_features_in_}."
+                f"X tem {X.shape[1]} features, mas o modelo "
+                f"foi treinado com {self.n_features_in_}."
             )
 
         values = []
-        for x in X:  # desce pela árvore, x é linha da matriz
+        for x in X:
             node = self.tree_
-            while node.feature is not None:  # enquanto nó não é folha
-                if x[node.feature] <= node.threshold:
-                    node = node.left
-                else:
-                    node = node.right
+            while node.feature is not None:
+                assert node.left is not None and node.right is not None
+                go_left = x[node.feature] <= node.threshold
+                node = node.left if go_left else node.right
             values.append(node.value)
 
         return self._decode_predictions(np.array(values))
@@ -189,7 +181,8 @@ class _BaseDecisionTree(BaseEstimator):
         """
         Devolve a profundidade da árvore treinada.
 
-        Útil para estudar overfitting: sem ``max_depth`` a profundidade cresce até a árvore decorar o treino.
+        Útil para estudar overfitting: sem ``max_depth`` a profundidade cresce
+        até a árvore decorar o treino.
 
         Returns
         -------
@@ -204,10 +197,6 @@ class _BaseDecisionTree(BaseEstimator):
         """
         check_is_fitted(self, ["tree_"])
         return _node_depth(self.tree_)
-
-    # ------------------------------------------------------------------
-    # Construção da árvore
-    # ------------------------------------------------------------------
 
     def _is_leaf(self, y: NDArray[Any], depth: int) -> bool:
         """
@@ -231,7 +220,7 @@ class _BaseDecisionTree(BaseEstimator):
         if len(y) < self.min_samples_split:
             return True
 
-        if self._impurity(y) <= _PURE_TOL:  # nó puro
+        if self._impurity(y) <= _PURE_TOL:
             return True
 
         return False
@@ -256,12 +245,15 @@ class _BaseDecisionTree(BaseEstimator):
         Returns
         -------
         feature : int ou None
-            Índice da melhor feature. None se nenhum corte separa as amostras (linhas idênticas).
+            Índice da melhor feature. None se nenhum corte separa
+            as amostras (linhas idênticas).
         threshold : float ou None
-            Limiar da melhor divisão (ponto médio entre dois valores consecutivos distintos).
+            Limiar da melhor divisão (ponto médio entre dois valores
+            consecutivos distintos).
         """
+
         n_samples, n_features = X.shape
-        n_left = np.arange(1, n_samples)  # tamanho do lado esquerdo
+        n_left = np.arange(1, n_samples)
         n_right = n_samples - n_left
 
         best_feature, best_threshold = None, None
@@ -273,9 +265,6 @@ class _BaseDecisionTree(BaseEstimator):
             y_sorted = y[order]
 
             midpoints = (x_sorted[:-1] + x_sorted[1:]) / 2
-            # Só vale cortar entre valores distintos.
-            # A segunda condição protege contra o ponto médio coincidir com o vizinho por
-            # arredondamento (o lado direito ficaria vazio).
             valid = midpoints < x_sorted[1:]
             if not valid.any():
                 continue
@@ -286,7 +275,7 @@ class _BaseDecisionTree(BaseEstimator):
             scores = (n_left * imp_left + n_right * imp_right) / n_samples
             scores = np.where(valid, scores, np.inf)
 
-            k = int(np.argmin(scores))  # empate: primeiro corte
+            k = int(np.argmin(scores))
             if scores[k] < best_score:
                 best_score = scores[k]
                 best_feature = j
@@ -319,7 +308,7 @@ class _BaseDecisionTree(BaseEstimator):
             return _Node(value=self._leaf_value(y))
 
         feature, threshold = self._best_split(X, y)
-        if feature is None:  # linhas idênticas
+        if feature is None or threshold is None:
             return _Node(value=self._leaf_value(y))
 
         mask = X[:, feature] <= threshold
@@ -330,9 +319,6 @@ class _BaseDecisionTree(BaseEstimator):
             right=self._build(X[~mask], y[~mask], depth + 1),
         )
 
-    # ------------------------------------------------------------------
-    # Funções que cada subclasse deve definir:
-    # ------------------------------------------------------------------    def _prepare_y(self, y):
     def _prepare_y(self, y_ou_values: NDArray[Any]) -> NDArray[Any]:
         raise NotImplementedError
 

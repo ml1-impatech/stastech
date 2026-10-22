@@ -6,6 +6,7 @@ O gráfico só aparece se o matplotlib estiver instalado.
 """
 
 import numpy as np
+
 from statstech.metrics.regression import mean_squared_error
 from statstech.model_selection.search import GridSearchCV
 from statstech.model_selection.split import train_test_split
