@@ -1,9 +1,14 @@
-import numpy as np
-import itertools
-from base import BaseEstimator
-from statstech.utils.validation import (check_array, check_is_fitted)
+"Transforma características das variáveis em polinomiais"
 
-class PolinomialFeatures(BaseEstimator):
+import itertools
+
+import numpy as np
+
+from statstech.base import BaseEstimator
+from statstech.utils.validation import check_array, check_is_fitted, check_n_features
+
+
+class PolynomialFeatures(BaseEstimator):
     """
     Transforma as variáveis de entrada em características polinomiais.
 
@@ -12,51 +17,66 @@ class PolinomialFeatures(BaseEstimator):
 
     Parameters
     ----------
-    degree : int, default = 2
+    degree: int, default=2
         Grau máximo do polinômio gerado
 
-    include_bias : bool, default = False
-        Quando verdadeiro, adiciona a coluna do intercepto 
-        prenchida com uns na matriz.
+    include_bias: bool, default=False
+        Se True, adiciona a coluna do intercepto
+        preenchida com uns na matriz.
     """
 
-    def __init__(self,
-                 degree : int = 2,
-                 include_bias : bool = False) -> None:
-        
+    def __init__(self, degree: int = 2, include_bias: bool = False) -> None:
+
         self.degree = degree
         self.include_bias = include_bias
 
-        if not isinstance(self.degree, (int, np.integer)) or self.degree < 1:
+    def check_params(self):
+        """
+        Valida os hiperparâmetros do modelo.
+
+        Raises
+        ------
+        ValueError
+            Se degree não for um valor inteiro positivo.
+            Se include_bias não for booleano.
+        """
+
+        if (
+            not isinstance(self.degree, (int, np.integer))
+            or isinstance(self.degree, (bool, np.bool_))
+            or self.degree < 1
+        ):
             raise ValueError("degree deve ser um valor inteiro positivo")
 
-        if not isinstance(self.fit_intercept, (bool, np.bool)):
-            raise ValueError("fit_intercept deve ser booleano")
-        
-    def fit(self, X : np.ndarray, y : np.ndarray | None = None) -> "PolinomialFeatures":
+        if not isinstance(self.include_bias, (bool, np.bool_)):
+            raise ValueError("include_bias deve ser booleano")
+
+    def fit(self, X: np.ndarray, y: np.ndarray | None = None) -> "PolynomialFeatures":
         """
-        Calcula as combinações de características polinomiais 
+        Calcula as combinações de características polinomiais
         com base nos dados de treino.
 
         Parameters
         -----------
-        X : array-like, shape (n_samples, n_features)
-            Dados de treinamentos utilizados para realizar o cálculo das combinações.
+        X: array-like de formato (n_samples, n_features)
+            Dados de treinamento utilizados para realizar o cálculo das combinações.
 
-        y : array-like, shape (n_samples,)
+        y: array-like de formato (n_samples,)
             Não utilizado. Mantido por padrão de interface.
 
         Returns
         -------
-        self : object
+        self: object
             Retorna a instância do próprio estimador.
 
         Raises
         ------
         ValueError
-            Se X não for uma matriz 2D
+            Se X não for uma matriz bidimensional
             Se X estiver vazio
         """
+
+        self.check_params()
 
         X = check_array(X)
 
@@ -64,61 +84,62 @@ class PolinomialFeatures(BaseEstimator):
 
         self.combinations_ = []
         for d in range(1, self.degree + 1):
-            for i in itertools.combinations_with_replacement(range(self.n_features_in_), d):
+            for i in itertools.combinations_with_replacement(
+                range(self.n_features_in_), d
+            ):
                 self.combinations_.append(i)
 
         n_out = len(self.combinations_)
 
-        if self.include_bias is True:
+        if self.include_bias:
             n_out += 1
 
         self.n_output_features_ = n_out
 
         return self
 
-
-    def transform(self, X : np.ndarray) -> np.ndarray:
+    def transform(self, X: np.ndarray) -> np.ndarray:
         """
         Gera a matriz de características polinomiais a partir de X.
 
         Parameters
         ----------
-        X : array-like, shape (n_samples, n_features)
+        X : array-like de formato (n_samples, n_features)
             Matriz com os dados que serão transformados.
 
-        Returns 
+        Returns
         -------
-        X_poly : ndarray, shape (n_samples, n_output_features_)
+        X_poly : ndarray de formato (n_samples, n_output_features_)
             Matriz com as características polinomiais.
 
         Raises
         ------
         ValueError
-            Se X não for uma matriz 2D.
+            Se X não for uma matriz bidimensional.
             Se o modelo não tiver sido treinado.
             Se o número de features de X for diferente.
         """
-        check_is_fitted(self, ["combinations_", "n_features_in", "n_output_features_"])
+        check_is_fitted(self, ["combinations_", "n_features_in_", "n_output_features_"])
+
         X = check_array(X)
 
-        if X.shape[1] != self.n_features_in_:
-            raise ValueError("X deve possuir o mesmo número de variáveis que em fit")
+        check_n_features(X, self.n_features_in_)
 
         n_samples = X.shape[0]
         columns = []
 
-        if self.include_bias is True:
+        if self.include_bias:
             columns.append(np.ones(n_samples))
 
         for i in self.combinations_:
-            column = np.prod(X[:, i], axis = 1)
+            column = np.prod(X[:, i], axis=1)
             columns.append(column)
 
         X_poly = np.column_stack(columns)
 
         return X_poly
 
-    def fit_transform(self, X : np.ndarray, y : np.ndarray | None = None) -> np.ndarray:
+    def fit_transform(self, X: np.ndarray, y: np.ndarray | None = None) -> np.ndarray:
         """
         Ajusta o estimador e realiza a transformação da matriz de entrada.
 
