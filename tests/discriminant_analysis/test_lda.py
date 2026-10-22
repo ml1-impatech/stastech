@@ -10,14 +10,16 @@ from statstech.utils.validation import NotFittedError
 
 
 def test_fit_multiclasse():
-    X = np.array([
-        [1.0, 2.0],
-        [2.0, 1.0],
-        [4.0, 5.0],
-        [5.0, 4.0],
-        [8.0, 9.0],
-        [9.0, 8.0],
-    ])
+    X = np.array(
+        [
+            [1.0, 2.0],
+            [2.0, 1.0],
+            [4.0, 5.0],
+            [5.0, 4.0],
+            [8.0, 9.0],
+            [9.0, 8.0],
+        ]
+    )
 
     y = np.array([0, 0, 1, 1, 2, 2])
 
@@ -31,14 +33,16 @@ def test_fit_multiclasse():
 
 
 def test_predict_proba_interval():
-    X = np.array([
-        [1.0, 2.0],
-        [2.0, 1.0],
-        [4.0, 5.0],
-        [5.0, 4.0],
-        [8.0, 9.0],
-        [9.0, 8.0],
-    ])
+    X = np.array(
+        [
+            [1.0, 2.0],
+            [2.0, 1.0],
+            [4.0, 5.0],
+            [5.0, 4.0],
+            [8.0, 9.0],
+            [9.0, 8.0],
+        ]
+    )
 
     y = np.array([0, 0, 1, 1, 2, 2])
 
@@ -52,14 +56,16 @@ def test_predict_proba_interval():
 
 
 def test_predict_proba_sum_one():
-    X = np.array([
-        [1.0, 2.0],
-        [2.0, 1.0],
-        [4.0, 5.0],
-        [5.0, 4.0],
-        [8.0, 9.0],
-        [9.0, 8.0],
-    ])
+    X = np.array(
+        [
+            [1.0, 2.0],
+            [2.0, 1.0],
+            [4.0, 5.0],
+            [5.0, 4.0],
+            [8.0, 9.0],
+            [9.0, 8.0],
+        ]
+    )
 
     y = np.array([0, 0, 1, 1, 2, 2])
 
@@ -78,14 +84,16 @@ def test_predict_proba_sum_one():
 
 
 def test_predict_proba_format():
-    X = np.array([
-        [1.0, 2.0],
-        [2.0, 1.0],
-        [4.0, 5.0],
-        [5.0, 4.0],
-        [8.0, 9.0],
-        [9.0, 8.0],
-    ])
+    X = np.array(
+        [
+            [1.0, 2.0],
+            [2.0, 1.0],
+            [4.0, 5.0],
+            [5.0, 4.0],
+            [8.0, 9.0],
+            [9.0, 8.0],
+        ]
+    )
 
     y = np.array([0, 0, 1, 1, 2, 2])
 
@@ -98,14 +106,16 @@ def test_predict_proba_format():
 
 
 def test_predict_format():
-    X = np.array([
-        [1.0, 2.0],
-        [2.0, 1.0],
-        [4.0, 5.0],
-        [5.0, 4.0],
-        [8.0, 9.0],
-        [9.0, 8.0],
-    ])
+    X = np.array(
+        [
+            [1.0, 2.0],
+            [2.0, 1.0],
+            [4.0, 5.0],
+            [5.0, 4.0],
+            [8.0, 9.0],
+            [9.0, 8.0],
+        ]
+    )
 
     y = np.array([0, 0, 1, 1, 2, 2])
 
@@ -118,14 +128,16 @@ def test_predict_format():
 
 
 def test_predict_choose_highest_probability():
-    X = np.array([
-        [1.0, 2.0],
-        [2.0, 1.0],
-        [4.0, 5.0],
-        [5.0, 4.0],
-        [8.0, 9.0],
-        [9.0, 8.0],
-    ])
+    X = np.array(
+        [
+            [1.0, 2.0],
+            [2.0, 1.0],
+            [4.0, 5.0],
+            [5.0, 4.0],
+            [8.0, 9.0],
+            [9.0, 8.0],
+        ]
+    )
 
     y = np.array([0, 0, 1, 1, 2, 2])
 
@@ -146,17 +158,19 @@ def test_predict_choose_highest_probability():
 
 
 def test_predict_high_accuracy_separated_data():
-    X = np.array([
-        [1.0, 1.0],
-        [1.0, 2.0],
-        [2.0, 1.0],
-        [5.0, 5.0],
-        [5.0, 6.0],
-        [6.0, 5.0],
-        [9.0, 9.0],
-        [9.0, 10.0],
-        [10.0, 9.0],
-    ])
+    X = np.array(
+        [
+            [1.0, 1.0],
+            [1.0, 2.0],
+            [2.0, 1.0],
+            [5.0, 5.0],
+            [5.0, 6.0],
+            [6.0, 5.0],
+            [9.0, 9.0],
+            [9.0, 10.0],
+            [10.0, 9.0],
+        ]
+    )
 
     y = np.array([0, 0, 0, 1, 1, 1, 2, 2, 2])
 
@@ -230,11 +244,13 @@ def test_predict_proba_X_not_2d():
 def test_predict_proba_different_features():
     model = LinearDiscriminantAnalysis()
     model.fit(
-        np.array([
-            [1.0, 2.0],
-            [3.0, 4.0],
-            [5.0, 6.0],
-        ]),
+        np.array(
+            [
+                [1.0, 2.0],
+                [3.0, 4.0],
+                [5.0, 6.0],
+            ]
+        ),
         np.array([0, 1, 1]),
     )
 
@@ -250,14 +266,16 @@ def test_predict_proba_different_features():
 def test_priors_wrong_number_of_classes():
     model = LinearDiscriminantAnalysis(priors=[0.5, 0.5])
 
-    X = np.array([
-        [1.0, 2.0],
-        [2.0, 1.0],
-        [4.0, 5.0],
-        [5.0, 4.0],
-        [8.0, 9.0],
-        [9.0, 8.0],
-    ])
+    X = np.array(
+        [
+            [1.0, 2.0],
+            [2.0, 1.0],
+            [4.0, 5.0],
+            [5.0, 4.0],
+            [8.0, 9.0],
+            [9.0, 8.0],
+        ]
+    )
 
     y = np.array([0, 0, 1, 1, 2, 2])
 
@@ -268,14 +286,16 @@ def test_priors_wrong_number_of_classes():
 def test_priors_not_sum_one():
     model = LinearDiscriminantAnalysis(priors=[0.2, 0.2, 0.2])
 
-    X = np.array([
-        [1.0, 2.0],
-        [2.0, 1.0],
-        [4.0, 5.0],
-        [5.0, 4.0],
-        [8.0, 9.0],
-        [9.0, 8.0],
-    ])
+    X = np.array(
+        [
+            [1.0, 2.0],
+            [2.0, 1.0],
+            [4.0, 5.0],
+            [5.0, 4.0],
+            [8.0, 9.0],
+            [9.0, 8.0],
+        ]
+    )
 
     y = np.array([0, 0, 1, 1, 2, 2])
 
@@ -286,14 +306,16 @@ def test_priors_not_sum_one():
 def test_priors_non_positive():
     model = LinearDiscriminantAnalysis(priors=[0.5, 0.5, 0.0])
 
-    X = np.array([
-        [1.0, 2.0],
-        [2.0, 1.0],
-        [4.0, 5.0],
-        [5.0, 4.0],
-        [8.0, 9.0],
-        [9.0, 8.0],
-    ])
+    X = np.array(
+        [
+            [1.0, 2.0],
+            [2.0, 1.0],
+            [4.0, 5.0],
+            [5.0, 4.0],
+            [8.0, 9.0],
+            [9.0, 8.0],
+        ]
+    )
 
     y = np.array([0, 0, 1, 1, 2, 2])
 
@@ -321,6 +343,17 @@ def test_reg_param_invalid_type():
         model.fit(X, y)
 
 
+@pytest.mark.parametrize("reg_param", [True, False])
+def test_reg_param_boolean(reg_param):
+    model = LinearDiscriminantAnalysis(reg_param=reg_param)
+
+    X = np.array([[1.0], [2.0], [4.0], [5.0]])
+    y = np.array([0, 0, 1, 1])
+
+    with pytest.raises(ValueError, match="não negativo"):
+        model.fit(X, y)
+
+
 def test_reg_param_infinite():
     model = LinearDiscriminantAnalysis(reg_param=np.inf)
 
@@ -332,34 +365,40 @@ def test_reg_param_infinite():
 
 
 def test_fit_covariance():
-    X = np.array([
+    X = np.array(
+        [
             [1.0, 2.0],
             [3.0, 4.0],
             [5.0, 6.0],
             [7.0, 8.0],
-    ])
+        ]
+    )
 
     y = np.array([0, 0, 1, 1])
 
     model = LinearDiscriminantAnalysis(reg_param=0)
     model.fit(X, y)
-    expected_covariance = np.array([
-        [2.0, 2.0],
-        [2.0, 2.0],
-    ])
+    expected_covariance = np.array(
+        [
+            [2.0, 2.0],
+            [2.0, 2.0],
+        ]
+    )
 
     assert np.allclose(model.covariance_, expected_covariance)
 
 
 def test_fit_priors_unequal_classes():
-    X = np.array([
-        [1.0, 2.0],
-        [2.0, 1.0],
-        [3.0, 2.0],
-        [4.0, 5.0],
-        [5.0, 4.0],
-        [8.0, 9.0],
-    ])
+    X = np.array(
+        [
+            [1.0, 2.0],
+            [2.0, 1.0],
+            [3.0, 2.0],
+            [4.0, 5.0],
+            [5.0, 4.0],
+            [8.0, 9.0],
+        ]
+    )
 
     y = np.array([0, 0, 0, 0, 1, 1])
 
@@ -378,10 +417,12 @@ def test_predict_high_accuracy_same_covariance_normals():
     mean_0 = np.array([0.0, 0.0])
     mean_1 = np.array([5.0, 5.0])
 
-    covariance = np.array([
-        [1.0, 0.3],
-        [0.3, 1.0],
-    ])
+    covariance = np.array(
+        [
+            [1.0, 0.3],
+            [0.3, 1.0],
+        ]
+    )
 
     X_0 = rng.multivariate_normal(mean_0, covariance, size=200)
     X_1 = rng.multivariate_normal(mean_1, covariance, size=200)
@@ -400,21 +441,25 @@ def test_predict_high_accuracy_same_covariance_normals():
 
 
 def test_fit_means():
-    X = np.array([
-        [1.0, 2.0],
-        [3.0, 4.0],
-        [5.0, 6.0],
-        [7.0, 8.0],
-    ])
+    X = np.array(
+        [
+            [1.0, 2.0],
+            [3.0, 4.0],
+            [5.0, 6.0],
+            [7.0, 8.0],
+        ]
+    )
 
     y = np.array([0, 0, 1, 1])
 
     model = LinearDiscriminantAnalysis()
     model.fit(X, y)
 
-    expected_means = np.array([
-        [2.0, 3.0],
-        [6.0, 7.0],
-    ])
+    expected_means = np.array(
+        [
+            [2.0, 3.0],
+            [6.0, 7.0],
+        ]
+    )
 
     assert np.allclose(model.means_, expected_means)

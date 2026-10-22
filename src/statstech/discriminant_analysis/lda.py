@@ -2,9 +2,9 @@ import numpy as np
 
 from statstech.base import BaseEstimator, ClassifierMixin
 from statstech.utils.validation import (
-    check_X_y,
     check_array,
     check_is_fitted,
+    check_X_y,
 )
 
 
@@ -19,7 +19,7 @@ class LinearDiscriminantAnalysis(BaseEstimator, ClassifierMixin):
     reg_param : float, default=1e-6
         Valor adicionado à diagonal da matriz de covariância
         para evitar problemas numéricos.
-    
+
     Attributes
     ----------
     classes_ : ndarray of shape (n_classes,)
@@ -34,7 +34,7 @@ class LinearDiscriminantAnalysis(BaseEstimator, ClassifierMixin):
     covariance_ : ndarray of shape (n_features, n_features)
         Matriz de covariância compartilhada entre as classes,
         com regularização aplicada.
-        """
+    """
 
     def __init__(self, priors=None, reg_param=1e-6):
         """Inicializa os parâmetros do modelo."""
@@ -71,16 +71,12 @@ class LinearDiscriminantAnalysis(BaseEstimator, ClassifierMixin):
         X, y = check_X_y(X, y)
 
         if (
-            not isinstance(
-                self.reg_param,
-                (int, float, np.integer, np.floating)
-            )
+            not isinstance(self.reg_param, (int, float, np.integer, np.floating))
+            or isinstance(self.reg_param, (bool, np.bool_))
             or not np.isfinite(self.reg_param)
             or self.reg_param < 0
         ):
-            raise ValueError(
-                "reg_param deve ser um valor finito e não negativo."
-            )
+            raise ValueError("reg_param deve ser um valor finito e não negativo.")
 
         classes, counts = np.unique(y, return_counts=True)
         n_samples, n_features = X.shape
@@ -91,8 +87,7 @@ class LinearDiscriminantAnalysis(BaseEstimator, ClassifierMixin):
 
         if n_samples <= n_classes:
             raise ValueError(
-                "O número de amostras deve ser maior que "
-                "o número de classes."
+                "O número de amostras deve ser maior que o número de classes."
             )
 
         means = []
@@ -110,9 +105,7 @@ class LinearDiscriminantAnalysis(BaseEstimator, ClassifierMixin):
             priors = np.asarray(self.priors, dtype=float)
 
             if priors.ndim != 1 or len(priors) != n_classes:
-                raise ValueError(
-                    "priors deve ter um valor para cada classe."
-                )
+                raise ValueError("priors deve ter um valor para cada classe.")
 
             if (
                 not np.isfinite(priors).all()
@@ -120,8 +113,7 @@ class LinearDiscriminantAnalysis(BaseEstimator, ClassifierMixin):
                 or not np.isclose(priors.sum(), 1.0)
             ):
                 raise ValueError(
-                    "priors deve ter valores positivos e finitos "
-                    "com soma igual a 1."
+                    "priors deve ter valores positivos e finitos com soma igual a 1."
                 )
 
         covariance = np.zeros((n_features, n_features))
@@ -167,17 +159,13 @@ class LinearDiscriminantAnalysis(BaseEstimator, ClassifierMixin):
         np.linalg.LinAlgError
             Se a matriz de covariância for singular.
         """
-        check_is_fitted(
-            self,
-            ["classes_", "priors_", "means_", "covariance_"]
-        )
+        check_is_fitted(self, ["classes_", "priors_", "means_", "covariance_"])
 
         X = check_array(X)
 
         if X.shape[1] != self.means_.shape[1]:
             raise ValueError(
-                "X deve ter o mesmo número de características "
-                "usado no treinamento."
+                "X deve ter o mesmo número de características usado no treinamento."
             )
 
         scores = []
@@ -188,11 +176,7 @@ class LinearDiscriminantAnalysis(BaseEstimator, ClassifierMixin):
 
             solved_mean = np.linalg.solve(self.covariance_, mean)
 
-            score = (
-                X @ solved_mean
-                - 0.5 * mean @ solved_mean
-                + np.log(prior)
-            )
+            score = X @ solved_mean - 0.5 * mean @ solved_mean + np.log(prior)
 
             scores.append(score)
 
