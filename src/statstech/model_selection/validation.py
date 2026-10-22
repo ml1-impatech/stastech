@@ -1,24 +1,28 @@
+"""Validação cruzada de modelos."""
+
 from collections.abc import Callable, Iterator
 from typing import Any, Protocol
 
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
 
-from ..base import clone
-from ..metrics.scorers import get_scorer, needs_proba
-from ..utils.validation import check_X_y
-from .split import KFold
+from statstech.base import clone
+from statstech.metrics.scorers import get_scorer, needs_proba
+from statstech.model_selection.split import KFold
+from statstech.utils.validation import check_X_y
 
 
-# Protocolo para garantir que qualquer 'estimator' passado tenha os métodos necessários
 class EstimatorProtocol(Protocol):
+    """Estimador aceito pela validação cruzada: fit, predict e score."""
+
     def fit(self, X: NDArray[Any], y: NDArray[Any]) -> Any: ...
     def predict(self, X: NDArray[Any]) -> NDArray[Any]: ...
     def score(self, X: NDArray[Any], y: NDArray[Any]) -> float: ...
 
 
-# Protocolo para objetos de divisão de dados (ex: KFold, LeaveOneOut)
 class SplitterProtocol(Protocol):
+    """Divisor de dados aceito como cv, KFold e LeaveOneOut."""
+
     def split(
         self, X: NDArray[Any]
     ) -> Iterator[tuple[NDArray[np.intp], NDArray[np.intp]]]: ...
@@ -39,18 +43,18 @@ def _fit_and_score(
 ) -> float:
     """Treina uma cópia do modelo e pontua no conjunto de teste.
 
-    Clona o estimador, realiza o treino nos índices especificados e avalia o desempenho usando a
-    métrica padrão ou uma dada.
+    Clona o estimador, realiza o treino nos índices especificados
+    e avalia o desempenho usando a métrica padrão ou uma dada.
 
     Parameters
     ----------
     estimator : objeto com fit, predict e score
         Modelo a ser avaliado.
 
-    X : ndarray de shape (n_amostras, n_features)
+    X : ndarray de formato (n_amostras, n_features)
         Dados de entrada (features).
 
-    y : ndarray de shape (n_amostras,)
+    y : ndarray de formato (n_amostras,)
         Rótulos ou valores correspondentes a X.
 
     train_idx : array-like de int
@@ -126,7 +130,7 @@ def cross_val_score(
 
     Returns
     -------
-    scores : ndarray de shape (n_partições,)
+    scores : ndarray de formato (n_partições,)
         Score obtido no conjunto de teste de cada partição.
 
     Raises

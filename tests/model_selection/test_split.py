@@ -69,7 +69,7 @@ def test_1d_raises():
 def test_X_y_different_lengths_raises():
     X, _ = make_data(10)
     y = np.arange(8)
-    with pytest.raises(ValueError, match="tamanhos diferentes"):
+    with pytest.raises(ValueError, match="mesmo tamanho"):
         train_test_split(X, y)
 
 

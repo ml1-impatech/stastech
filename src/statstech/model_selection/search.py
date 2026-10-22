@@ -1,18 +1,20 @@
+"""Busca em grade de hiperparâmetros com validação cruzada."""
+
 from itertools import product
 from typing import Any
 
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
 
-from ..base import BaseEstimator, clone
-from ..metrics.scorers import lower_is_better
-from ..utils.validation import check_is_fitted
-from .validation import (
+from statstech.base import BaseEstimator, clone
+from statstech.metrics.scorers import lower_is_better
+from statstech.model_selection.validation import (
     EstimatorProtocol,
     ScoringCallable,
     SplitterProtocol,
     cross_val_score,
 )
+from statstech.utils.validation import check_is_fitted
 
 
 def _expand_grid(param_grid: dict[str, list[Any]]) -> list[dict[str, Any]]:
@@ -57,6 +59,7 @@ class GridSearchCV(BaseEstimator):
         None para usar o score do próprio estimador. Quando for um
         nome em que menor é melhor (como "mse"), a busca escolhe a
         menor média; nos demais casos, a maior.
+        Uma função passada diretamente é sempre maximizada.
 
     refit : bool, default=True
         Se True, treina best_estimator_ com a melhor combinação
@@ -103,14 +106,14 @@ class GridSearchCV(BaseEstimator):
 
         Parameters
         ----------
-        X : array-like de shape (n_amostras, n_features)
+        X : array-like de formato (n_amostras, n_features)
             Dados de entrada.
-        y : array-like de shape (n_amostras,)
+        y : array-like de formato (n_amostras,)
             Alvo.
 
         Returns
         -------
-        self : o próprio objeto, com os resultados da busca.
+        self : GridSearchCV
         """
         combinations = _expand_grid(self.param_grid)
         self.cv_results_: list[dict[str, Any]] = []
@@ -142,12 +145,12 @@ class GridSearchCV(BaseEstimator):
 
         Parameters
         ----------
-        X : array-like de shape (n_amostras, n_features)
+        X : array-like de formato (n_amostras, n_features)
             Dados de entrada.
 
         Returns
         -------
-        y_pred : ndarray de shape (n_amostras,)
+        y_pred : ndarray de formato (n_amostras,)
             Previsões de best_estimator_.
 
         Raises
@@ -166,9 +169,9 @@ class GridSearchCV(BaseEstimator):
 
         Parameters
         ----------
-        X : array-like de shape (n_amostras, n_features)
+        X : array-like de formato (n_amostras, n_features)
             Dados de entrada.
-        y : array-like de shape (n_amostras,)
+        y : array-like de formato (n_amostras,)
             Valores verdadeiros do alvo.
 
         Returns
