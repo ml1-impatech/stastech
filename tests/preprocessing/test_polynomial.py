@@ -54,28 +54,87 @@ def test_polynomial_features_small_manual_example_degree_two():
     np.testing.assert_array_equal(X_poly, expected)
 
 def test_polinomial_features_include_bias():
-    pass
+    X = np.array([[2, 3],
+                  [4, 5]],
+                  dtype = float)
+    
+    poly = PolinomialFeatures(include_bias = True)
+    X_poly = poly.fit_transform(X)
+
+    expected = np.array([[1, 2, 3, 4, 6, 9],
+                        [1, 4, 5, 16, 20, 25]],
+                        dtype = float)
+
+    np.testing.assert_array_equal(X_poly, expected)
 
 def test_polinomial_features_without_bias():
-    pass
+    X = np.array([[2, 3]], dtype = float)
+
+    poly = PolinomialFeatures()
+    X_poly = poly.fit_transform(X)
+
+    assert X_poly.shape == (1, 5)
+    np.testing.assert_array_equal(X_poly, np.array([[2, 3, 4, 6, 9]], dtype = float))
 
 def test_polinomial_features_invalid_degree_raises_value_error():
-    pass
+    with pytest.raises(ValueError):
+        PolinomialFeatures(degree = -1)
 
 def test_polinomial_features_invalide_include_bias_raises_value_error():
-    pass
+    with pytest.raises(ValueError):
+        PolinomialFeatures(include_bias = 0)
 
 def test_polinomial_features_transform_without_fit_raises_error():
-    pass
+    poly = PolinomialFeatures()
+
+    X = np.array([[1, 2],
+                  [3, 4]],
+                  dtype = float)
+
+    with pytest.raises(ValueError):
+        poly.transform(X)
 
 def test_polinomial_features_wrong_number_of_features_raises_value_error():
-    pass
+    X_train = np.array([[1, 2],
+                        [3, 4]],
+                        dtype = float)
+    X_test = np.array([[1], [2]], dtype = float)
+
+    poly = PolinomialFeatures()
+    poly.fit(X_train)
+
+    with pytest.raises(ValueError):
+        poly.transform(X_test)
 
 def test_polinomial_features_fit_returns_self():
-    pass
+    X = np.array([[1, 2],
+                  [3, 4]], 
+                  dtype = float)
+    
+    poly = PolinomialFeatures()
+
+    assert poly.fit(X) is poly
 
 def test_polinomial_features_fit_transform_matches_fit_and_transform():
-    pass
+    X = np.array([[1, 2],
+                  [3, 4],
+                  [5, 6]], 
+                  dtype = float)
+
+    poly_1 = PolinomialFeatures(degree = 3)
+    X_poly_1 = poly_1.fit(X)
+
+    poly_2 = PolinomialFeatures(degree = 3)
+    poly_2 = poly_2.fit(X)
+    X_poly_2 = poly_2.transform(X)
+
+    np.testing.assert_array_equal(X_poly_1, X_poly_2)
+    
 
 def test_polinomial_features_degree_one():
-    pass
+    X = np.array([[1, 2], [3, 4]], dtype = float)
+
+    poly = PolinomialFeatures(degree = 1)
+    X_poly = poly.fit_transform(X)
+
+    np.testing.assert_array_equal(X_poly, X)
