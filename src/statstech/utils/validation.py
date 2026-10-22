@@ -1,19 +1,19 @@
 """Funções de validação usadas por todos os módulos da biblioteca.
 
-   Conferem formato, tipo e valores de X e y, e se um modelo já foi
-   treinado, para que todos os modelos usem as mesmas checagens e as
-   mesmas mensagens de erro.
-   """
+Conferem formato, tipo e valores de X e y, e se um modelo já foi
+treinado, para que todos os modelos usem as mesmas checagens e as
+mesmas mensagens de erro.
+"""
 
 import numpy as np
 from numpy.typing import ArrayLike
+
 
 class NotFittedError(ValueError, AttributeError):
     """Erro levantado quando o modelo é usado antes do fit."""
 
 
 def _is_numeric(a: np.ndarray) -> bool:
-
     """Diz se o array é numérico (inteiro, float ou bool)."""
     return np.issubdtype(a.dtype, np.number) or np.issubdtype(a.dtype, np.bool_)
 
@@ -28,8 +28,8 @@ def _check_finite(a: np.ndarray, name: str, allow_nan: bool = False) -> None:
 
 
 def check_array(
-       X: ArrayLike, allow_nan: bool = False, ensure_numeric: bool = True
-   ) -> np.ndarray:
+    X: ArrayLike, allow_nan: bool = False, ensure_numeric: bool = True
+) -> np.ndarray:
     """Verifica se X é um array 2D.
 
     Converte X para array, confere se é 2D, se não está vazio, se é
