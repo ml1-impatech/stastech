@@ -103,7 +103,7 @@ class MLPRegressor(BaseEstimator, RegressorMixin):
         Número de épocas de treinamento.
     batch_size : int, default=32
         Tamanho dos mini-batches para o treinamento.
-    random_state : int ou None, default=None
+    random_state : int, Generator ou None, default=None
         Semente para o gerador de números aleatórios.
 
     Attributes
@@ -242,7 +242,7 @@ class MLPRegressor(BaseEstimator, RegressorMixin):
 
         Parameters
         ----------
-        X : ndarray de formato (n_amostras, n_features)
+        X : array-like de formato (n_amostras, n_features)
             Dados para os quais a previsão será feita.
 
         Returns
