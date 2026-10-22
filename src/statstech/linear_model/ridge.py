@@ -1,15 +1,22 @@
 """Regressão linear com penalização L2"""
 
 import numpy as np
+
 from statstech.base import BaseEstimator, RegressorMixin
-from statstech.utils.validation import (check_X_y, check_array, check_is_fitted, check_n_features)
+from statstech.utils.validation import (
+    check_array,
+    check_is_fitted,
+    check_n_features,
+    check_X_y,
+)
+
 
 class Ridge(BaseEstimator, RegressorMixin):
     """
     Modelo de Regressão Linear com a regularização L2.
 
     O modelo Ridge estima os coeficientes que minimizam a soma dos quadrados
-    dos resíduos acrescida de um termo de penalização L2. Essa penalização 
+    dos resíduos acrescida de um termo de penalização L2. Essa penalização
     reduz a magnitude dos coeficientes e pode ajudar a controlar o sobreajuste.
     O modelo não padroniza os dados, sendo necessário usar StandardScaler antes.
 
@@ -21,7 +28,7 @@ class Ridge(BaseEstimator, RegressorMixin):
 
 
     fit_intercept: bool, defalt=True
-        Se True, o intercepto é calculado. Se False, 
+        Se True, o intercepto é calculado. Se False,
         o intercepto não é utilizado nos cálculos.
 
 
@@ -38,10 +45,8 @@ class Ridge(BaseEstimator, RegressorMixin):
         Número de variáveis utilizadas para calcular o modelo.
     """
 
-    def __init__(self,
-                alpha: float = 1.0,
-                fit_intercept: bool=True) -> None:
-        
+    def __init__(self, alpha: float = 1.0, fit_intercept: bool = True) -> None:
+
         self.alpha = alpha
         self.fit_intercept = fit_intercept
 
@@ -56,15 +61,16 @@ class Ridge(BaseEstimator, RegressorMixin):
             Se intercept não for booleano.
         """
 
-        if (not isinstance(self.alpha, (int, float, np.integer, np.floating))
+        if (
+            not isinstance(self.alpha, (int, float, np.integer, np.floating))
             or isinstance(self.alpha, (bool, np.bool_))
             or not np.isfinite(self.alpha)
-            or self.alpha < 0):
+            or self.alpha < 0
+        ):
             raise ValueError("alpha deve ser um valor finito não negativo")
 
         if not isinstance(self.fit_intercept, (bool, np.bool_)):
             raise ValueError("fit_intercept deve ser booleano")
-       
 
     def fit(self, X: np.ndarray, y: np.ndarray) -> "Ridge":
         """
@@ -113,14 +119,14 @@ class Ridge(BaseEstimator, RegressorMixin):
         A = X_centered.T @ X_centered + self.alpha * I
         b = X_centered.T @ y_centered
 
-        self.coef_, *_ = np.linalg.lstsq(A, b, rcond = None)
+        self.coef_, *_ = np.linalg.lstsq(A, b, rcond=None)
 
         if self.fit_intercept:
-             self.intercept_ = y_mean - X_mean @ self.coef_
+            self.intercept_ = y_mean - X_mean @ self.coef_
         else:
-             self.intercept_ = 0.0
+            self.intercept_ = 0.0
 
-        return self      
+        return self
 
     def predict(self, X: np.ndarray) -> np.ndarray:
         """

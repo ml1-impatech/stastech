@@ -1,16 +1,23 @@
 """Regressão linear com penalização L1"""
 
 import numpy as np
+
 from statstech.base import BaseEstimator, RegressorMixin
-from statstech.utils.validation import (check_array, check_X_y, check_is_fitted, check_n_features)
+from statstech.utils.validation import (
+    check_array,
+    check_is_fitted,
+    check_n_features,
+    check_X_y,
+)
+
 
 class Lasso(BaseEstimator, RegressorMixin):
     """
     Modelo de Regressão Linear com regularização L1.
 
     O modelo Lasso estima os coeficientes que minimizam a soma dos quadrados
-    dos resíduos acrescida de um termo de penalização L1. Essa penalização 
-    pode levar alguns coeficientes a valerem zero, realizando seleção de 
+    dos resíduos acrescida de um termo de penalização L1. Essa penalização
+    pode levar alguns coeficientes a valerem zero, realizando seleção de
     variáveis
 
     Parameters
@@ -20,7 +27,7 @@ class Lasso(BaseEstimator, RegressorMixin):
         determinando a intensidade da regularização.
 
     fit_intercept: bool, default=True
-        Quando verdadeiro, o intercepto é calculado. Quando é falso, o 
+        Quando verdadeiro, o intercepto é calculado. Quando é falso, o
         intercepto não é usado nos cálculos.
 
     tol: float, default=1e-4
@@ -44,11 +51,13 @@ class Lasso(BaseEstimator, RegressorMixin):
         Número de variáveis calculada pelo modelo.
     """
 
-    def __init__(self,
-                alpha: float=1.0,
-                fit_intercept: bool=True,
-                tol: float=1e-4,
-                max_iter: int=1000) -> None:
+    def __init__(
+        self,
+        alpha: float = 1.0,
+        fit_intercept: bool = True,
+        tol: float = 1e-4,
+        max_iter: int = 1000,
+    ) -> None:
 
         self.alpha = alpha
         self.fit_intercept = fit_intercept
@@ -67,27 +76,32 @@ class Lasso(BaseEstimator, RegressorMixin):
             Se tol não for um valor finito não negativo.
             Se max_iter não for um valor inteiro positivo.
         """
-        
-        if (not isinstance(self.alpha, (int, float, np.integer, np.floating))
+
+        if (
+            not isinstance(self.alpha, (int, float, np.integer, np.floating))
             or isinstance(self.alpha, (bool, np.bool_))
             or not np.isfinite(self.alpha)
-            or self.alpha < 0):
+            or self.alpha < 0
+        ):
             raise ValueError("alpha deve ser um valor finito não negativo")
 
         if not isinstance(self.fit_intercept, (bool, np.bool_)):
             raise ValueError("fit_intercept deve ser booleano")
-        
-        if (not isinstance(self.tol, (int, float, np.integer, np.floating))
+
+        if (
+            not isinstance(self.tol, (int, float, np.integer, np.floating))
             or not np.isfinite(self.tol)
-            or self.tol < 0):
+            or self.tol < 0
+        ):
             raise ValueError("tol deve ser um valor finito não negativo")
 
-        if (isinstance(self.max_iter, (bool, np.bool_))
+        if (
+            isinstance(self.max_iter, (bool, np.bool_))
             or not isinstance(self.max_iter, (int, np.integer))
-            or self.max_iter <= 0):
+            or self.max_iter <= 0
+        ):
             raise ValueError("max_iter deve ser um valor inteiro positivo")
-          
-            
+
     @staticmethod
     def _soft_threshold(z: float, threshold: float) -> float:
         """
@@ -104,7 +118,7 @@ class Lasso(BaseEstimator, RegressorMixin):
         Returns
         -------
         float
-            Valor resultante do limiar suave.        
+            Valor resultante do limiar suave.
         """
 
         if z > threshold:
@@ -114,8 +128,7 @@ class Lasso(BaseEstimator, RegressorMixin):
         else:
             return 0.0
 
-    def fit(self, X: np.ndarray , y: np.ndarray) -> "Lasso":
-
+    def fit(self, X: np.ndarray, y: np.ndarray) -> "Lasso":
         """
         Ajusta o modelo de regressão Lasso aos dados de treino.
 
@@ -161,11 +174,11 @@ class Lasso(BaseEstimator, RegressorMixin):
 
         coef = np.zeros(n_features)
 
-        col_norms = np.sum(X_centered ** 2, axis = 0)
+        col_norms = np.sum(X_centered**2, axis=0)
 
         threshold = self.alpha * n_samples
 
-        for iteration in range(1 , self.max_iter + 1):
+        for iteration in range(1, self.max_iter + 1):
             max_change = 0.0
 
             for i in range(n_features):
@@ -193,14 +206,13 @@ class Lasso(BaseEstimator, RegressorMixin):
         self.n_iter_ = iteration
 
         if self.fit_intercept:
-            self.intercept_ = (y_mean - X_mean @ self.coef_)
+            self.intercept_ = y_mean - X_mean @ self.coef_
         else:
             self.intercept_ = 0.0
 
         return self
 
-
-    def predict(self, X : np.ndarray) -> np.ndarray:
+    def predict(self, X: np.ndarray) -> np.ndarray:
         """
         Realiza previsões de y com base nos valores fornecidos em X.
 
@@ -222,7 +234,7 @@ class Lasso(BaseEstimator, RegressorMixin):
             Se o número de features de X for diferente do usado em fit.
         """
 
-        check_is_fitted(self, ["coef_","intercept_", "n_features_in_"])
+        check_is_fitted(self, ["coef_", "intercept_", "n_features_in_"])
 
         X = check_array(X)
 

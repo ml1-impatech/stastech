@@ -1,9 +1,12 @@
 "Transforma características das variáveis em polinomiais"
 
-import numpy as np
 import itertools
+
+import numpy as np
+
 from statstech.base import BaseEstimator
-from statstech.utils.validation import (check_array, check_is_fitted, check_n_features)
+from statstech.utils.validation import check_array, check_is_fitted, check_n_features
+
 
 class PolynomialFeatures(BaseEstimator):
     """
@@ -18,14 +21,12 @@ class PolynomialFeatures(BaseEstimator):
         Grau máximo do polinômio gerado
 
     include_bias: bool, default=False
-        Se True, adiciona a coluna do intercepto 
+        Se True, adiciona a coluna do intercepto
         preenchida com uns na matriz.
     """
 
-    def __init__(self,
-                 degree: int = 2,
-                 include_bias: bool=False) -> None:
-        
+    def __init__(self, degree: int = 2, include_bias: bool = False) -> None:
+
         self.degree = degree
         self.include_bias = include_bias
 
@@ -39,18 +40,20 @@ class PolynomialFeatures(BaseEstimator):
             Se degree não for um valor inteiro positivo.
             Se include_bias não for booleano.
         """
-               
-        if (not isinstance(self.degree, (int, np.integer)) 
+
+        if (
+            not isinstance(self.degree, (int, np.integer))
             or isinstance(self.degree, (bool, np.bool_))
-            or self.degree < 1):
+            or self.degree < 1
+        ):
             raise ValueError("degree deve ser um valor inteiro positivo")
 
         if not isinstance(self.include_bias, (bool, np.bool_)):
             raise ValueError("include_bias deve ser booleano")
-        
+
     def fit(self, X: np.ndarray, y: np.ndarray | None = None) -> "PolynomialFeatures":
         """
-        Calcula as combinações de características polinomiais 
+        Calcula as combinações de características polinomiais
         com base nos dados de treino.
 
         Parameters
@@ -81,7 +84,9 @@ class PolynomialFeatures(BaseEstimator):
 
         self.combinations_ = []
         for d in range(1, self.degree + 1):
-            for i in itertools.combinations_with_replacement(range(self.n_features_in_), d):
+            for i in itertools.combinations_with_replacement(
+                range(self.n_features_in_), d
+            ):
                 self.combinations_.append(i)
 
         n_out = len(self.combinations_)
@@ -93,8 +98,7 @@ class PolynomialFeatures(BaseEstimator):
 
         return self
 
-
-    def transform(self, X : np.ndarray) -> np.ndarray:
+    def transform(self, X: np.ndarray) -> np.ndarray:
         """
         Gera a matriz de características polinomiais a partir de X.
 
@@ -103,7 +107,7 @@ class PolynomialFeatures(BaseEstimator):
         X : array-like de formato (n_samples, n_features)
             Matriz com os dados que serão transformados.
 
-        Returns 
+        Returns
         -------
         X_poly : ndarray de formato (n_samples, n_output_features_)
             Matriz com as características polinomiais.
@@ -128,14 +132,14 @@ class PolynomialFeatures(BaseEstimator):
             columns.append(np.ones(n_samples))
 
         for i in self.combinations_:
-            column = np.prod(X[:, i], axis = 1)
+            column = np.prod(X[:, i], axis=1)
             columns.append(column)
 
         X_poly = np.column_stack(columns)
 
         return X_poly
 
-    def fit_transform(self, X : np.ndarray, y : np.ndarray | None = None) -> np.ndarray:
+    def fit_transform(self, X: np.ndarray, y: np.ndarray | None = None) -> np.ndarray:
         """
         Ajusta o estimador e realiza a transformação da matriz de entrada.
 

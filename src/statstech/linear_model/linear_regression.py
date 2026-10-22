@@ -1,14 +1,21 @@
 """Regressão linear por mínimos quadrados"""
 
 import numpy as np
+
 from statstech.base import BaseEstimator, RegressorMixin
-from statstech.utils.validation import (check_X_y, check_array, check_is_fitted, check_n_features)
+from statstech.utils.validation import (
+    check_array,
+    check_is_fitted,
+    check_n_features,
+    check_X_y,
+)
+
 
 class LinearRegression(BaseEstimator, RegressorMixin):
-    """ 
+    """
     Modelo de regressão linear baseado em mínimos quadrados.
 
-    O modelo estima os coeficientes que minimizam a soma dos quadrados 
+    O modelo estima os coeficientes que minimizam a soma dos quadrados
     das diferenças entre os valores observados e os valores previstos.
 
     Parameters
@@ -24,13 +31,13 @@ class LinearRegression(BaseEstimator, RegressorMixin):
 
     intercept_: float
         Intercepto calculado pelo modelo.
-    
+
     n_features_in_: int
         Número de variáveis usadas para calcular o modelo.
     """
 
     def __init__(self, fit_intercept: bool = True) -> None:
-        
+
         self.fit_intercept = fit_intercept
 
     def _check_params(self):
@@ -42,13 +49,12 @@ class LinearRegression(BaseEstimator, RegressorMixin):
         ValueError
             Se fit_intercept não for booleano.
         """
-    
+
         if not isinstance(self.fit_intercept, (bool, np.bool_)):
             raise ValueError("fit_intercept deve ser booleano.")
 
-
     def fit(self, X: np.ndarray, y: np.ndarray) -> "LinearRegression":
-        """ 
+        """
         Ajusta o modelo aos dados de treinamento.
 
         Parameters
@@ -73,7 +79,7 @@ class LinearRegression(BaseEstimator, RegressorMixin):
             Se o número de amostras de X e y não são iguais.
         """
         self._check_params()
-        
+
         X, y = check_X_y(X, y)
 
         self.n_features_in_ = X.shape[1]
@@ -85,7 +91,7 @@ class LinearRegression(BaseEstimator, RegressorMixin):
             X_centered = X - X_mean
             y_centered = y - y_mean
 
-        else: 
+        else:
             X_centered = X
             y_centered = y
 
@@ -118,13 +124,13 @@ class LinearRegression(BaseEstimator, RegressorMixin):
             Se X não é uma matriz bidimensional.
             Se X não possuir o número de variáveis do X usado em fit.
             Se o modelo não tiver sido treinado.
-                
+
         """
         check_is_fitted(self, ["coef_", "intercept_", "n_features_in_"])
         X = check_array(X)
 
         check_n_features(X, self.n_features_in_)
-        
+
         y_predicted = X @ self.coef_ + self.intercept_
 
         return y_predicted
