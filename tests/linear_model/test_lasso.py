@@ -1,8 +1,8 @@
 import numpy as np
 import pytest
 
-from statstech.src.linear_model.lasso import Lasso
-from statstech.src.linear_model.linear_regression import LinearRegression
+from statstech.linear_model.lasso import Lasso
+from statstech.linear_model.linear_regression import LinearRegression
 
 def test_lasso_max_alpha_zeros_all_coefficients():
     X = np.array([[1, 2], 
@@ -26,9 +26,9 @@ def test_lasso_max_alpha_zeros_all_coefficients():
     np.testing.assert_allclose(model.coef_, np.zeros(X.shape[1]), atol = 1e-8)
 
 def test_lasso_very_small_alpha_approximates_ordinary_least_squares():
-    X = np.array([[]], dtype = float)
+    X = np.array([[1], [2], [3], [4]], dtype = float)
 
-    y = np.array([], dtype = float)
+    y = np.array([3, 5, 7, 9], dtype = float)
 
     model_lasso = Lasso(alpha = 1e-8)
     model_linear_regression = LinearRegression()
@@ -99,7 +99,7 @@ def test_lasso_fit_returs_self():
 
     model = Lasso()
 
-    assert model.fit(X) is model
+    assert model.fit(X, y) is model
 
 def test_lasso_fit_without_intercept():
     X = np.array([[1], 
@@ -113,7 +113,7 @@ def test_lasso_fit_without_intercept():
     model.fit(X, y)
 
     np.testing.assert_allclose(model.coef_, [27 / 14])
-    assert model.intercept == 0.0
+    assert model.intercept_ == 0.0
 
 def test_lasso_fit_multiple_features():
     X = np.array([[1, 2], 
