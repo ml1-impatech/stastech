@@ -52,3 +52,30 @@ def test_polynomial_features_small_manual_example_degree_two():
     expected = np.array([[2, 3, 4, 6, 9]], dtype = float)
 
     np.testing.assert_array_equal(X_poly, expected)
+
+def test_polinomial_features_include_bias():
+    pass
+
+def test_polinomial_features_without_bias():
+    pass
+
+def test_polinomial_features_invalid_degree_raises_value_error():
+    pass
+
+def test_polinomial_features_invalide_include_bias_raises_value_error():
+    pass
+
+def test_polinomial_features_transform_without_fit_raises_error():
+    pass
+
+def test_polinomial_features_wrong_number_of_features_raises_value_error():
+    pass
+
+def test_polinomial_features_fit_returns_self():
+    pass
+
+def test_polinomial_features_fit_transform_matches_fit_and_transform():
+    pass
+
+def test_polinomial_features_degree_one():
+    pass
