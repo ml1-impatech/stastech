@@ -65,34 +65,122 @@ def test_lasso_soft_threshold_function_with_manual_values():
     assert Lasso._sort_threshold(-2.0, threshold) == 0.0
 
 def test_lasso_defaut_parameter():
-    pass
+    model = Lasso()
+
+    assert model.alpha == 1.0
+    assert model.fit_intercept is True
+    assert model.tol == 1e-4
+    assert model.max_iter == 1000
 
 def test_lasso_invalid_alpha_raises_value_error():
-    pass
+    with pytest.raises(ValueError):
+        Lasso(alpha = -0.1)
 
 def test_lasso_invalid_tol_raises_value_error():
-    pass
+    with pytest.raises(ValueError):
+        Lasso(tol = -0.1)
 
 def test_lasso_invalid_max_iter_raises_value_error():
-    pass
+    with pytest.raises(ValueError):
+        Lasso(max_iter = -1)
 
 def test_lasso_invalid_fit_intercept_raises_value_error():
-    pass
+    with pytest.raises(ValueError):
+        Lasso(fit_intercept = 0)
 
 def test_lasso_fit_returs_self():
-    pass
+    X = np.array([[1, 2], 
+                  [2, 1],
+                  [3, 4],
+                  [4, 3],],
+                  dtype = float)
+
+    y = np.array([4, 7, 8, 11], dtype = float)
+
+    model = Lasso()
+
+    assert model.fit(X) is model
 
 def test_lasso_fit_without_intercept():
-    pass
+    X = np.array([[1], 
+                  [2],
+                  [3]],
+                  dtype = float)
+
+    y = np.array([2, 4, 6], dtype = float)
+
+    model = Lasso(fit_intercept = False, tol = 1e-10)
+    model.fit(X, y)
+
+    np.testing.assert_allclose(model.coef_, [27 / 14])
+    assert model.intercept == 0.0
+
+def test_lasso_fit_multiple_features():
+    X = np.array([[1, 2], 
+                  [2, 1],
+                  [3, 4],
+                  [4, 3]],
+                  dtype = float)
+
+    y = np.array([4, 7, 8, 11], dtype = float)
+
+    model = Lasso(alpha = 0.1)
+    model.fit(X, y)
+
+    assert model.coef_.shape == (2,)
+    assert model.n_features_in_ == 2
+    assert np.isfinite(model.coef_).all()
 
 def test_lasso_fit_inconsistent_samples():
-    pass
+    X = np.array([[1], 
+                  [2],
+                  [3],
+                  [4]],
+                  dtype = float)
+
+    y = np.array([4, 7], dtype = float)
+
+    model = Lasso()
+
+    with pytest.raises(ValueError):
+        model.fit(X, y)
 
 def test_lasso_predict():
-    pass
+    X = np.array([[1],
+                  [2],
+                  [3]], 
+                  dtype = float)
+    y = np.array([3, 5, 7], dtype = float)
+
+    model = Lasso(alpha = 0.0, tol = 1e-10)
+    model.fit(X, y)
+
+    X_test = np.array([[4],
+                       [5]], 
+                       dtype = float)
+    pred = model.predict(X_test)
+
+    np.testing.assert_allclose(pred, [9, 11])
 
 def test_lasso_predict_without_fit():
-    pass
+    model = Lasso()
+    X = np.array([[1], [2]], dtype = float)
+
+    with pytest.raises(ValueError):
+        model.predict(X)
 
 def test_lasso_predict_wrong_number_of_features():
-    pass
+    X_train = np.array([[1, 2],
+                        [2, 3],
+                        [3, 4]], 
+                        dtype = float)
+    
+    y_train = np.array([5, 8, 11], dtype = float)
+
+    model = Lasso()
+    model.fit(X_train, y_train)
+
+    X_test = np.array([[4]], dtype = float)
+
+    with pytest.raises(ValueError):
+        model.predict(X_test)
