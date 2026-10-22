@@ -1,3 +1,5 @@
+"""Bootstrap para estimar a variabilidade de uma estatística."""
+
 from collections.abc import Callable
 from typing import Any
 
@@ -27,7 +29,7 @@ def bootstrap(
     n_bootstrap : int, default=1000
         Número de reamostragens bootstrap a serem realizados.
 
-    random_state : int ou None, default = None
+    random_state : int, Generator ou None, default=None
         Seed para o gerador de números aleatórios.
 
     Returns
