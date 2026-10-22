@@ -56,7 +56,7 @@ class Ridge(BaseEstimator, RegressorMixin):
             Se intercept não for booleano.
         """
 
-        if (not isinstance(self.self.alpha, (int, float, np.integer, np.floating))
+        if (not isinstance(self.alpha, (int, float, np.integer, np.floating))
             or isinstance(self.alpha, (bool, np.bool_))
             or not np.isfinite(self.alpha)
             or self.alpha < 0):
