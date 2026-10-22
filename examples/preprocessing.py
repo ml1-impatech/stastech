@@ -20,8 +20,7 @@ print("Teste sem NaN:\n", X_test)
 # 2) Padronizar: média 0 e desvio 1 (ajustado só no treino).
 scaler = StandardScaler().fit(X_train)
 print("Padronizado:\n", scaler.transform(X_train))
-print("Voltando ao original:\n",
-      scaler.inverse_transform(scaler.transform(X_train)))
+print("Voltando ao original:\n", scaler.inverse_transform(scaler.transform(X_train)))
 
 # 3) Escalar para o intervalo [0, 1].
 print("Min-max:\n", MinMaxScaler().fit_transform(X_train))

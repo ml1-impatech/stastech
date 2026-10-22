@@ -6,7 +6,11 @@ import numpy as np
 from numpy.typing import ArrayLike, NDArray
 
 from statstech.base import BaseEstimator, TransformerMixin
-from statstech.utils.validation import check_array, check_is_fitted
+from statstech.utils.validation import (
+    check_array,
+    check_is_fitted,
+    check_n_features,
+)
 
 _STRATEGIES = ("mean", "median", "most_frequent")
 
@@ -35,13 +39,6 @@ class SimpleImputer(BaseEstimator, TransformerMixin):
         Valor de preenchimento de cada coluna.
     n_features_in_ : int
         Número de colunas vistas no fit.
-
-    Examples
-    --------
-    >>> X = [[1.0, 2.0], [3.0, float("nan")]]
-    >>> SimpleImputer().fit_transform(X)
-    array([[1., 2.],
-           [3., 2.]])
     """
 
     def __init__(self, strategy: str = "mean") -> None:
@@ -72,8 +69,7 @@ class SimpleImputer(BaseEstimator, TransformerMixin):
         """
         if self.strategy not in _STRATEGIES:
             raise ValueError(
-                f"strategy '{self.strategy}' inválida. "
-                f"Opções: {list(_STRATEGIES)}"
+                f"strategy '{self.strategy}' inválida. Opções: {list(_STRATEGIES)}"
             )
 
         X = check_array(X, allow_nan=True).astype(float)
@@ -81,9 +77,7 @@ class SimpleImputer(BaseEstimator, TransformerMixin):
         all_nan = np.isnan(X).all(axis=0)
         if all_nan.any():
             cols = np.flatnonzero(all_nan).tolist()
-            raise ValueError(
-                f"As colunas {cols} só têm NaN, não dá para preenchê-las."
-            )
+            raise ValueError(f"As colunas {cols} só têm NaN, não dá para preenchê-las.")
 
         if self.strategy == "mean":
             self.statistics_ = np.nanmean(X, axis=0)
@@ -122,11 +116,7 @@ class SimpleImputer(BaseEstimator, TransformerMixin):
         check_is_fitted(self, ["statistics_", "n_features_in_"])
         X = check_array(X, allow_nan=True).astype(float)
 
-        if X.shape[1] != self.n_features_in_:
-            raise ValueError(
-                f"X tem {X.shape[1]} features, mas o imputer foi "
-                f"ajustado com {self.n_features_in_}."
-            )
+        check_n_features(X, self.n_features_in_)
 
         # np.where devolve um array novo: o X original não é alterado.
         return np.where(np.isnan(X), self.statistics_, X)

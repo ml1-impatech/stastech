@@ -11,12 +11,14 @@ NAN = np.nan
 
 @pytest.fixture
 def X():
-    return np.array([
-        [1.0, 10.0],
-        [2.0, NAN],
-        [NAN, 30.0],
-        [5.0, 10.0],
-    ])
+    return np.array(
+        [
+            [1.0, 10.0],
+            [2.0, NAN],
+            [NAN, 30.0],
+            [5.0, 10.0],
+        ]
+    )
 
 
 def test_mean_fills_with_mean(X):

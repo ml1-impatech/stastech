@@ -6,16 +6,11 @@ import numpy as np
 from numpy.typing import ArrayLike, NDArray
 
 from statstech.base import BaseEstimator, TransformerMixin
-from statstech.utils.validation import check_array, check_is_fitted
-
-
-def _check_n_features(X: NDArray, n_features: int) -> None:
-    """Erro se X não tiver o número de colunas visto no fit."""
-    if X.shape[1] != n_features:
-        raise ValueError(
-            f"X tem {X.shape[1]} features, mas o escalonador foi "
-            f"ajustado com {n_features}."
-        )
+from statstech.utils.validation import (
+    check_array,
+    check_is_fitted,
+    check_n_features,
+)
 
 
 class StandardScaler(BaseEstimator, TransformerMixin):
@@ -41,16 +36,6 @@ class StandardScaler(BaseEstimator, TransformerMixin):
         recebem 1, para evitar divisão por zero.
     n_features_in_ : int
         Número de colunas vistas no fit.
-
-    References
-    ----------
-    James et al., An Introduction to Statistical Learning, 4.7.6.
-
-    Examples
-    --------
-    >>> scaler = StandardScaler().fit([[1.0], [3.0]])
-    >>> scaler.transform([[2.0]])
-    array([[0.]])
     """
 
     def __init__(self, with_mean: bool = True, with_std: bool = True) -> None:
@@ -112,7 +97,7 @@ class StandardScaler(BaseEstimator, TransformerMixin):
         """
         check_is_fitted(self, ["mean_", "scale_", "n_features_in_"])
         X = check_array(X).astype(float)
-        _check_n_features(X, self.n_features_in_)
+        check_n_features(X, self.n_features_in_)
 
         if self.with_mean:
             X = X - self.mean_
@@ -143,7 +128,7 @@ class StandardScaler(BaseEstimator, TransformerMixin):
         """
         check_is_fitted(self, ["mean_", "scale_", "n_features_in_"])
         X = check_array(X).astype(float)
-        _check_n_features(X, self.n_features_in_)
+        check_n_features(X, self.n_features_in_)
 
         if self.with_std:
             X = X * self.scale_
@@ -176,11 +161,6 @@ class MinMaxScaler(BaseEstimator, TransformerMixin):
         recebem 1, para evitar divisão por zero.
     n_features_in_ : int
         Número de colunas vistas no fit.
-
-    Examples
-    --------
-    >>> MinMaxScaler().fit_transform([[0.0], [5.0], [10.0]]).ravel()
-    array([0. , 0.5, 1. ])
     """
 
     def __init__(self, feature_range: tuple[float, float] = (0, 1)) -> None:
@@ -196,9 +176,7 @@ class MinMaxScaler(BaseEstimator, TransformerMixin):
                 "feature_range deve ser uma tupla (mínimo, máximo)."
             ) from None
         if not low < high:
-            raise ValueError(
-                "feature_range: o mínimo deve ser menor que o máximo."
-            )
+            raise ValueError("feature_range: o mínimo deve ser menor que o máximo.")
         return float(low), float(high)
 
     def fit(self, X: ArrayLike, y: None = None) -> Self:
@@ -252,12 +230,10 @@ class MinMaxScaler(BaseEstimator, TransformerMixin):
             Se X for inválido ou tiver número de colunas diferente
             do fit.
         """
-        check_is_fitted(
-            self, ["data_min_", "data_range_", "n_features_in_"]
-        )
+        check_is_fitted(self, ["data_min_", "data_range_", "n_features_in_"])
         low, high = self._get_range()
         X = check_array(X).astype(float)
-        _check_n_features(X, self.n_features_in_)
+        check_n_features(X, self.n_features_in_)
 
         X_01 = (X - self.data_min_) / self.data_range_
         return X_01 * (high - low) + low
@@ -283,12 +259,10 @@ class MinMaxScaler(BaseEstimator, TransformerMixin):
             Se X for inválido ou tiver número de colunas diferente
             do fit.
         """
-        check_is_fitted(
-            self, ["data_min_", "data_range_", "n_features_in_"]
-        )
+        check_is_fitted(self, ["data_min_", "data_range_", "n_features_in_"])
         low, high = self._get_range()
         X = check_array(X).astype(float)
-        _check_n_features(X, self.n_features_in_)
+        check_n_features(X, self.n_features_in_)
 
         X_01 = (X - low) / (high - low)
         return X_01 * self.data_range_ + self.data_min_

@@ -58,8 +58,7 @@ def test_label_invalid_inputs():
 
 @pytest.fixture
 def X():
-    return np.array([["azul", "P"], ["verde", "G"], ["azul", "M"],
-                     ["vermelho", "P"]])
+    return np.array([["azul", "P"], ["verde", "G"], ["azul", "M"], ["vermelho", "P"]])
 
 
 def test_onehot_hand_made_example():
