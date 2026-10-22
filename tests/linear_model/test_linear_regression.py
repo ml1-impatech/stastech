@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from statstech.linear_model.linear_regresion import LinearRegression
+from statstech.linear_model.linear_regression import LinearRegression
 
 def test_fit_noiseless_data_coefficients_and_intercept():
     X = np.array([[1, 2],
@@ -17,7 +17,7 @@ def test_fit_noiseless_data_coefficients_and_intercept():
     model.fit(X, y)
 
     np.testing.assert_allclose(model.coef_, [3, -2], atol = 1e-8)
-    np.testing.assert_allclose(model.interept_, 5, atol = 1e-8)
+    np.testing.assert_allclose(model.intercept_, 5, atol = 1e-8)
 
 
 def test_result_matches_numpy_lstsq():
@@ -92,7 +92,7 @@ def test_fit_multiple_features():
     model = LinearRegression()
     model.fit(X, y)
 
-    np.testing.assert_allclose(model.coef_[2, 3])
+    np.testing.assert_allclose(model.coef_, [2, 3], atol=1e-8)
     assert model.intercept_ == pytest.approx(1)
 
 def test_fit_without_intercept():
@@ -103,7 +103,7 @@ def test_fit_without_intercept():
 
     y = np.array([2, 4, 6], dtype = float)
 
-    model = LinearRegression()
+    model = LinearRegression(fit_intercept=False)
     model.fit(X, y)
 
     np.testing.assert_allclose(model.coef_, [2])
@@ -140,7 +140,7 @@ def test_predict_wrong_number_of_features():
     model.fit(X, y)
 
     with pytest.raises(ValueError):
-        model.predict(np.array[[4]])
+        model.predict(np.array([[4]]))
 
 def test_predict_output_shape():
     X_train = np.array([[1], [2], [3]],
