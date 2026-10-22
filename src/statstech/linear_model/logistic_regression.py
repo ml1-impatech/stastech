@@ -4,9 +4,9 @@ import numpy as np
 
 from statstech.base import BaseEstimator, ClassifierMixin
 from statstech.utils.validation import (
-    check_X_y,
     check_array,
     check_is_fitted,
+    check_X_y,
 )
 
 
@@ -69,9 +69,7 @@ class LogisticRegression(BaseEstimator, ClassifierMixin):
             Se algum parâmetro tiver um valor inválido.
         """
         if (
-            not isinstance(
-                self.learning_rate, (int, float, np.integer, np.floating)
-            )
+            not isinstance(self.learning_rate, (int, float, np.integer, np.floating))
             or isinstance(self.learning_rate, (bool, np.bool_))
             or not np.isfinite(self.learning_rate)
             or self.learning_rate <= 0
@@ -94,7 +92,7 @@ class LogisticRegression(BaseEstimator, ClassifierMixin):
             raise ValueError("tol deve ser não negativo e finito.")
 
         if not isinstance(self.fit_intercept, (bool, np.bool_)):
-            raise ValueError("fit_intercept deve ser booleano.")
+            raise TypeError("fit_intercept deve ser booleano.")
 
         if (
             not isinstance(self.alpha, (int, float, np.integer, np.floating))
@@ -221,7 +219,7 @@ class LogisticRegression(BaseEstimator, ClassifierMixin):
 
         coef = np.zeros((p, K))
         intercept = np.zeros(K) if self.fit_intercept else None
-        loss_history = []
+        loss_history: list[float] = []
 
         for iteration in range(self.max_iter):
             loss, gradient, intercept_gradient = self._loss_and_gradient(
@@ -286,6 +284,9 @@ class LogisticRegression(BaseEstimator, ClassifierMixin):
             raise ValueError(
                 "X deve ter o mesmo número de características usado no fit."
             )
+        
+        if self.intercept_ is None:
+            raise RuntimeError("O intercepto não foi inicializado.")
 
         z = X @ self.coef_ + self.intercept_
         # evita que a exponencial exploda

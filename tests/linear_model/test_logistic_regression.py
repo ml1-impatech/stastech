@@ -8,15 +8,9 @@ from statstech.utils.validation import NotFittedError
 
 
 def test_fit_multiclasse():
-    X = np.array([
-        [1.0, 2.0],
-        [2.0, 1.0],
-        [4.0, 5.0],
-        [5.0, 4.0],
-        [8.0, 9.0],
-        [9.0, 8.0]
-
-    ])
+    X = np.array(
+        [[1.0, 2.0], [2.0, 1.0], [4.0, 5.0], [5.0, 4.0], [8.0, 9.0], [9.0, 8.0]]
+    )
     y = np.array([0, 0, 1, 1, 2, 2])
 
     model = LogisticRegression(max_iter=100)
@@ -29,15 +23,9 @@ def test_fit_multiclasse():
 
 
 def test_loss_decreases():
-    X = np.array([
-        [1.0, 2.0],
-        [2.0, 1.0],
-        [4.0, 5.0],
-        [5.0, 4.0],
-        [8.0, 9.0],
-        [9.0, 8.0]
-
-    ])
+    X = np.array(
+        [[1.0, 2.0], [2.0, 1.0], [4.0, 5.0], [5.0, 4.0], [8.0, 9.0], [9.0, 8.0]]
+    )
     y = np.array([0, 0, 1, 1, 2, 2])
 
     model = LogisticRegression(max_iter=100)
@@ -47,14 +35,9 @@ def test_loss_decreases():
 
 
 def test_fit_respect_max_iter():
-    X = np.array([
-        [1.0, 2.0],
-        [2.0, 1.0],
-        [4.0, 5.0],
-        [5.0, 4.0],
-        [8.0, 9.0],
-        [9.0, 8.0]
-    ])
+    X = np.array(
+        [[1.0, 2.0], [2.0, 1.0], [4.0, 5.0], [5.0, 4.0], [8.0, 9.0], [9.0, 8.0]]
+    )
     y = np.array([0, 0, 1, 1, 2, 2])
 
     model = LogisticRegression(max_iter=5, tol=0)
@@ -64,14 +47,9 @@ def test_fit_respect_max_iter():
 
 
 def test_fit_convergence_criterion():
-    X = np.array([
-        [1.0, 2.0],
-        [2.0, 1.0],
-        [4.0, 5.0],
-        [5.0, 4.0],
-        [8.0, 9.0],
-        [9.0, 8.0]
-    ])
+    X = np.array(
+        [[1.0, 2.0], [2.0, 1.0], [4.0, 5.0], [5.0, 4.0], [8.0, 9.0], [9.0, 8.0]]
+    )
     y = np.array([0, 0, 1, 1, 2, 2])
 
     model = LogisticRegression(max_iter=100, tol=100)
@@ -81,14 +59,9 @@ def test_fit_convergence_criterion():
 
 
 def test_gradient_finite_difference():
-    X = np.array([
-        [1.0, 2.0],
-        [2.0, 1.0],
-        [4.0, 5.0],
-        [5.0, 4.0],
-        [8.0, 9.0],
-        [9.0, 8.0]
-    ])
+    X = np.array(
+        [[1.0, 2.0], [2.0, 1.0], [4.0, 5.0], [5.0, 4.0], [8.0, 9.0], [9.0, 8.0]]
+    )
     y = np.array([0, 0, 1, 1, 2, 2])
 
     model = LogisticRegression(max_iter=100)
@@ -116,12 +89,8 @@ def test_gradient_finite_difference():
             coef_incr[i, j] += h
             coef_decr[i, j] -= h
 
-            loss_incr, _, _ = model._loss_and_gradient(
-                X, Y, coef_incr, intercept
-            )
-            loss_decr, _, _ = model._loss_and_gradient(
-                X, Y, coef_decr, intercept
-            )
+            loss_incr, _, _ = model._loss_and_gradient(X, Y, coef_incr, intercept)
+            loss_decr, _, _ = model._loss_and_gradient(X, Y, coef_decr, intercept)
 
             numerical_gradient[i, j] = (loss_incr - loss_decr) / (2 * h)
 
@@ -133,14 +102,9 @@ def test_gradient_finite_difference():
 
 
 def test_predict_proba_interval():
-    X = np.array([
-        [1.0, 2.0],
-        [2.0, 1.0],
-        [4.0, 5.0],
-        [5.0, 4.0],
-        [8.0, 9.0],
-        [9.0, 8.0]
-    ])
+    X = np.array(
+        [[1.0, 2.0], [2.0, 1.0], [4.0, 5.0], [5.0, 4.0], [8.0, 9.0], [9.0, 8.0]]
+    )
     y = np.array([0, 0, 1, 1, 2, 2])
 
     model = LogisticRegression(max_iter=100)
@@ -155,14 +119,9 @@ def test_predict_proba_interval():
 
 
 def test_predict_proba_sum_one():
-    X = np.array([
-        [1.0, 2.0],
-        [2.0, 1.0],
-        [4.0, 5.0],
-        [5.0, 4.0],
-        [8.0, 9.0],
-        [9.0, 8.0]
-    ])
+    X = np.array(
+        [[1.0, 2.0], [2.0, 1.0], [4.0, 5.0], [5.0, 4.0], [8.0, 9.0], [9.0, 8.0]]
+    )
     y = np.array([0, 0, 1, 1, 2, 2])
 
     model = LogisticRegression(max_iter=100)
@@ -180,14 +139,9 @@ def test_predict_proba_sum_one():
 
 
 def test_predict_proba_format():
-    X = np.array([
-        [1.0, 2.0],
-        [2.0, 1.0],
-        [4.0, 5.0],
-        [5.0, 4.0],
-        [8.0, 9.0],
-        [9.0, 8.0]
-    ])
+    X = np.array(
+        [[1.0, 2.0], [2.0, 1.0], [4.0, 5.0], [5.0, 4.0], [8.0, 9.0], [9.0, 8.0]]
+    )
     y = np.array([0, 0, 1, 1, 2, 2])
 
     model = LogisticRegression(max_iter=100)
@@ -199,14 +153,9 @@ def test_predict_proba_format():
 
 
 def test_predict_text_labels():
-    X = np.array([
-        [1.0, 2.0],
-        [2.0, 1.0],
-        [4.0, 5.0],
-        [5.0, 4.0],
-        [8.0, 9.0],
-        [9.0, 8.0]
-    ])
+    X = np.array(
+        [[1.0, 2.0], [2.0, 1.0], [4.0, 5.0], [5.0, 4.0], [8.0, 9.0], [9.0, 8.0]]
+    )
     y = np.array(["não", "não", "sim", "sim", "talvez", "talvez"])
 
     model = LogisticRegression(max_iter=1000)
@@ -219,14 +168,9 @@ def test_predict_text_labels():
 
 
 def test_predict_format():
-    X = np.array([
-        [1.0, 2.0],
-        [2.0, 1.0],
-        [4.0, 5.0],
-        [5.0, 4.0],
-        [8.0, 9.0],
-        [9.0, 8.0]
-    ])
+    X = np.array(
+        [[1.0, 2.0], [2.0, 1.0], [4.0, 5.0], [5.0, 4.0], [8.0, 9.0], [9.0, 8.0]]
+    )
     y = np.array([0, 0, 1, 1, 2, 2])
 
     model = LogisticRegression(max_iter=100)
@@ -238,17 +182,19 @@ def test_predict_format():
 
 
 def test_predict_high_accuracy_separated_data():
-    X = np.array([
-        [1.0, 1.0],
-        [1.0, 2.0],
-        [2.0, 1.0],
-        [5.0, 5.0],
-        [5.0, 6.0],
-        [6.0, 5.0],
-        [9.0, 9.0],
-        [9.0, 10.0],
-        [10.0, 9.0]
-    ])
+    X = np.array(
+        [
+            [1.0, 1.0],
+            [1.0, 2.0],
+            [2.0, 1.0],
+            [5.0, 5.0],
+            [5.0, 6.0],
+            [6.0, 5.0],
+            [9.0, 9.0],
+            [9.0, 10.0],
+            [10.0, 9.0],
+        ]
+    )
     y = np.array([0, 0, 0, 1, 1, 1, 2, 2, 2])
 
     model = LogisticRegression(max_iter=1000)
@@ -268,17 +214,19 @@ def test_predict_high_accuracy_separated_data():
 
 
 def test_predict_choose_highest_probability():
-    X = np.array([
-        [1.0, 1.0],
-        [1.0, 2.0],
-        [2.0, 1.0],
-        [5.0, 5.0],
-        [5.0, 6.0],
-        [6.0, 5.0],
-        [9.0, 9.0],
-        [9.0, 10.0],
-        [10.0, 9.0]
-    ])
+    X = np.array(
+        [
+            [1.0, 1.0],
+            [1.0, 2.0],
+            [2.0, 1.0],
+            [5.0, 5.0],
+            [5.0, 6.0],
+            [6.0, 5.0],
+            [9.0, 9.0],
+            [9.0, 10.0],
+            [10.0, 9.0],
+        ]
+    )
     y = np.array([0, 0, 0, 1, 1, 1, 2, 2, 2])
 
     model = LogisticRegression(max_iter=1000)
@@ -298,17 +246,19 @@ def test_predict_choose_highest_probability():
 
 
 def test_fit_intercept_false():
-    X = np.array([
-        [1.0, 1.0],
-        [1.0, 2.0],
-        [2.0, 1.0],
-        [5.0, 5.0],
-        [5.0, 6.0],
-        [6.0, 5.0],
-        [9.0, 9.0],
-        [9.0, 10.0],
-        [10.0, 9.0]
-    ])
+    X = np.array(
+        [
+            [1.0, 1.0],
+            [1.0, 2.0],
+            [2.0, 1.0],
+            [5.0, 5.0],
+            [5.0, 6.0],
+            [6.0, 5.0],
+            [9.0, 9.0],
+            [9.0, 10.0],
+            [10.0, 9.0],
+        ]
+    )
     y = np.array([0, 0, 0, 1, 1, 1, 2, 2, 2])
 
     model = LogisticRegression(max_iter=1000, fit_intercept=False)
@@ -326,17 +276,19 @@ def test_fit_intercept_false():
 
 
 def test_regularization_l2():
-    X = np.array([
-        [1.0, 2.0],
-        [2.0, 1.0],
-        [2.0, 3.0],
-        [4.0, 5.0],
-        [5.0, 4.0],
-        [5.0, 6.0],
-        [8.0, 9.0],
-        [9.0, 8.0],
-        [9.0, 10.0]
-    ])
+    X = np.array(
+        [
+            [1.0, 2.0],
+            [2.0, 1.0],
+            [2.0, 3.0],
+            [4.0, 5.0],
+            [5.0, 4.0],
+            [5.0, 6.0],
+            [8.0, 9.0],
+            [9.0, 8.0],
+            [9.0, 10.0],
+        ]
+    )
     y = np.array([0, 0, 0, 1, 1, 1, 2, 2, 2])
 
     model_without_l2 = LogisticRegression(max_iter=1000, alpha=0)
@@ -358,50 +310,35 @@ def test_regularization_l2():
 def test_learning_rate_invalid():
     model = LogisticRegression(learning_rate=0)
 
-    with pytest.raises(
-        ValueError,
-        match="learning_rate deve ser positivo e finito"
-    ):
+    with pytest.raises(ValueError, match="learning_rate deve ser positivo e finito"):
         model.fit(np.array([[1], [2]]), np.array([0, 1]))
 
 
 def test_max_iter_invalid():
     model = LogisticRegression(max_iter=0)
 
-    with pytest.raises(
-        ValueError,
-        match="max_iter deve ser um inteiro positivo"
-    ):
+    with pytest.raises(ValueError, match="max_iter deve ser um inteiro positivo"):
         model.fit(np.array([[1], [2]]), np.array([0, 1]))
 
 
 def test_tol_invalid():
     model = LogisticRegression(tol=-1)
 
-    with pytest.raises(
-        ValueError,
-        match="tol deve ser não negativo e finito"
-    ):
+    with pytest.raises(ValueError, match="tol deve ser não negativo e finito"):
         model.fit(np.array([[1], [2]]), np.array([0, 1]))
 
 
 def test_fit_intercept_invalid():
     model = LogisticRegression(fit_intercept=1)
 
-    with pytest.raises(
-        ValueError,
-        match="fit_intercept deve ser booleano"
-    ):
+    with pytest.raises(TypeError, match="fit_intercept deve ser booleano"):
         model.fit(np.array([[1], [2]]), np.array([0, 1]))
 
 
 def test_lambda_invalid():
     model = LogisticRegression(alpha=-1)
 
-    with pytest.raises(
-        ValueError,
-        match="alpha deve ser não negativo e finito"
-    ):
+    with pytest.raises(ValueError, match="alpha deve ser não negativo e finito"):
         model.fit(np.array([[1], [2]]), np.array([0, 1]))
 
 
@@ -528,10 +465,7 @@ def test_predict_proba_model_not_fitted():
 
 def test_predict_proba_X_not_2d():
     model = LogisticRegression()
-    model.fit(
-        np.array([[1, 2], [3, 4]]),
-        np.array([0, 1])
-    )
+    model.fit(np.array([[1, 2], [3, 4]]), np.array([0, 1]))
     X = np.array([1, 2])
 
     with pytest.raises(
@@ -543,10 +477,7 @@ def test_predict_proba_X_not_2d():
 
 def test_predict_proba_different_features():
     model = LogisticRegression()
-    model.fit(
-        np.array([[1, 2], [3, 4]]),
-        np.array([0, 1])
-    )
+    model.fit(np.array([[1, 2], [3, 4]]), np.array([0, 1]))
     X = np.array([[1, 2, 3]])
 
     with pytest.raises(
@@ -558,10 +489,7 @@ def test_predict_proba_different_features():
 
 def test_predict_proba_empty_X():
     model = LogisticRegression()
-    model.fit(
-        np.array([[1, 2], [3, 4]]),
-        np.array([0, 1])
-    )
+    model.fit(np.array([[1, 2], [3, 4]]), np.array([0, 1]))
     X = np.empty((0, 2))
 
     with pytest.raises(
@@ -573,10 +501,7 @@ def test_predict_proba_empty_X():
 
 def test_predict_proba_X_non_finite():
     model = LogisticRegression()
-    model.fit(
-        np.array([[1, 2], [3, 4]]),
-        np.array([0, 1])
-    )
+    model.fit(np.array([[1, 2], [3, 4]]), np.array([0, 1]))
     X = np.array([[1, np.inf]])
 
     with pytest.raises(
