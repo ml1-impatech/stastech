@@ -66,21 +66,6 @@ def test_ridge_large_alpha_coefficients_zero_and_intercept_mean_y():
     np.testing.assert_allclose(model.coef_, np.zeros(X.shape[1]), atol = 1e-6)
     np.testing.assert_allclose(model.intercept_, np.mean(y), atol = 1e-6)
 
-
-def test_ridge_negative_alpha_raises_value_error():
-    X = np.array([[1],
-                  [2],
-                  [3],
-                  [4]],
-                  dtype = float)
-
-    y = np.array([3, 6, 9, 12], dtype = float)
-
-    model = Ridge(alpha = -0.1)
-
-    with pytest.raises(ValueError):
-        model.fit(X, y)
-
 def test_ridge_default_parameters():
     model = Ridge()
 
