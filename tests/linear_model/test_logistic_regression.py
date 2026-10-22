@@ -318,6 +318,11 @@ def test_fit_intercept_false():
 
     assert predictions.shape == y.shape
     assert np.any(model.coef_ != 0)
+    assert hasattr(model, "intercept_")
+    np.testing.assert_array_equal(
+        model.intercept_,
+        np.zeros(len(model.classes_)),
+    )
 
 
 def test_regularization_l2():

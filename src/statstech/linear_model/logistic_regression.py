@@ -31,7 +31,8 @@ class LogisticRegression(BaseEstimator, ClassifierMixin):
     coef_ : ndarray
         Matriz de coeficientes estimados.
     intercept_ : ndarray
-        Vetor de termos independentes, quando fit_intercept=True.
+        Vetor de interceptos estimados, ou vetor de zeros quando
+        fit_intercept=False.
     loss_history_ : list
         Valores da função de perda registrados durante o treinamento.
 
@@ -249,8 +250,8 @@ class LogisticRegression(BaseEstimator, ClassifierMixin):
 
         if self.fit_intercept:
             self.intercept_ = intercept
-        elif hasattr(self, "intercept_"):
-            del self.intercept_
+        else:
+            self.intercept_ = np.zeros(K)
 
         self.loss_history_ = loss_history
 
@@ -284,10 +285,8 @@ class LogisticRegression(BaseEstimator, ClassifierMixin):
             raise ValueError(
                 "X deve ter o mesmo número de características usado no fit."
             )
-        if self.fit_intercept:
-            z = X @ self.coef_ + self.intercept_
-        else:
-            z = X @ self.coef_
+       
+        z = X @ self.coef_ + self.intercept_
         # evita que a exponencial exploda
         z = z - np.max(z, axis=1, keepdims=True)
 
