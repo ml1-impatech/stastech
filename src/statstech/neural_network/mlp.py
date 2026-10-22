@@ -1,11 +1,19 @@
 """Rede neural MLP (perceptron multicamadas) para regressão."""
 
 import warnings
+from itertools import pairwise
+from typing import Self
 
 import numpy as np
+from numpy.typing import ArrayLike
 
 from statstech.base import BaseEstimator, RegressorMixin
-from statstech.utils.validation import check_array, check_is_fitted, check_X_y
+from statstech.utils.validation import (
+    check_array,
+    check_is_fitted,
+    check_n_features,
+    check_X_y,
+)
 
 
 def relu(preactivation: np.ndarray) -> np.ndarray:
@@ -104,19 +112,21 @@ class MLPRegressor(BaseEstimator, RegressorMixin):
         Matrizes de pesos, uma por camada.
     biases_ : list de ndarray
         Vetores de viés, um por camada.
+    n_features_in_ : int
+        Número de features vistas no fit.
     loss_curve_ : list de float
         MSE no conjunto de treino ao fim de cada época.
     """
 
     def __init__(
         self,
-        hidden_layer_sizes=(32,),
-        activation="relu",
-        learning_rate=1e-3,
-        max_iter=200,
-        batch_size=32,
-        random_state=None,
-    ):
+        hidden_layer_sizes: tuple[int, ...] = (32,),
+        activation: str = "relu",
+        learning_rate: float = 1e-3,
+        max_iter: int = 200,
+        batch_size: int = 32,
+        random_state: int | np.random.Generator | None = None,
+    ) -> None:
         self.hidden_layer_sizes = hidden_layer_sizes
         self.activation = activation
         self.learning_rate = learning_rate
@@ -124,7 +134,7 @@ class MLPRegressor(BaseEstimator, RegressorMixin):
         self.batch_size = batch_size
         self.random_state = random_state
 
-    def _check_params(self):
+    def _check_params(self) -> None:
         """Valida os hiperparâmetros.
 
         Raises
@@ -153,13 +163,13 @@ class MLPRegressor(BaseEstimator, RegressorMixin):
                     "hidden_layer_sizes deve conter só inteiros positivos."
                 )
 
-    def _init_weights(self, n_features, rng):
+    def _init_weights(self, n_features: int, rng: np.random.Generator) -> None:
         """Inicializa pesos e vieses de todas as camadas."""
         layer_sizes = [n_features] + list(self.hidden_layer_sizes) + [1]
         weights = []
         biases = []
 
-        for n_in, n_out in zip(layer_sizes[:-1], layer_sizes[1:]):
+        for n_in, n_out in pairwise(layer_sizes):
             scale = np.sqrt(2 / n_in)
             weights.append(rng.normal(0, scale, size=(n_in, n_out)))
             biases.append(np.zeros(n_out))
@@ -167,14 +177,14 @@ class MLPRegressor(BaseEstimator, RegressorMixin):
         self.weights_ = weights
         self.biases_ = biases
 
-    def fit(self, X, y):
+    def fit(self, X: ArrayLike, y: ArrayLike) -> Self:
         """Treina a rede com gradiente descendente em mini-lotes.
 
         Parameters
         ----------
-        X : ndarray de formato (n_amostras, n_features)
+        X : array-like de formato (n_amostras, n_features)
             Dados de treino.
-        y : ndarray de formato (n_amostras,)
+        y : array-like de formato (n_amostras,)
             Valores alvo.
 
         Returns
@@ -185,8 +195,8 @@ class MLPRegressor(BaseEstimator, RegressorMixin):
         Raises
         ------
         ValueError
-            Se `activation` não for uma das opções válidas,
-            ou se X ou y forem inválidos.
+            Se algum hiperparâmetro for inválido, ou
+            se X ou y forem inválidos.
         """
         self._check_params()
         X, y = check_X_y(X, y)
@@ -195,6 +205,7 @@ class MLPRegressor(BaseEstimator, RegressorMixin):
 
         rng = np.random.default_rng(self.random_state)
         n_samples, n_features = X.shape
+        self.n_features_in_ = n_features
         self._init_weights(n_features, rng)
         self.loss_curve_ = []
 
@@ -226,7 +237,7 @@ class MLPRegressor(BaseEstimator, RegressorMixin):
             self.loss_curve_.append(loss)
         return self
 
-    def predict(self, X):
+    def predict(self, X: ArrayLike) -> np.ndarray:
         """Prevê y para cada amostra de X.
 
         Parameters
@@ -249,16 +260,12 @@ class MLPRegressor(BaseEstimator, RegressorMixin):
         """
         check_is_fitted(self)
         X = check_array(X).astype(float)
-        if X.shape[1] != self.weights_[0].shape[0]:
-            raise ValueError(
-                f"X tem {X.shape[1]} features, mas o modelo foi treinado "
-                f"com {self.weights_[0].shape[0]}."
-            )
+        check_n_features(X, self.weights_[0].shape[0])
         _, activations = self._forward(X)
         y_pred = activations[-1][:, 0]
         return y_pred
 
-    def _forward(self, X):
+    def _forward(self, X: np.ndarray) -> tuple[list[np.ndarray], list[np.ndarray]]:
         """Propaga X pela rede, camada por camada."""
         func, _ = ACTIVATIONS[self.activation]
         a = X
@@ -274,15 +281,20 @@ class MLPRegressor(BaseEstimator, RegressorMixin):
             activations.append(a)
         return zs, activations
 
-    def _backward(self, y, zs, activations):
+    def _backward(
+        self,
+        y: np.ndarray,
+        zs: list[np.ndarray],
+        activations: list[np.ndarray],
+    ) -> tuple[list[np.ndarray], list[np.ndarray]]:
         """Calcula os gradientes da loss por backpropagation."""
         n = len(y)
         _, der = ACTIVATIONS[self.activation]
         y_pred = activations[-1]
         y = y.reshape(-1, 1)
         delta = (2 / n) * (y_pred - y) * identity_derivative(zs[-1])
-        grad_W = [None] * len(self.weights_)
-        grad_b = [None] * len(self.biases_)
+        grad_W = [np.zeros_like(W) for W in self.weights_]
+        grad_b = [np.zeros_like(b) for b in self.biases_]
         for layer in range(len(self.weights_) - 1, -1, -1):
             grad_W[layer] = activations[layer].T @ delta  # (h_in, h_out)
             grad_b[layer] = delta.sum(axis=0)  # (h_out,)
