@@ -21,7 +21,7 @@ class LogisticRegression(BaseEstimator, ClassifierMixin):
         Tolerância para o critério de convergência.
     fit_intercept : bool, default=True
         Indica se um termo independente deve ser ajustado.
-    lambda_ : float, default=0.01
+    alpha : float, default=0.01
         Coeficiente de regularização L2.
 
     Attributes
@@ -48,7 +48,7 @@ class LogisticRegression(BaseEstimator, ClassifierMixin):
         max_iter=1000,
         tol=1e-6,
         fit_intercept=True,
-        lambda_=0.01,
+        alpha=0.01,
     ):
         """Inicializa o classificador.
 
@@ -62,14 +62,14 @@ class LogisticRegression(BaseEstimator, ClassifierMixin):
             Tolerância de convergência, finita e não negativa.
         fit_intercept : bool
             Indica se o modelo deve ajustar o intercepto.
-        lambda_ : float
+        alpha : float
             Intensidade da regularização L2, finita e não negativa.
         """
         self.learning_rate = learning_rate
         self.max_iter = max_iter
         self.tol = tol
         self.fit_intercept = fit_intercept
-        self.lambda_ = lambda_
+        self.alpha = alpha
 
     def _check_params(self):
         """Valida os hiperparâmetros do classificador.
@@ -107,12 +107,12 @@ class LogisticRegression(BaseEstimator, ClassifierMixin):
             raise ValueError("fit_intercept deve ser booleano.")
 
         if (
-            not isinstance(self.lambda_, (int, float, np.integer, np.floating))
-            or isinstance(self.lambda_, (bool, np.bool_))
-            or not np.isfinite(self.lambda_)
-            or self.lambda_ < 0
+            not isinstance(self.alpha, (int, float, np.integer, np.floating))
+            or isinstance(self.alpha, (bool, np.bool_))
+            or not np.isfinite(self.alpha)
+            or self.alpha < 0
         ):
-            raise ValueError("lambda_ deve ser não negativo e finito.")
+            raise ValueError("alpha deve ser não negativo e finito.")
 
     def _loss_and_gradient(self, X, Y, coef, intercept):
         """Calcula a função de perda e seus gradientes.
@@ -163,14 +163,14 @@ class LogisticRegression(BaseEstimator, ClassifierMixin):
 
         loss = -np.sum(Y * np.log(P)) / n
 
-        if self.lambda_ > 0:
-            L2 = (self.lambda_ / (2 * n)) * np.sum(coef**2)
+        if self.alpha > 0:
+            L2 = (self.alpha / (2 * n)) * np.sum(coef**2)
             loss = loss + L2
 
         gradient = (X.T @ (P - Y)) / n
 
-        if self.lambda_ > 0:
-            gradient = gradient + (self.lambda_ / n) * coef
+        if self.alpha > 0:
+            gradient = gradient + (self.alpha / n) * coef
 
         if self.fit_intercept:
             intercept_gradient = np.mean(P - Y, axis=0)
