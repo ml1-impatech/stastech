@@ -113,7 +113,7 @@ class Ridge(BaseEstimator, RegressorMixin):
         A = X_centered.T @ X_centered + self.alpha * I
         b = X_centered.T @ y_centered
 
-        self.coef_ = np.linalg.lstsq(A, b, rcond = None)
+        self.coef_, *_ = np.linalg.lstsq(A, b, rcond = None)
 
         if self.fit_intercept:
              self.intercept_ = y_mean - X_mean @ self.coef_

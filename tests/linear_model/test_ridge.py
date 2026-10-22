@@ -73,13 +73,30 @@ def test_ridge_default_parameters():
     assert model.fit_intercept is True
 
 def test_ridge_invalid_alpha_raises_value_error():
-    with pytest.raises(ValueError):
-        Ridge(alpha = -0.1)
+    X = np.array([[1, 3],
+                 [4, 7],
+                 [5, 6]],
+                 dtype = float )
 
+    y = np.array([3, 5, 7], dtype = float)
+
+    model = Ridge(alpha = -0.1)
+
+    with pytest.raises(ValueError):
+        model.fit(X, y)
 
 def test_ridge_invalid_fit_intercept_raises_value_error():
+    X = np.array([[1, 3],
+                 [4, 7],
+                 [5, 6]],
+                 dtype = float )
+
+    y = np.array([3, 5, 7], dtype = float)
+
+    model = Ridge(fit_intercept = 1)
+
     with pytest.raises(ValueError):
-        Ridge(fit_intercept = 1)
+        model.fit(X, y)
 
 def test_ridge_fit_returns_self():
     X = np.array([[1, 3],

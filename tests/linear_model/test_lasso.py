@@ -57,12 +57,12 @@ def test_lasso_features_selection_zeros_irrelevant_features():
 def test_lasso_soft_threshold_function_with_manual_values():
     threshold = 2.0
 
-    assert Lasso._sort_threshold(5.0, threshold) == 3.0
-    assert Lasso._sort_threshold(-5.0, threshold) == -3.0
-    assert Lasso._sort_threshold(1.0, threshold) == 0.0
-    assert Lasso._sort_threshold(-1.0, threshold) == 0.0
-    assert Lasso._sort_threshold(2.0, threshold) == 0.0
-    assert Lasso._sort_threshold(-2.0, threshold) == 0.0
+    assert Lasso._soft_threshold(5.0, threshold) == 3.0
+    assert Lasso._soft_threshold(-5.0, threshold) == -3.0
+    assert Lasso._soft_threshold(1.0, threshold) == 0.0
+    assert Lasso._soft_threshold(-1.0, threshold) == 0.0
+    assert Lasso._soft_threshold(2.0, threshold) == 0.0
+    assert Lasso._soft_threshold(-2.0, threshold) == 0.0
 
 def test_lasso_defaut_parameter():
     model = Lasso()
@@ -73,20 +73,61 @@ def test_lasso_defaut_parameter():
     assert model.max_iter == 1000
 
 def test_lasso_invalid_alpha_raises_value_error():
+    X = np.array([[1, 2], 
+                  [2, 1],
+                  [3, 4],
+                  [4, 3],],
+                  dtype = float)
+
+    y = np.array([4, 7, 8, 11], dtype = float)
+
+    model = Lasso(alpha = -0.1)
+
     with pytest.raises(ValueError):
-        Lasso(alpha = -0.1)
+        model.fit(X, y)
 
 def test_lasso_invalid_tol_raises_value_error():
+    X = np.array([[1, 2], 
+                  [2, 1],
+                  [3, 4],
+                  [4, 3],],
+                  dtype = float)
+
+    y = np.array([4, 7, 8, 11], dtype = float)
+
+    model = Lasso(tol = -0.1)
+
     with pytest.raises(ValueError):
-        Lasso(tol = -0.1)
+        model.fit(X, y)
 
 def test_lasso_invalid_max_iter_raises_value_error():
-    with pytest.raises(ValueError):
-        Lasso(max_iter = -1)
+    X = np.array([[1, 2], 
+                  [2, 1],
+                  [3, 4],
+                  [4, 3],],
+                  dtype = float)
 
-def test_lasso_invalid_fit_intercept_raises_value_error():
+    y = np.array([4, 7, 8, 11], dtype = float)
+
+    model = Lasso(max_iter = -1)
+
     with pytest.raises(ValueError):
-        Lasso(fit_intercept = 0)
+        model.fit(X, y)
+        
+def test_lasso_invalid_fit_intercept_raises_value_error():
+    X = np.array([[1, 2], 
+                  [2, 1],
+                  [3, 4],
+                  [4, 3],],
+                  dtype = float)
+
+    y = np.array([4, 7, 8, 11], dtype = float)
+
+    model = Lasso(fit_intercept = 0)
+
+    with pytest.raises(ValueError):
+        model.fit(X, y)
+        
 
 def test_lasso_fit_returs_self():
     X = np.array([[1, 2], 

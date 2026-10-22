@@ -84,7 +84,7 @@ class Lasso(BaseEstimator, RegressorMixin):
 
         if (isinstance(self.max_iter, (bool, np.bool_))
             or not isinstance(self.max_iter, (int, np.integer))
-            or self.max_iter > 0):
+            or self.max_iter < 0):
             raise ValueError("max_iter deve ser um valor inteiro positivo")
           
             

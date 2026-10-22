@@ -77,12 +77,24 @@ def test_polynomial_features_without_bias():
     np.testing.assert_array_equal(X_poly, np.array([[2, 3, 4, 6, 9]], dtype = float))
 
 def test_polynomial_features_invalid_degree_raises_value_error():
+    X = np.array([[2, 3],
+                      [4, 5]],
+                      dtype = float)
+        
+    poly = PolynomialFeatures(degree = -1)
+    
     with pytest.raises(ValueError):
-        PolynomialFeatures(degree = -1)
+        X_poly = poly.fit_transform(X)
 
 def test_polynomial_features_invalide_include_bias_raises_value_error():
+    X = np.array([[2, 3],
+                      [4, 5]],
+                      dtype = float)
+        
+    poly = PolynomialFeatures(include_bias = 0)
+    
     with pytest.raises(ValueError):
-        PolynomialFeatures(include_bias = 0)
+        X_poly = poly.fit_transform(X)
 
 def test_polynomial_features_transform_without_fit_raises_error():
     poly = PolynomialFeatures()
@@ -122,7 +134,7 @@ def test_polynomial_features_fit_transform_matches_fit_and_transform():
                   dtype = float)
 
     poly_1 = PolynomialFeatures(degree = 3)
-    X_poly_1 = poly_1.fit_tranform(X)
+    X_poly_1 = poly_1.fit_transform(X)
 
     poly_2 = PolynomialFeatures(degree = 3)
     poly_2 = poly_2.fit(X)

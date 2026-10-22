@@ -37,7 +37,7 @@ def test_result_matches_numpy_lstsq():
     coef_ref = np.linalg.lstsq(X_augmented, y, rcond = None)[0]
 
     np.testing.assert_allclose(model.intercept_, coef_ref[0], atol = 1e-8)
-    np.testing.assert_allclose(model.coef_, coef_ref[1, :], atol = 1e-8)
+    np.testing.assert_allclose(model.coef_, coef_ref[1:], atol = 1e-8)
 
 
 def test_fit_intercept_false_through_origin():
