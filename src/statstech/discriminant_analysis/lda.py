@@ -13,13 +13,28 @@ class LinearDiscriminantAnalysis(BaseEstimator, ClassifierMixin):
 
     Parameters
     ----------
-    priors : array-like, default=None
-        Probabilidades a priori de cada classe.
-        Se None, são calculadas a partir dos dados de treinamento.
+    priors : array-like of shape (n_classes,), default=None
+        Probabilidades a priori de cada classe. Se None, são calculadas
+        a partir das frequências das classes nos dados de treinamento.
     reg_param : float, default=1e-6
         Valor adicionado à diagonal da matriz de covariância
         para evitar problemas numéricos.
-    """
+    
+    Attributes
+    ----------
+    classes_ : ndarray of shape (n_classes,)
+        Rótulos das classes encontradas durante o ajuste.
+
+    priors_ : ndarray of shape (n_classes,)
+        Probabilidades a priori utilizadas para cada classe.
+
+    means_ : ndarray of shape (n_classes, n_features)
+        Vetores de médias estimados para cada classe.
+
+    covariance_ : ndarray of shape (n_features, n_features)
+        Matriz de covariância compartilhada entre as classes,
+        com regularização aplicada.
+        """
 
     def __init__(self, priors=None, reg_param=1e-6):
         """Inicializa os parâmetros do modelo."""
