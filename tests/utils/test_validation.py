@@ -1,10 +1,13 @@
 import numpy as np
 import pytest
 
-from statstech.utils.validation import (NotFittedError, 
-                                        check_array,
-                                        check_X_y,
-                                        check_is_fitted)
+from statstech.utils.validation import (
+    NotFittedError,
+    check_array,
+    check_is_fitted,
+    check_n_features,
+    check_X_y,
+)
 
 # testes de check_array
 
@@ -138,3 +141,19 @@ def test_check_is_fitted_com_lista_nao_treinado(attributes):
 def test_check_is_fitted_falta_algum_a_treinar():
     with pytest.raises(NotFittedError, match=r"\['intercept_'\]"):
         check_is_fitted(Modelo().fit(), ["coef_", "intercept_"])
+
+# testes de check_n_features
+
+def test_check_n_features_ok():
+    check_n_features(np.ones((5, 3)), 3)
+
+
+@pytest.mark.parametrize("n_cols", [2, 4])
+def test_check_n_features_wrong(n_cols):
+    with pytest.raises(ValueError, match=f"X tem {n_cols} features"):
+        check_n_features(np.ones((5, n_cols)), 3)
+
+
+def test_check_n_features_uses_name():
+    with pytest.raises(ValueError, match="^Z tem"):
+        check_n_features(np.ones((5, 2)), 3, name="Z")
