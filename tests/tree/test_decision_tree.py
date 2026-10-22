@@ -2,7 +2,6 @@
 
 import numpy as np
 import pytest
-
 from statstech.base import clone
 from statstech.model_selection.search import GridSearchCV
 from statstech.model_selection.validation import cross_val_score
