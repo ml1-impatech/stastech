@@ -1,24 +1,36 @@
+"""Agrupamento k-means.
+ 
+Contém a classe KMeans, que agrupa os dados pelo algoritmo de Lloyd,
+com inicialização aleatória ou k-means++.
+"""
+ 
 import numpy as np
+from numpy.typing import ArrayLike
+ 
 from statstech.base import BaseEstimator
 from statstech.utils.distances import pairwise_distances
 from statstech.utils.validation import check_array, check_is_fitted
-
+ 
+ 
 class KMeans(BaseEstimator):
     """Agrupamento k-means pelo algoritmo de Lloyd.
+ 
     Divide os dados em n_clusters grupos, alternando entre atribuir cada
     ponto ao centro mais próximo e mover cada centro para a média dos
     seus pontos. O algoritmo roda n_init vezes, com inícios diferentes,
     e fica com a rodada de menor inércia.
+ 
     O k-means usa distância euclidiana e é sensível à escala das
     features. Se elas estiverem em escalas diferentes, use o
     StandardScaler antes.
-
+ 
     Decisões de implementação:
+ 
     - Cluster vazio: o centro é movido para o ponto mais distante do
       seu centro atual.
     - Critério de parada: a soma dos deslocamentos ao quadrado dos
       centros entre duas iterações fica menor ou igual a tol.
-
+ 
     Parameters
     ----------
     n_clusters : int, default=8
@@ -37,7 +49,7 @@ class KMeans(BaseEstimator):
         quadrado até o centro mais próximo já escolhido.
     random_state : int ou None, default=None
         Semente do gerador aleatório, para resultados reprodutíveis.
-
+ 
     Attributes
     ----------
     cluster_centers_ : ndarray de formato (n_clusters, n_features)
@@ -52,57 +64,93 @@ class KMeans(BaseEstimator):
     n_features_in_ : int
         Número de features vistas no fit.
     """
+ 
     def __init__(
         self,
-        n_clusters=8,
-        n_init=10,
-        max_iter=300,
-        tol=1e-4,
-        init="k-means++",
-        random_state=None,
-    ):
+        n_clusters: int = 8,
+        n_init: int = 10,
+        max_iter: int = 300,
+        tol: float = 1e-4,
+        init: str = "k-means++",
+        random_state: int | None = None,
+    ) -> None:
         self.n_clusters = n_clusters
         self.n_init = n_init
         self.max_iter = max_iter
         self.tol = tol
         self.init = init
         self.random_state = random_state
-
-    def _init_random(self, X, rng):
+ 
+    def _check_params(self, n_samples: int) -> None:
+        """Levanta ValueError se algum hiperparâmetro for inválido."""
+        if (
+            not isinstance(self.n_clusters, (int, np.integer))
+            or isinstance(self.n_clusters, bool)
+            or self.n_clusters < 1
+            or self.n_clusters > n_samples
+        ):
+            raise ValueError(
+                f"O número de clusters precisa ser inteiro entre 1 e {n_samples}"
+            )
+        if (
+            not isinstance(self.n_init, (int, np.integer))
+            or isinstance(self.n_init, bool)
+            or self.n_init < 1
+        ):
+            raise ValueError("n_init precisa ser inteiro e pelo menos 1")
+        if (
+            not isinstance(self.max_iter, (int, np.integer))
+            or isinstance(self.max_iter, bool)
+            or self.max_iter < 1
+        ):
+            raise ValueError("max_iter precisa ser inteiro e pelo menos 1")
+        if self.init != "random" and self.init != "k-means++":
+            raise ValueError("init deve ser 'random' ou 'k-means++'")
+        if (
+            not isinstance(self.tol, (int, float, np.integer, np.floating))
+            or isinstance(self.tol, bool)
+            or self.tol < 0
+        ):
+            raise ValueError("tol deve ser um número maior ou igual a zero")
+ 
+    def _init_random(self, X: np.ndarray, rng: np.random.Generator) -> np.ndarray:
         """Sorteia n_clusters pontos de X como centros iniciais."""
         indices = rng.choice(X.shape[0], size=self.n_clusters, replace=False)
         return X[indices]
-
-    def _init_kmeanspp(self, X, rng):
+ 
+    def _init_kmeanspp(self, X: np.ndarray, rng: np.random.Generator) -> np.ndarray:
         """Escolhe os centros iniciais pelo método k-means++."""
-        indice_init = rng.choice(X.shape[0])
+        first_index = rng.choice(X.shape[0])
         indices = []
-        indices.append(indice_init)
-        for i in range(1, self.n_clusters):
+        indices.append(first_index)
+        for _ in range(1, self.n_clusters):
             distances = pairwise_distances(X, X[indices], squared=True)
             d2 = np.min(distances, axis=1)
             sum_d2 = np.sum(d2)
             if sum_d2 == 0:
-                next_indice = rng.choice(X.shape[0])
+                next_index = rng.choice(X.shape[0])
             else:
-                probs = d2/sum_d2
-                next_indice = rng.choice(X.shape[0], p=probs)
-            indices.append(next_indice)
+                probs = d2 / sum_d2
+                next_index = rng.choice(X.shape[0], p=probs)
+            indices.append(next_index)
         return X[indices]
-
-    def _lloyd(self, X, centers):
+ 
+    def _lloyd(
+        self, X: np.ndarray, centers: np.ndarray
+    ) -> tuple[np.ndarray, np.ndarray, int, float]:
         """Roda o algoritmo de Lloyd a partir de centers.
+ 
         Devolve labels, centros finais, número de iterações e inércia.
         """
         n_iter = 0
-        for _ in range (self.max_iter):
+        for _ in range(self.max_iter):
             distances = pairwise_distances(X, centers, squared=True)
             labels = np.argmin(distances, axis=1)
             new_centers = centers.copy()
             min_distances = np.min(distances, axis=1)
             for j in range(self.n_clusters):
                 if (labels == j).any():
-                    new_centers[j] = np.mean(X[labels==j], axis=0)
+                    new_centers[j] = np.mean(X[labels == j], axis=0)
                 else:
                     far = np.argmax(min_distances)
                     new_centers[j] = X[far]
@@ -116,22 +164,22 @@ class KMeans(BaseEstimator):
         inertia = np.sum(np.min(new_distances, axis=1))
         labels = np.argmin(new_distances, axis=1)
         return labels, centers, n_iter, inertia
-
-    def fit(self, X, y=None):
+ 
+    def fit(self, X: ArrayLike, y: None = None) -> "KMeans":
         """Agrupa os dados de X.
-
+ 
         Parameters
         ----------
         X : array-like de formato (n_amostras, n_features)
             Dados de treino.
         y : None
             Ignorado. Existe só para manter o padrão.
-
+ 
         Returns
         -------
         self : KMeans
             O próprio modelo, treinado.
-
+ 
         Raises
         ------
         ValueError
@@ -140,25 +188,10 @@ class KMeans(BaseEstimator):
         """
         X = check_array(X)
         X = X.astype(float)
-        if ((not isinstance(self.n_clusters, (int, np.integer)) 
-            or isinstance(self.n_clusters, bool)) or self.n_clusters < 1 
-            or self.n_clusters>len(X)):
-            raise ValueError("O número de clusters precisa ser "
-                             f"inteiro entre 1 e {len(X)}")
-        if (not isinstance(self.n_init, (int, np.integer)) 
-            or isinstance(self.n_init, bool)) or self.n_init<1:
-            raise ValueError("n_init precisa ser inteiro e pelo menos 1")
-        if (not isinstance(self.max_iter, (int, np.integer)) or
-            isinstance(self.max_iter, bool)) or self.max_iter<1:
-            raise ValueError("max_iter precisa ser inteiro e pelo menos 1")
-        if self.init != "random" and self.init != "k-means++":
-            raise ValueError("init deve ser 'random' ou 'k-means++'")
-        if (not isinstance(self.tol, (int, float, np.integer, np.floating))
-            or isinstance(self.tol, bool) or self.tol < 0):
-            raise ValueError("tol deve ser um número maior ou igual a zero")
+        self._check_params(len(X))
         rng = np.random.default_rng(self.random_state)
         best_inertia = np.inf
-        for i in range(self.n_init):
+        for _ in range(self.n_init):
             if self.init == "random":
                 init_centers = self._init_random(X, rng)
             else:
@@ -173,20 +206,20 @@ class KMeans(BaseEstimator):
         self.inertia_ = best[3]
         self.n_features_in_ = X.shape[1]
         return self
-
-    def predict(self, X):
+ 
+    def predict(self, X: ArrayLike) -> np.ndarray:
         """Atribui cada ponto de X ao centro mais próximo.
-
+ 
         Parameters
         ----------
         X : array-like de formato (n_amostras, n_features)
             Dados de treino ou novos.
-
+ 
         Returns
         -------
         labels : ndarray de formato (n_amostras,)
             Índice do grupo de cada ponto.
-
+ 
         Raises
         ------
         NotFittedError
@@ -194,29 +227,33 @@ class KMeans(BaseEstimator):
         ValueError
             Se X tiver um número de features diferente do fit.
         """
-        attributes = ["labels_", "cluster_centers_", "n_iter_",
-                       "inertia_", "n_features_in_"]
+        attributes = [
+            "labels_",
+            "cluster_centers_",
+            "n_iter_",
+            "inertia_",
+            "n_features_in_",
+        ]
         check_is_fitted(self, attributes)
         X = check_array(X)
         if X.shape[1] != self.n_features_in_:
             raise ValueError(
-                f"X tem {X.shape[1]} features "
-                f"mas deveria ter {self.n_features_in_}")
-        new_distances = pairwise_distances(X, self.cluster_centers_,
-                                            squared=True)
+                f"X tem {X.shape[1]} features mas deveria ter {self.n_features_in_}"
+            )
+        new_distances = pairwise_distances(X, self.cluster_centers_, squared=True)
         labels = np.argmin(new_distances, axis=1)
         return labels
-
-    def fit_predict(self, X, y=None):
+ 
+    def fit_predict(self, X: ArrayLike, y: None = None) -> np.ndarray:
         """Agrupa X e devolve o grupo de cada ponto.
-
+ 
         Parameters
         ----------
         X : array-like de formato (n_amostras, n_features)
             Dados de treino.
         y : None
             Ignorado. Existe só para manter o padrão.
-
+ 
         Returns
         -------
         labels : ndarray de formato (n_amostras,)
