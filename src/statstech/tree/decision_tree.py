@@ -16,24 +16,27 @@ _T = TypeVar("_T", bound="_BaseDecisionTree")
 # Impureza abaixo disso conta como nó puro (evita erro de arredondamento).
 _PURE_TOL = 1e-12
 
+
 @dataclass
 class _Node:
     """
     Nó da árvore.
-    
+
     Um nó interno tem ``feature``, ``threshold``, ``left`` e ``right``.
     Uma folha tem apenas ``value``.
     """
+
     feature: int | None = None
     threshold: float | None = None
     left: "_Node | None" = None
     right: "_Node | None" = None
     value: float | None = None  # só nas folhas
 
-def _node_depth(node: _Node) -> int: # função auxiliar
+
+def _node_depth(node: _Node) -> int:  # função auxiliar
     """
     Devolve a profundidade da subárvore que começa em ``node``.
-    
+
     Parameters
     ----------
     node : _Node
@@ -49,10 +52,11 @@ def _node_depth(node: _Node) -> int: # função auxiliar
         return 0
     return 1 + max(_node_depth(node.left), _node_depth(node.right))
 
+
 class _BaseDecisionTree(BaseEstimator):
     """
     Classe-base das árvores de decisão
-    
+
     Implementa a construção recursiva e a predição.
     As subclasses só definem o critério de impureza e o valor das folhas.
 
@@ -71,14 +75,17 @@ class _BaseDecisionTree(BaseEstimator):
     n_features_in_ : int
         Número de features vistas no "fit".
     """
-    def __init__(self, max_depth: int | None = None, min_samples_split: int = 2) -> None:
+
+    def __init__(
+        self, max_depth: int | None = None, min_samples_split: int = 2
+    ) -> None:
         self.max_depth = max_depth
         self.min_samples_split = min_samples_split
 
     # ------------------------------------------------------------------
     # Validação
     # ------------------------------------------------------------------
-        
+
     def _check_params(self) -> None:
         """
         Valida os hiperparâmetros.
@@ -101,7 +108,6 @@ class _BaseDecisionTree(BaseEstimator):
             or self.min_samples_split < 2
         ):
             raise ValueError("min_samples_split deve ser inteiro >= 2.")
-        
 
     # ------------------------------------------------------------------
     # API pública
@@ -110,19 +116,19 @@ class _BaseDecisionTree(BaseEstimator):
     def fit(self: _T, X: ArrayLike, y: ArrayLike) -> _T:
         """
         Constrói a árvore de decisão a partir dos dados de treino.
-        
+
         Parameters
         ----------
         X : array-like de shape (n_amostras, n_features)
             Dados de entrada (features).
         y : array-like de shape (n_amostras,)
             Valores (regressão) ou rótulos (classificação) de X.
-            
+
         Returns
         -------
         self : objeto
             O próprio modelo treinado.
-            
+
         Raises
         ------
         ValueError
@@ -152,7 +158,7 @@ class _BaseDecisionTree(BaseEstimator):
         -------
         y_pred : ndarray de shape (n_amostras,)
             Valores previstos (regressão) ou rótulos originais (classificação).
-        
+
         Raises
         ------
         NotFittedError
@@ -168,9 +174,9 @@ class _BaseDecisionTree(BaseEstimator):
             )
 
         values = []
-        for x in X: #desce pela árvore, x é linha da matriz
+        for x in X:  # desce pela árvore, x é linha da matriz
             node = self.tree_
-            while node.feature is not None: # enquanto nó não é folha
+            while node.feature is not None:  # enquanto nó não é folha
                 if x[node.feature] <= node.threshold:
                     node = node.left
                 else:
@@ -182,15 +188,15 @@ class _BaseDecisionTree(BaseEstimator):
     def get_depth(self) -> int:
         """
         Devolve a profundidade da árvore treinada.
-        
+
         Útil para estudar overfitting: sem ``max_depth`` a profundidade cresce até a árvore decorar o treino.
-        
+
         Returns
         -------
         depth : int
             Número de divisões no caminho mais longo da raiz até uma folha.
             Uma árvore com só uma folha tem profundidade 0.
-            
+
         Raises
         ------
         NotFittedError
@@ -202,18 +208,18 @@ class _BaseDecisionTree(BaseEstimator):
     # ------------------------------------------------------------------
     # Construção da árvore
     # ------------------------------------------------------------------
-    
+
     def _is_leaf(self, y: NDArray[Any], depth: int) -> bool:
         """
         Diz se um nó com alvo ``y`` e profundidade ``depth`` é folha.
- 
+
         Parameters
         ----------
         y : ndarray de shape (n_amostras,)
             Alvo das amostras que chegaram ao nó.
         depth : int
             Profundidade do nó.
- 
+
         Returns
         -------
         is_leaf : bool
@@ -221,30 +227,32 @@ class _BaseDecisionTree(BaseEstimator):
         """
         if self.max_depth is not None and depth >= self.max_depth:
             return True
- 
+
         if len(y) < self.min_samples_split:
             return True
- 
+
         if self._impurity(y) <= _PURE_TOL:  # nó puro
             return True
- 
+
         return False
 
-    def _best_split(self, X: NDArray[np.float64], y: NDArray[Any]) -> tuple[int | None, float | None]:
+    def _best_split(
+        self, X: NDArray[np.float64], y: NDArray[Any]
+    ) -> tuple[int | None, float | None]:
         """
         Acha a melhor divisão ``x_j <= t`` para as amostras (X, y).
- 
+
         Para cada feature, ordena os valores uma única vez e calcula a
         impureza dos dois lados de todos os cortes de uma vez, com somas
         acumuladas. Custo O(n log n) por feature, em vez de O(n^2).
- 
+
         Parameters
         ----------
         X : ndarray de shape (n_amostras, n_features)
             Features das amostras que chegam ao nó.
         y : ndarray de shape (n_amostras,)
             Alvo preparado por ``_prepare_y``.
- 
+
         Returns
         -------
         feature : int ou None
@@ -255,41 +263,43 @@ class _BaseDecisionTree(BaseEstimator):
         n_samples, n_features = X.shape
         n_left = np.arange(1, n_samples)  # tamanho do lado esquerdo
         n_right = n_samples - n_left
- 
+
         best_feature, best_threshold = None, None
         best_score = np.inf
- 
+
         for j in range(n_features):
             order = np.argsort(X[:, j], kind="stable")
             x_sorted = X[order, j]
             y_sorted = y[order]
- 
+
             midpoints = (x_sorted[:-1] + x_sorted[1:]) / 2
-            # Só vale cortar entre valores distintos. 
+            # Só vale cortar entre valores distintos.
             # A segunda condição protege contra o ponto médio coincidir com o vizinho por
             # arredondamento (o lado direito ficaria vazio).
             valid = midpoints < x_sorted[1:]
             if not valid.any():
                 continue
- 
+
             imp_left, imp_right = self._split_impurities(
                 y_sorted, n_left, n_right
             )
             scores = (n_left * imp_left + n_right * imp_right) / n_samples
             scores = np.where(valid, scores, np.inf)
- 
+
             k = int(np.argmin(scores))  # empate: primeiro corte
             if scores[k] < best_score:
                 best_score = scores[k]
                 best_feature = j
                 best_threshold = float(midpoints[k])
- 
+
         return best_feature, best_threshold
-     
-    def _build(self, X: NDArray[np.float64], y: NDArray[Any], depth: int) -> _Node:
+
+    def _build(
+        self, X: NDArray[np.float64], y: NDArray[Any], depth: int
+    ) -> _Node:
         """
         Constrói recursivamente a subárvore para as amostras (X, y).
-        
+
         Parameters
         ----------
         X : ndarray de shape (n_amostras, n_features)
@@ -298,7 +308,7 @@ class _BaseDecisionTree(BaseEstimator):
             Alvo preparado por ``_prepare_y``.
         depth : int
             Profundidade do nó atual.
-            
+
         Returns
         -------
         node : _Node
@@ -306,45 +316,51 @@ class _BaseDecisionTree(BaseEstimator):
         """
 
         if self._is_leaf(y, depth):
-            return _Node(value= self._leaf_value(y))
-        
-        feature, threshold = self._best_split(X, y)
-        if feature is None: # linhas idênticas
             return _Node(value=self._leaf_value(y))
-        
+
+        feature, threshold = self._best_split(X, y)
+        if feature is None:  # linhas idênticas
+            return _Node(value=self._leaf_value(y))
+
         mask = X[:, feature] <= threshold
         return _Node(
             feature=feature,
             threshold=threshold,
             left=self._build(X[mask], y[mask], depth + 1),
-            right=self._build(X[~mask], y[~mask], depth + 1)
+            right=self._build(X[~mask], y[~mask], depth + 1),
         )
 
-# ------------------------------------------------------------------
-# Funções que cada subclasse deve definir:
-# ------------------------------------------------------------------    def _prepare_y(self, y):
+    # ------------------------------------------------------------------
+    # Funções que cada subclasse deve definir:
+    # ------------------------------------------------------------------    def _prepare_y(self, y):
     def _prepare_y(self, y_ou_values: NDArray[Any]) -> NDArray[Any]:
         raise NotImplementedError
 
     def _decode_predictions(self, y_ou_values: NDArray[Any]) -> NDArray[Any]:
         raise NotImplementedError
-    
+
     def _impurity(self, y: NDArray[Any]) -> float:
         raise NotImplementedError
 
     def _leaf_value(self, y: NDArray[Any]) -> float:
         raise NotImplementedError
 
-    def _split_impurities(self, y_sorted: NDArray[Any], n_left: NDArray[np.intp], n_right: NDArray[np.intp]) -> tuple[NDArray[np.float64], NDArray[np.float64]]:
+    def _split_impurities(
+        self,
+        y_sorted: NDArray[Any],
+        n_left: NDArray[np.intp],
+        n_right: NDArray[np.intp],
+    ) -> tuple[NDArray[np.float64], NDArray[np.float64]]:
         raise NotImplementedError
+
 
 class DecisionTreeRegressor(_BaseDecisionTree, RegressorMixin):
     """Árvore de decisão (CART) para regressão.
- 
+
     Cada divisão minimiza a soma ponderada da variância dos dois lados
     (equivalente a minimizar a soma dos quadrados dos resíduos). Cada
     folha prevê a média de y das amostras que chegam a ela.
- 
+
     Parameters
     ----------
     max_depth : int ou None, default=None
@@ -353,7 +369,7 @@ class DecisionTreeRegressor(_BaseDecisionTree, RegressorMixin):
         que decora o treino.
     min_samples_split : int, default=2
         Número mínimo de amostras para tentar dividir um nó.
- 
+
     Attributes
     ----------
     tree_ : _Node
@@ -361,7 +377,7 @@ class DecisionTreeRegressor(_BaseDecisionTree, RegressorMixin):
     n_features_in_ : int
         Número de features vistas no ``fit``.
     """
-     
+
     def _prepare_y(self, y_ou_values: NDArray[Any]) -> NDArray[Any]:
         """Converte y para floats."""
         return y_ou_values.astype(float)
@@ -369,7 +385,7 @@ class DecisionTreeRegressor(_BaseDecisionTree, RegressorMixin):
     def _decode_predictions(self, y_ou_values: NDArray[Any]) -> NDArray[Any]:
         """Devolve os valores das folhas como floats."""
         return y_ou_values.astype(float)
-    
+
     def _impurity(self, y: NDArray[Any]) -> float:
         """Variância de y em torno da média (soma dos quadrados / n)."""
         return float(np.var(y))
@@ -378,21 +394,26 @@ class DecisionTreeRegressor(_BaseDecisionTree, RegressorMixin):
         """Média de y."""
         return float(np.mean(y))
 
-    def _split_impurities(self, y_sorted: NDArray[Any], n_left: NDArray[np.intp], n_right: NDArray[np.intp]) -> tuple[NDArray[np.float64], NDArray[np.float64]]:
+    def _split_impurities(
+        self,
+        y_sorted: NDArray[Any],
+        n_left: NDArray[np.intp],
+        n_right: NDArray[np.intp],
+    ) -> tuple[NDArray[np.float64], NDArray[np.float64]]:
         """
         Variância dos dois lados de cada corte, para y já ordenado.
- 
+
         Usa Var = E[y^2] - E[y]^2 com somas acumuladas. Centraliza y
         antes, porque essa fórmula perde precisão quando a média é
         grande em relação ao desvio.
- 
+
         Parameters
         ----------
         y_sorted : ndarray de shape (n_amostras,)
             Alvo ordenado pela feature candidata.
         n_left, n_right : ndarray de shape (n_amostras - 1,)
             Tamanho de cada lado para cada corte.
- 
+
         Returns
         -------
         imp_left, imp_right : ndarray de shape (n_amostras - 1,)
@@ -403,19 +424,19 @@ class DecisionTreeRegressor(_BaseDecisionTree, RegressorMixin):
         sq_left = np.cumsum(y_c**2)[:-1]
         sum_right = y_c.sum() - sum_left
         sq_right = (y_c**2).sum() - sq_left
- 
+
         imp_left = sq_left / n_left - (sum_left / n_left) ** 2
         imp_right = sq_right / n_right - (sum_right / n_right) ** 2
         return imp_left, imp_right
- 
+
 
 class DecisionTreeClassifier(_BaseDecisionTree, ClassifierMixin):
     """Árvore de decisão (CART) para classificação.
- 
+
     Cada divisão minimiza a impureza de Gini ponderada dos dois lados.
     Cada folha prevê a classe majoritária; em caso de empate, a classe
     de menor índice em ``classes_``.
- 
+
     Parameters
     ----------
     max_depth : int ou None, default=None
@@ -424,7 +445,7 @@ class DecisionTreeClassifier(_BaseDecisionTree, ClassifierMixin):
         que decora o treino.
     min_samples_split : int, default=2
         Número mínimo de amostras para tentar dividir um nó.
- 
+
     Attributes
     ----------
     tree_ : _Node
@@ -451,21 +472,26 @@ class DecisionTreeClassifier(_BaseDecisionTree, ClassifierMixin):
 
     def _leaf_value(self, y: NDArray[Any]) -> float:
         """Índice da classe majoritária (empate: menor índice)."""
-        return int(np.argmax(np.bincount(y)))      
+        return int(np.argmax(np.bincount(y)))
 
-    def _split_impurities(self, y_sorted: NDArray[Any], n_left: NDArray[np.intp], n_right: NDArray[np.intp]) -> tuple[NDArray[np.float64], NDArray[np.float64]]:
+    def _split_impurities(
+        self,
+        y_sorted: NDArray[Any],
+        n_left: NDArray[np.intp],
+        n_right: NDArray[np.intp],
+    ) -> tuple[NDArray[np.float64], NDArray[np.float64]]:
         """
         Gini dos dois lados de cada corte, para y já ordenado.
- 
+
         Usa a contagem acumulada de cada classe (one-hot + cumsum).
- 
+
         Parameters
         ----------
         y_sorted : ndarray de shape (n_amostras,)
             Índices de classe ordenados pela feature candidata.
         n_left, n_right : ndarray de shape (n_amostras - 1,)
             Tamanho de cada lado para cada corte.
- 
+
         Returns
         -------
         imp_left, imp_right : ndarray de shape (n_amostras - 1,)
@@ -474,7 +500,7 @@ class DecisionTreeClassifier(_BaseDecisionTree, ClassifierMixin):
         one_hot = np.eye(len(self.classes_))[y_sorted]
         counts_left = np.cumsum(one_hot, axis=0)[:-1]
         counts_right = one_hot.sum(axis=0) - counts_left
- 
+
         p_left = counts_left / n_left[:, None]
         p_right = counts_right / n_right[:, None]
         imp_left = 1 - np.sum(p_left**2, axis=1)
