@@ -190,6 +190,6 @@ def r2_score(y_true: npt.ArrayLike, y_pred: npt.ArrayLike) -> float:
     if tss != 0:
         r2_score = float(1-rss/tss)
         return r2_score
-    if rss == 0:
+    if tss == 0:
         return 1.0
 

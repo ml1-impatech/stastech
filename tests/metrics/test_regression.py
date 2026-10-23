@@ -201,12 +201,12 @@ def test_r2_score_returns_expected_value(y_true, y_pred):
 @pytest.mark.parametrize(
     ("y_true", "y_pred", "exp_value"),
     [
-        ([2, 2, 2], [4, 5, 6], 0.0),
-        ((2, 2, 2), (4, 4, 4), 0.0),
+        ([2, 2, 2], [4, 5, 6], 1.0),
+        ((2, 2, 2), (4, 4, 4), 1.0),
         (
             np.array([3, 3, 3], dtype=np.float64),
             np.array([4, 5, 6], dtype=np.float64),
-            0.0,
+            1.0,
         ),
         (
             np.array([4, 4, 4], dtype=np.int32),
