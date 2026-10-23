@@ -29,7 +29,7 @@ def lower_is_better(name: str) -> bool:
     "Retorna True se uma métrica é melhor quanto menor for."
     return name in LOWER_IS_BETTER
 
-_FLAT = {REGRESSION_SCORERS, CLASSIFICATION_SCORERS}
+_FLAT = {**REGRESSION_SCORERS, **CLASSIFICATION_SCORERS}
 
 def get_scorer(name):
     if name not in _FLAT:

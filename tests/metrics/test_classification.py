@@ -333,7 +333,7 @@ def test_specificity_score_returns_correct_ratio(c_matrix, class_k):
 
 def test_specificity_score_warns_and_returns_zero_when_no_actual_negatives(c_matrix, class_k):
         with pytest.warns(UserWarning):
-            specificity_score(c_matrix, class_k) == 0.0
+            assert specificity_score(c_matrix, class_k) == 0.0
 
 @pytest.mark.parametrize(
     ("c_matrix", "class_k"),
