@@ -288,9 +288,10 @@ def test_precision_score_returns_correct_ratio(c_matrix, class_k):
     ],
 )
 
-def test_precision_score_raises_error_when_no_positive_predictions(c_matrix, class_k):
-        with pytest.raises(ValueError):
-            precision_score(c_matrix, class_k)
+def test_precision_score_warns_and_returns_zero_when_no_positive_predictions(c_matrix, class_k):
+        with pytest.warns(UserWarning):
+            assert precision_score(c_matrix, class_k) == 0.0
+
 
 @pytest.mark.parametrize(
     ("c_matrix", "class_k", "exp_value"),
@@ -309,9 +310,9 @@ def test_recall_score_returns_correct_ratio(c_matrix, class_k, exp_value):
     ],
 )
 
-def test_recall_score_raises_error_when_no_actual_positives(c_matrix, class_k):
-        with pytest.raises(ValueError):
-            recall_score(c_matrix, class_k)
+def test_recall_score_warns_and_returns_zero_when_no_actual_positives(c_matrix, class_k):
+        with pytest.warns(UserWarning):
+            assert recall_score(c_matrix, class_k) == 0.0
 
 @pytest.mark.parametrize(
     ("c_matrix", "class_k"),
@@ -330,9 +331,9 @@ def test_specificity_score_returns_correct_ratio(c_matrix, class_k):
     ],
 )
 
-def test_specificity_score_raises_error_when_no_actual_negatives(c_matrix, class_k):
-        with pytest.raises(ValueError):
-            specificity_score(c_matrix, class_k)
+def test_specificity_score_warns_and_returns_zero_when_no_actual_negatives(c_matrix, class_k):
+        with pytest.warns(UserWarning):
+            specificity_score(c_matrix, class_k) == 0.0
 
 @pytest.mark.parametrize(
     ("c_matrix", "class_k"),
@@ -351,9 +352,9 @@ def test_f1_score_returns_correct_ratio(c_matrix, class_k):
     ],
 )
 
-def test_f1_score_raises_error_when_denominator_is_zero(c_matrix, class_k):
-        with pytest.raises(ValueError):
-            f1_score(c_matrix, class_k)
+def test_f1_score_warns_and_returns_zero_when_denominator_is_zero(c_matrix, class_k):
+        with pytest.warns(UserWarning):
+            assert f1_score(c_matrix, class_k) == 0.0
 
 @pytest.mark.parametrize(
     ("c_matrix", "metric", "exp_value"),
@@ -371,14 +372,14 @@ def test_macro_metric_returns_mean_of_valid_metrics(c_matrix, metric, exp_value)
 @pytest.mark.parametrize(
     ("c_matrix", "metric", "exp_value"),
     [
-        ([[0, 1, 2], [0, 3, 4], [0, 5, 6]], precision_score, 5/12),
-        ([[0, 0, 0], [1, 2, 3], [4, 5, 6]], recall_score, 11/30),
-        ([[1, 2, 3], [0, 0, 0], [0, 0, 0]], specificity_score, 7/12),
-        ([[0, 0, 0], [0, 1, 2], [0, 3, 4]], f1_score, 41/91),
+        ([[0, 1, 2], [0, 3, 4], [0, 5, 6]], precision_score, 5/18),
+        ([[0, 0, 0], [1, 2, 3], [4, 5, 6]], recall_score, 11/45),
+        ([[1, 2, 3], [0, 0, 0], [0, 0, 0]], specificity_score, 7/18),
+        ([[0, 0, 0], [0, 1, 2], [0, 3, 4]], f1_score, 82/273),
     ],
 )
 
-def test_macro_metric_ignores_invalid_classes_and_warns(c_matrix, metric, exp_value):       
+def test_macro_metric_includes_zero_for_undefined_metrics_and_warns(c_matrix, metric, exp_value):       
        with pytest.warns(UserWarning):
         result = macro_metric(c_matrix, metric)       
 
@@ -394,9 +395,9 @@ def test_macro_metric_ignores_invalid_classes_and_warns(c_matrix, metric, exp_va
     ],
 )
 
-def test_macro_metric_raises_error_when_all_classes_invalid(c_matrix, metric):       
-       with pytest.raises(ValueError):
-        result = macro_metric(c_matrix, metric)       
+def test_macro_metric_returns_zero_when_all_class_metrics_are_undefined(c_matrix, metric):       
+       with pytest.warns(UserWarning):
+        assert macro_metric(c_matrix, metric) == 0.0       
 
 @pytest.mark.parametrize(
     ("c_matrix", "metric", "exp_value"),
