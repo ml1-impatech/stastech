@@ -26,10 +26,10 @@ def _validate_class_index( c_matrix: list[list[int]], class_k: int) -> None:
 
 def confusion_matrix(y_true: list[int], y_pred: list[int], classes: list) -> list[list[int]]:
     """Calcula a matriz de confusão para um problema de classificação.
-    
+
     A matriz de confusão compara as classes reais com as classes previstas. 
     Cada linha representa uma classe verdadeira, e cada coluna uma classe prevista.
-    
+
     Parameters
     ----------
     y_true: list[float]
@@ -41,16 +41,18 @@ def confusion_matrix(y_true: list[int], y_pred: list[int], classes: list) -> lis
 
     Returns
     -------
-    c_matrix: list[list[int]] 
+    c_matrix: list[list[int]]
         Uma matriz quadrada de dimensões (n_classes, n_classes), na qual cada elemento
         na posição [i][j] representa o número de observações tais que a verdadeira classe
         é i e a classe prevista é j.
-    
+
     Raises
     ------
     ValueError
         Se y_true e y_pred tiverem comprimentos diferentes ou se algum dos dois for vazio.
         Se classes for vazio ou se houver duplicatas em classes.
+    KeyError
+        Se algum valor de y_true ou y_pred não estiver presente em classes.
     """
     if len(y_true) != len(y_pred):
         raise ValueError("A lista de predições e de valores reais devem ter o mesmo comprimento.")
