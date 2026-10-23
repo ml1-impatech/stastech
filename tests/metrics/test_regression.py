@@ -199,20 +199,22 @@ def test_r2_score_returns_expected_value(y_true, y_pred):
     assert r2_score(y_true, y_pred) == -12.5
 
 @pytest.mark.parametrize(
-    ("y_true", "y_pred"),
+    ("y_true", "y_pred", "exp_value"),
     [
-        ([2, 2, 2], [4, 5, 6]),
-        ((2, 2, 2), (4, 4, 4)),
-        (np.array([3, 3, 3], dtype=np.float64),
-        np.array([4, 5, 6], dtype=np.float64),),
+        ([2, 2, 2], [4, 5, 6], 0.0),
+        ((2, 2, 2), (4, 4, 4), 0.0),
+        (
+            np.array([3, 3, 3], dtype=np.float64),
+            np.array([4, 5, 6], dtype=np.float64),
+            0.0,
+        ),
         (
             np.array([4, 4, 4], dtype=np.int32),
             np.array([4, 4, 4], dtype=np.float32),
+            1.0,
         ),
     ],
 )
 
-def test_r2_score_raises_value_error_when_y_true_is_constant(y_true, y_pred):
-
-    with pytest.raises(ValueError):
-        r2_score(y_true, y_pred)
+def test_r2_score_returns_expected_value_when_y_true_is_constant(y_true, y_pred, exp_value):
+    assert r2_score(y_true, y_pred) == pytest.approx(exp_value)
