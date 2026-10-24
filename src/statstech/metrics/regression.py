@@ -171,7 +171,8 @@ def r2_score(y_true: npt.ArrayLike, y_pred: npt.ArrayLike) -> float:
     -------
     r2_score: float 
         Coeficiente de determinação, que indica o quanto da variabilidade
-        dos valores reais é explicada pelas previsões do modelo.    
+        dos valores reais é explicada pelas previsões do modelo.
+        Se todos os valores de y_true forem iguais, zerando o TSS, o valor 1 é retornado.  
     
     Raises
     ------
@@ -180,7 +181,6 @@ def r2_score(y_true: npt.ArrayLike, y_pred: npt.ArrayLike) -> float:
         Se os arrays não forem unidimensionais.
         Se os arrays estiverem vazios.
         Se os arrays contiverem NaN ou infinito.
-        Se todos os valores de y_true forem iguais, zerando o TSS e tornando R² indefinido.
     """
     y_true, y_pred = _validate_regression_inputs(y_true, y_pred)            
     rss = residual_sum_squares(y_true, y_pred)
@@ -189,6 +189,6 @@ def r2_score(y_true: npt.ArrayLike, y_pred: npt.ArrayLike) -> float:
     if tss != 0:
         r2_score = float(1-rss/tss)
         return r2_score
-    else:
-        raise ValueError("R² é indefinido quando TSS = 0")
+    if tss == 0:
+        return 1.0
 
