@@ -284,7 +284,7 @@ class LogisticRegression(BaseEstimator, ClassifierMixin):
             raise ValueError(
                 "X deve ter o mesmo número de características usado no fit."
             )
-        
+
         if self.intercept_ is None:
             raise RuntimeError("O intercepto não foi inicializado.")
 

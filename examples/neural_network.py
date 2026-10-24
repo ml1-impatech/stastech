@@ -6,8 +6,9 @@ Gera dados, treina uma MLPRegressor e mostra se a rede aprendeu
 """
 
 import numpy as np
-from statstech.neural_network import MLPRegressor
+
 from statstech.metrics.regression import mean_squared_error
+from statstech.neural_network import MLPRegressor
 
 rng = np.random.default_rng(0)
 

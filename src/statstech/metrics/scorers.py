@@ -1,3 +1,5 @@
+"""Registro das métricas por nome, usado por cross_val_score e GridSearchCV."""
+
 from collections.abc import Callable
 
 import numpy as np

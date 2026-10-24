@@ -1,3 +1,5 @@
+"""Análise discriminante quadrática (QDA) para classificação."""
+
 import numpy as np
 
 from statstech.base import BaseEstimator, ClassifierMixin

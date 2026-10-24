@@ -2,7 +2,6 @@ import numpy as np
 import pytest
 
 from statstech.base import clone
-from statstech.utils.validation import NotFittedError
 from statstech.neural_network.mlp import (
     MLPRegressor,
     identity,
@@ -10,6 +9,7 @@ from statstech.neural_network.mlp import (
     relu,
     relu_derivative,
 )
+from statstech.utils.validation import NotFittedError
 
 
 def test_get_params_and_clone():

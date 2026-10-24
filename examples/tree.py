@@ -22,9 +22,7 @@ y = np.sin(X[:, 0]) + rng.normal(scale=0.3, size=300)
 X_tr, X_te, y_tr, y_te = train_test_split(X, y, test_size=0.3, random_state=0)
 
 print("=== Regressão (y = sen(x) + ruído) ===")
-print(
-    f"{'max_depth':>10} {'MSE treino':>12} {'MSE teste':>12} {'prof. real':>11}"
-)
+print(f"{'max_depth':>10} {'MSE treino':>12} {'MSE teste':>12} {'prof. real':>11}")
 
 depths = [1, 2, 3, 4, 5, 6, 8, 10, None]
 train_err, test_err = [], []
@@ -53,9 +51,7 @@ Xc_tr, Xc_te, yc_tr, yc_te = train_test_split(
 )
 
 print("=== Classificação (fronteira circular, 8% de rótulos trocados) ===")
-print(
-    f"{'max_depth':>10} {'acc treino':>12} {'acc teste':>12} {'prof. real':>11}"
-)
+print(f"{'max_depth':>10} {'acc treino':>12} {'acc teste':>12} {'prof. real':>11}")
 
 for d in [1, 2, 3, 4, 6, 8, None]:
     clf = DecisionTreeClassifier(max_depth=d).fit(Xc_tr, yc_tr)
