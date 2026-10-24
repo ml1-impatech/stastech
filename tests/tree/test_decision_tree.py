@@ -2,6 +2,7 @@
 
 import numpy as np
 import pytest
+
 from statstech.base import clone
 from statstech.model_selection.search import GridSearchCV
 from statstech.model_selection.validation import cross_val_score
@@ -55,8 +56,7 @@ def split_score(tree, X, y):
     root = tree.tree_
     mask = X[:, root.feature] <= root.threshold
     return (
-        mask.sum() * tree._impurity(y[mask])
-        + (~mask).sum() * tree._impurity(y[~mask])
+        mask.sum() * tree._impurity(y[mask]) + (~mask).sum() * tree._impurity(y[~mask])
     ) / len(y)
 
 
@@ -148,9 +148,7 @@ def test_best_split_matches_brute_force_classifier(seed):
     X = rng.normal(size=(60, 3))
     y = (X[:, 0] + rng.normal(scale=0.7, size=60) > 0).astype(int)
     clf = DecisionTreeClassifier(max_depth=1).fit(X, y)
-    assert split_score(clf, X, y) == pytest.approx(
-        brute_force_best_score(clf, X, y)
-    )
+    assert split_score(clf, X, y) == pytest.approx(brute_force_best_score(clf, X, y))
 
 
 @pytest.mark.parametrize("seed", [0, 1, 2, 3])
@@ -159,9 +157,7 @@ def test_best_split_matches_brute_force_regressor(seed):
     X = rng.normal(size=(60, 3))
     y = np.sin(X[:, 1]) + rng.normal(scale=0.3, size=60)
     reg = DecisionTreeRegressor(max_depth=1).fit(X, y)
-    assert split_score(reg, X, y) == pytest.approx(
-        brute_force_best_score(reg, X, y)
-    )
+    assert split_score(reg, X, y) == pytest.approx(brute_force_best_score(reg, X, y))
 
 
 def test_best_split_regressor_with_large_mean():

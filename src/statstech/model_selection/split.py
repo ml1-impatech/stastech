@@ -7,7 +7,7 @@ import numpy as np
 from numpy.typing import ArrayLike, NDArray
 
 
-def _resolve_n_test(test_size: float | int, n: int) -> int:
+def _resolve_n_test(test_size: float, n: int) -> int:
     """Converte test_size no número de amostras do conjunto de teste."""
     if isinstance(test_size, float):
         if not 0 < test_size < 1:
@@ -60,7 +60,7 @@ def _stratified_indices(
 def train_test_split(
     X: ArrayLike,
     y: ArrayLike,
-    test_size: float | int = 0.25,
+    test_size: float = 0.25,
     shuffle: bool = True,
     stratify: ArrayLike | None = None,
     random_state: int | np.random.Generator | None = None,

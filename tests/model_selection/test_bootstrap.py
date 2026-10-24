@@ -1,6 +1,5 @@
-
 import numpy as np
-import pytest 
+import pytest
 
 from statstech.model_selection.bootstrap import bootstrap
 
@@ -25,7 +24,7 @@ def test_diff_seed_diff_result():
     assert not np.allclose(se1, se2)
 
 
-# Formato de saída 
+# Formato de saída
 # ----------------
 def test_output_shape_scalar_stat():
     data = np.arange(100)
@@ -37,8 +36,10 @@ def test_output_shape_scalar_stat():
 
 def test_output_shape_vector_stat():
     data = np.arange(100)
+
     def statistic(x):
         return np.array([np.mean(x), np.std(x)])
+
     est, se = bootstrap(data, statistic, n_bootstrap=200)
     assert est.shape == (200, 2)
     assert se.shape == (2,)
@@ -51,16 +52,18 @@ def test_numerical_correctness():
     data = rng.normal(loc=5, scale=2, size=200)
     statistic = np.mean
     est, se = bootstrap(data, statistic, n_bootstrap=2000, random_state=0)
-    np.testing.assert_allclose(se, np.std(data)/np.sqrt(200), atol=0.05)
+    np.testing.assert_allclose(se, np.std(data) / np.sqrt(200), atol=0.05)
     np.testing.assert_allclose(est.mean(), data.mean(), atol=0.02)
 
 
 def test_tuple_pairs_aligned():
-    X = np.arange(50, dtype = float)
+    X = np.arange(50, dtype=float)
     y = 2 * X + 1
     data = (X, y)
+
     def statistic(X_boot, y_boot):
         return np.mean(y_boot - 2 * X_boot)
+
     est, se = bootstrap(data, statistic, random_state=0)
     np.testing.assert_allclose(est, 1.0)
     assert est.shape == (1000,)
@@ -79,7 +82,7 @@ def test_constant_data():
 
 def test_single_sample():
     data = np.array([7.0])
-    est, se = bootstrap(data, statistic = np.mean, random_state=0)
+    est, se = bootstrap(data, statistic=np.mean, random_state=0)
     np.testing.assert_allclose(est, 7.0)
     np.testing.assert_allclose(se, 0, atol=1e-12)
 

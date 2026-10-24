@@ -1,13 +1,12 @@
 """Exemplo de regressão linear, ridge, lasso e regressão polinomial
-utilizando, respectivamnete, as classes LinearRegression, Ridge, 
+utilizando, respectivamnete, as classes LinearRegression, Ridge,
 Lasso e PolynomialFeatures"""
 
 import numpy as np
 
 # Dados
-X = np.arange(1, 11, dtype = float).reshape(-1, 1)
-y = np.array([3.1, 4.8, 7.2, 8.9, 11.3, 
-              12.8, 15.2, 16.9, 19.1, 21.2])
+X = np.arange(1, 11, dtype=float).reshape(-1, 1)
+y = np.array([3.1, 4.8, 7.2, 8.9, 11.3, 12.8, 15.2, 16.9, 19.1, 21.2])
 
 X_new = np.array([[2.5], [5.5], [8.5]])
 
@@ -34,7 +33,7 @@ from statstech.linear_model.ridge import Ridge
 model_ridge = Ridge(alpha=0.1)
 model_ridge.fit(X, y)
 
-#Realiza previsões do modelo
+# Realiza previsões do modelo
 pred_ridge = model_ridge.predict(X_new)
 
 print("Coeficientes do Ridge:", model_ridge.coef_)
@@ -44,13 +43,12 @@ print("Previsões do Ridge:", pred_ridge)
 # Exemplo de uso - Lasso
 from statstech.linear_model.lasso import Lasso
 
-
 # alpha controla a intensidade da regularização - não negativo
 # Cria e ajusta o modelo
 model_lasso = Lasso(alpha=0.1)
 model_lasso.fit(X, y)
 
-#Realiza previsões do modelo
+# Realiza previsões do modelo
 pred_lasso = model_lasso.predict(X_new)
 
 print("Coeficientes do Lasso:", model_lasso.coef_)
@@ -77,7 +75,7 @@ print(X_poly)
 model_pol_reg = LinearRegression()
 model_pol_reg.fit(X_poly, y)
 
-#Realiza previsões do modelo
+# Realiza previsões do modelo
 X_new_poly = transformer.transform(X_new)
 y_pred_pol_reg = model_pol_reg.predict(X_new_poly)
 

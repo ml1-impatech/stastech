@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, TypeVar
+from typing import Any, Self, TypeVar
 
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
@@ -27,8 +27,8 @@ class _Node:
 
     feature: int | None = None
     threshold: float | None = None
-    left: "_Node | None" = None
-    right: "_Node | None" = None
+    left: _Node | None = None
+    right: _Node | None = None
     value: float | None = None
 
 
@@ -105,7 +105,7 @@ class _BaseDecisionTree(BaseEstimator):
         ):
             raise ValueError("min_samples_split deve ser inteiro >= 2.")
 
-    def fit(self: _T, X: ArrayLike, y: ArrayLike) -> _T:
+    def fit(self, X: ArrayLike, y: ArrayLike) -> Self:
         """
         Constrói a árvore de decisão a partir dos dados de treino.
 
@@ -269,9 +269,7 @@ class _BaseDecisionTree(BaseEstimator):
             if not valid.any():
                 continue
 
-            imp_left, imp_right = self._split_impurities(
-                y_sorted, n_left, n_right
-            )
+            imp_left, imp_right = self._split_impurities(y_sorted, n_left, n_right)
             scores = (n_left * imp_left + n_right * imp_right) / n_samples
             scores = np.where(valid, scores, np.inf)
 
@@ -283,9 +281,7 @@ class _BaseDecisionTree(BaseEstimator):
 
         return best_feature, best_threshold
 
-    def _build(
-        self, X: NDArray[np.float64], y: NDArray[Any], depth: int
-    ) -> _Node:
+    def _build(self, X: NDArray[np.float64], y: NDArray[Any], depth: int) -> _Node:
         """
         Constrói recursivamente a subárvore para as amostras (X, y).
 

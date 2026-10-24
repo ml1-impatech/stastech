@@ -1,12 +1,15 @@
+"""Métricas de regressão: RSS, MSE, RMSE, MAE e R²."""
+
 import numpy as np
 import numpy.typing as npt
 
+
 def _validate_regression_inputs(
-        y_true: npt.ArrayLike, 
-        y_pred: npt.ArrayLike,
-        ) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]]:
+    y_true: npt.ArrayLike,
+    y_pred: npt.ArrayLike,
+) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]]:
     """Valida e converte os arrays de valores reais e previstos.
-    
+
     Parameters
     ----------
     y_true: array-like
@@ -18,9 +21,9 @@ def _validate_regression_inputs(
     Returns
     -------
     y_true: numpy.ndarray
-        Array unidimensional validado, com os valores float64 reais. 
+        Array unidimensional validado, com os valores float64 reais.
     y_pred: numpy.ndarray
-        Array unidimensional validado, com os valores float64 previstos. 
+        Array unidimensional validado, com os valores float64 previstos.
 
     Raises
     ------
@@ -47,21 +50,20 @@ def _validate_regression_inputs(
 
     return y_true, y_pred
 
-    
 
 def residual_sum_squares(y_true: npt.ArrayLike, y_pred: npt.ArrayLike) -> float:
     """Calcula a Soma dos Quadrados dos Resíduos.
 
     Parameters
     ----------
-    y_true: array-like 
+    y_true: array-like
         Array com os valores reais do alvo.
-    y_pred: array-like 
+    y_pred: array-like
         Array com os valores previstos pelo modelo.
-    
+
     Returns
     -------
-    rss: float 
+    rss: float
         Soma das diferenças ao quadrado entre os valores previstos e reais.
 
     Raises
@@ -76,19 +78,20 @@ def residual_sum_squares(y_true: npt.ArrayLike, y_pred: npt.ArrayLike) -> float:
     rss = float(np.sum((y_true - y_pred) ** 2))
     return rss
 
+
 def mean_squared_error(y_true: npt.ArrayLike, y_pred: npt.ArrayLike) -> float:
     """Calcula o Erro Quadrático Médio.
 
     Parameters
     ----------
-    y_true: array-like 
+    y_true: array-like
         Array com os valores reais do alvo.
-    y_pred: array-like 
+    y_pred: array-like
         Array com os valores previstos pelo modelo.
-    
+
     Returns
     -------
-    mse: float 
+    mse: float
         Média dos quadrados das diferenças entre os valores reais e previstos.
 
     Raises
@@ -98,25 +101,26 @@ def mean_squared_error(y_true: npt.ArrayLike, y_pred: npt.ArrayLike) -> float:
         Se os arrays não forem unidimensionais.
         Se os arrays estiverem vazios.
         Se os arrays contiverem NaN ou infinito.
-    """    
+    """
     total_error = residual_sum_squares(y_true, y_pred)
     n = len(y_true)
-    mse = float(total_error/n)
+    mse = float(total_error / n)
     return mse
-    
+
+
 def mean_absolute_error(y_true: npt.ArrayLike, y_pred: npt.ArrayLike) -> float:
     """Calcula o Erro Absoluto Médio.
 
     Parameters
     ----------
-    y_true: array-like 
+    y_true: array-like
         Array com os valores reais do alvo.
-    y_pred: array-like 
+    y_pred: array-like
         Array com os valores previstos pelo modelo.
-    
+
     Returns
     -------
-    mae: float 
+    mae: float
         Média do valor absoluto das diferenças entre os valores reais e previstos.
 
     Raises
@@ -126,24 +130,25 @@ def mean_absolute_error(y_true: npt.ArrayLike, y_pred: npt.ArrayLike) -> float:
         Se os arrays não forem unidimensionais.
         Se os arrays estiverem vazios.
         Se os arrays contiverem NaN ou infinito.
-    """    
+    """
     y_true, y_pred = _validate_regression_inputs(y_true, y_pred)
     mae = float(np.mean(np.abs(y_pred - y_true)))
     return mae
+
 
 def root_mean_squared_error(y_true: npt.ArrayLike, y_pred: npt.ArrayLike) -> float:
     """Calcula a raíz do Erro Quadrático Médio.
 
     Parameters
     ----------
-    y_true: array-like 
+    y_true: array-like
         Array com os valores reais do alvo.
-    y_pred: array-like 
+    y_pred: array-like
         Array com os valores previstos pelo modelo.
-    
+
     Returns
     -------
-    rmse: float 
+    rmse: float
         A raíz quadrada da média dos quadrados das diferenças entre os valores reais e previstos.
 
     Raises
@@ -153,28 +158,29 @@ def root_mean_squared_error(y_true: npt.ArrayLike, y_pred: npt.ArrayLike) -> flo
         Se os arrays não forem unidimensionais.
         Se os arrays estiverem vazios.
         Se os arrays contiverem NaN ou infinito.
-    """        
+    """
     mse = mean_squared_error(y_true, y_pred)
     rmse = mse**0.5
     return rmse
+
 
 def r2_score(y_true: npt.ArrayLike, y_pred: npt.ArrayLike) -> float:
     """Calcula o coeficiente de determinação (R²).
 
     Parameters
     ----------
-    y_true: array-like 
+    y_true: array-like
         Array com os valores reais do alvo.
-    y_pred: array-like 
+    y_pred: array-like
         Array com os valores previstos pelo modelo.
-    
+
     Returns
     -------
-    r2_score: float 
+    r2_score: float
         Coeficiente de determinação, que indica o quanto da variabilidade
         dos valores reais é explicada pelas previsões do modelo.
-        Se todos os valores de y_true forem iguais, zerando o TSS, o valor 1 é retornado.  
-    
+        Se todos os valores de y_true forem iguais, zerando o TSS, o valor 1 é retornado.
+
     Raises
     ------
     ValueError
@@ -183,13 +189,10 @@ def r2_score(y_true: npt.ArrayLike, y_pred: npt.ArrayLike) -> float:
         Se os arrays estiverem vazios.
         Se os arrays contiverem NaN ou infinito.
     """
-    y_true, y_pred = _validate_regression_inputs(y_true, y_pred)            
+    y_true, y_pred = _validate_regression_inputs(y_true, y_pred)
     rss = residual_sum_squares(y_true, y_pred)
-    media = np.mean(y_true) 
-    tss = np.sum((media-y_true)**2)
-    if tss != 0:
-        r2_score = float(1-rss/tss)
-        return r2_score
+    y_mean = np.mean(y_true)
+    tss = np.sum((y_true - y_mean) ** 2)
     if tss == 0:
-        return 1.0
-
+        return 1.0 if rss == 0 else 0.0
+    return float(1 - rss / tss)

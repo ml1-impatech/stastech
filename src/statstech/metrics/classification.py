@@ -1,7 +1,11 @@
+"""Métricas de classificação: matriz de confusão, acurácia, precisão,
+revocação, especificidade, F1, log loss e área sob a curva ROC."""
+
+import warnings
 from collections.abc import Callable
+
 import numpy as np
 import numpy.typing as npt
-import warnings
 
 
 def _validate_confusion_matrix(c_matrix: list[list[int]]) -> None:
@@ -13,21 +17,25 @@ def _validate_confusion_matrix(c_matrix: list[list[int]]) -> None:
         raise ValueError("A matriz de confusão deve ser quadrada.")
 
 
-def _validate_class_index( c_matrix: list[list[int]], class_k: int) -> None:
+def _validate_class_index(c_matrix: list[list[int]], class_k: int) -> None:
     """Valida a matriz de confusão e o índice da classe."""
     _validate_confusion_matrix(c_matrix)
 
-    if isinstance(class_k, (bool, np.bool_)) or not isinstance(class_k, (int, np.integer)):
+    if isinstance(class_k, (bool, np.bool_)) or not isinstance(
+        class_k, (int, np.integer)
+    ):
         raise ValueError("class_k deve ser um inteiro.")
 
     if not 0 <= class_k < len(c_matrix):
         raise ValueError("class_k está fora do intervalo válido.")
 
 
-def confusion_matrix(y_true: list[int], y_pred: list[int], classes: list) -> list[list[int]]:
+def confusion_matrix(
+    y_true: list[int], y_pred: list[int], classes: list
+) -> list[list[int]]:
     """Calcula a matriz de confusão para um problema de classificação.
 
-    A matriz de confusão compara as classes reais com as classes previstas. 
+    A matriz de confusão compara as classes reais com as classes previstas.
     Cada linha representa uma classe verdadeira, e cada coluna uma classe prevista.
 
     Parameters
@@ -55,7 +63,9 @@ def confusion_matrix(y_true: list[int], y_pred: list[int], classes: list) -> lis
         Se algum valor de y_true ou y_pred não estiver presente em classes.
     """
     if len(y_true) != len(y_pred):
-        raise ValueError("A lista de predições e de valores reais devem ter o mesmo comprimento.")
+        raise ValueError(
+            "A lista de predições e de valores reais devem ter o mesmo comprimento."
+        )
     if len(y_true) == 0:
         raise ValueError("As listas de input devem ser não vazias.")
     n_classes = len(classes)
@@ -70,6 +80,7 @@ def confusion_matrix(y_true: list[int], y_pred: list[int], classes: list) -> lis
     for i in range(len(y_true)):
         c_matrix[dict_classes[y_true[i]]][dict_classes[y_pred[i]]] += 1
     return c_matrix
+
 
 def true_positives(c_matrix: list[list[int]], class_k: int) -> int:
     """Calcula o True Positives de uma matriz de confusão para uma classe específica.
@@ -88,7 +99,7 @@ def true_positives(c_matrix: list[list[int]], class_k: int) -> int:
     true_positives: int
         O elemento c_matrix[class_k][class_k], o qual indica quantas vezes o classificador
         retornou class_k quando esta era a verdadeira classe da observação.
-    
+
     Raises
     ------
     ValueError
@@ -101,6 +112,7 @@ def true_positives(c_matrix: list[list[int]], class_k: int) -> int:
     t_positives = c_matrix[class_k][class_k]
     return t_positives
 
+
 def false_positives(c_matrix: list[list[int]], class_k: int) -> int:
     """Calcula o False Positives de uma matriz de confusão para uma classe específica.
 
@@ -109,7 +121,7 @@ def false_positives(c_matrix: list[list[int]], class_k: int) -> int:
     c_matrix: list[list[int]]
         Uma matriz quadrada de dimensões (n_classes, n_classes), na qual cada elemento
         na posição [i][j] representa o número de observações tais que a verdadeira classe
-        é i e a classe prevista é j.    
+        é i e a classe prevista é j.
     class_k: int
         O índice da classe para qual o False Positives será calculado.
 
@@ -119,7 +131,7 @@ def false_positives(c_matrix: list[list[int]], class_k: int) -> int:
         A soma das entradas da coluna class_k, exceto c_matri[class_k][class_k].
         Isto representa o número de observações previstas como class_k quando sua
         classe verdadeira era diferente de class_k.
-    
+
     Raises
     ------
     ValueError
@@ -135,25 +147,26 @@ def false_positives(c_matrix: list[list[int]], class_k: int) -> int:
             f_positives += c_matrix[i][class_k]
     return f_positives
 
+
 def true_negatives(c_matrix: list[list[int]], class_k: int) -> int:
     """Calcula o True Negatives de uma matriz de confusão para uma classe específica.
- 
+
     Parameters
     ----------
     c_matrix: list[list[int]]
         Uma matriz quadrada de dimensões (n_classes, n_classes), na qual cada elemento
         na posição [i][j] representa o número de observações tais que a verdadeira classe
-        é i e a classe prevista é j.    
+        é i e a classe prevista é j.
     class_k: int
         O índice da classe para qual o True Negatives será calculado.
 
     Returns
     -------
     true_negatives: int
-        Soma de todas as entradas fora da coluna class_k e linha class_k. Isto representa 
-        o número de observações as quais a verdadeira classe e a classe prevista são 
+        Soma de todas as entradas fora da coluna class_k e linha class_k. Isto representa
+        o número de observações as quais a verdadeira classe e a classe prevista são
         ambas diferentes de class_k.
-    
+
     Raises
     ------
     ValueError
@@ -170,15 +183,16 @@ def true_negatives(c_matrix: list[list[int]], class_k: int) -> int:
                 t_negatives += c_matrix[i][j]
     return t_negatives
 
+
 def false_negatives(c_matrix: list[list[int]], class_k: int) -> int:
     """Calcula o False Negatives de uma matriz de confusão para uma classe específica.
- 
+
     Parameters
     ----------
     c_matrix: list[list[int]]
         Uma matriz quadrada de dimensões (n_classes, n_classes), na qual cada elemento
         na posição [i][j] representa o número de observações tais que a verdadeira classe
-        é i e a classe prevista é j.    
+        é i e a classe prevista é j.
     class_k: int
         O índice da classe para qual o False Negatives será calculado.
 
@@ -188,7 +202,7 @@ def false_negatives(c_matrix: list[list[int]], class_k: int) -> int:
         Soma de todas as entradas na linha class_k, exceto c_matrix[class_k][class_k].
         Isto representa o número de observações os quais a verdadeira classe é class_k,
         mas que foram predivistas em classes diferentes de class_k.
-    
+
     Raises
     ------
     ValueError
@@ -197,29 +211,30 @@ def false_negatives(c_matrix: list[list[int]], class_k: int) -> int:
         Se class_k for inválido.
     """
     _validate_class_index(c_matrix, class_k)
-    
+
     f_negatives = 0
     for j in range(len(c_matrix)):
         if j != class_k:
             f_negatives += c_matrix[class_k][j]
     return f_negatives
 
+
 def accuracy_score(c_matrix: list[list[int]]) -> float:
-    """Calcula o Accuracy Score para uma matriz de confusão. 
+    """Calcula o Accuracy Score para uma matriz de confusão.
 
     Parameters
     ----------
     c_matrix: list[list[int]]
         Uma matriz quadrada de dimensões (n_classes, n_classes), na qual cada elemento
         na posição [i][j] representa o número de observações tais que a verdadeira classe
-        é i e a classe prevista é j. 
+        é i e a classe prevista é j.
 
     Returns
     -------
     true_predictions/total: float
-        A razão entre as previsões certas e todas as previsões. Isto indica o quanto um 
+        A razão entre as previsões certas e todas as previsões. Isto indica o quanto um
         classificador acerta em geral quando faz uma previsão.
-    
+
     Raises
     ------
     ValueError
@@ -228,7 +243,7 @@ def accuracy_score(c_matrix: list[list[int]]) -> float:
         Se a matriz de confusão não for quadrada.
     """
     _validate_confusion_matrix(c_matrix)
-    
+
     true_predictions = 0
     total = 0
     for i in range(len(c_matrix)):
@@ -237,19 +252,21 @@ def accuracy_score(c_matrix: list[list[int]]) -> float:
                 true_predictions += c_matrix[i][j]
             total += c_matrix[i][j]
     if total == 0:
-        raise ValueError("A matriz de confusão deve ter ao menos um elemento diferente de zero.")
-    return true_predictions/total
+        raise ValueError(
+            "A matriz de confusão deve ter ao menos um elemento diferente de zero."
+        )
+    return true_predictions / total
 
 
 def precision_score(c_matrix: list[list[int]], class_k: int | None = None) -> float:
-    """Calcula o Precision Score para uma matriz de confusão. 
+    """Calcula o Precision Score para uma matriz de confusão.
 
     Parameters
     ----------
     c_matrix: list[list[int]]
         Uma matriz quadrada de dimensões (n_classes, n_classes), na qual cada elemento
         na posição [i][j] representa o número de observações tais que a verdadeira classe
-        é i e a classe prevista é j. 
+        é i e a classe prevista é j.
     class_k: int | None
         O índice da classe para qual o Precision será calculado. O padrão valor padrão
         de class_k é None, e para tal caso, o Precision é calculado através de seu macro.
@@ -257,9 +274,9 @@ def precision_score(c_matrix: list[list[int]], class_k: int | None = None) -> fl
     Returns
     -------
     float
-        Se class_k não for None, retorna tp/(tp+fp), a proporção das observações 
+        Se class_k não for None, retorna tp/(tp+fp), a proporção das observações
         previstas como pertencentes a class_k que realmente pertencem a essa classe.
-        Se class_k for None, retorna macro_precision, a média aritmética dos valores 
+        Se class_k for None, retorna macro_precision, a média aritmética dos valores
         de Precision de todas as classes.
 
     Raises
@@ -278,8 +295,8 @@ def precision_score(c_matrix: list[list[int]], class_k: int | None = None) -> fl
         return macro_precision(c_matrix)
     tp = true_positives(c_matrix, class_k)
     fp = false_positives(c_matrix, class_k)
-    if tp+fp != 0:
-        return tp/(tp+fp)
+    if tp + fp != 0:
+        return tp / (tp + fp)
     else:
         warnings.warn(
             "Precision indefinida: tp + fp é zero; retornando 0.0.",
@@ -287,7 +304,8 @@ def precision_score(c_matrix: list[list[int]], class_k: int | None = None) -> fl
             stacklevel=2,
         )
         return 0.0
-    
+
+
 def recall_score(c_matrix: list[list[int]], class_k: int | None = None) -> float:
     """Calcula o Recall Score para uma matriz de confusão.
 
@@ -296,7 +314,7 @@ def recall_score(c_matrix: list[list[int]], class_k: int | None = None) -> float
     c_matrix: list[list[int]]
         Uma matriz quadrada de dimensões (n_classes, n_classes), na qual cada elemento
         na posição [i][j] representa o número de observações tais que a verdadeira classe
-        é i e a classe prevista é j.    
+        é i e a classe prevista é j.
     class_k: int | None
         O índice da classe para qual o Recall será calculado. O padrão valor padrão
         de class_k é None, e para tal caso, o Recall é calculado através de seu macro.
@@ -304,11 +322,11 @@ def recall_score(c_matrix: list[list[int]], class_k: int | None = None) -> float
     Returns
     -------
     float
-        Se class_k não for None, retorna tp/(tp+fn), a proporção das observações que 
-        realmente pertencem a class_k e que foram corretamente identificadas pelo 
-        classificador. Se class_k for None, retorna macro_recall, a média aritmética 
+        Se class_k não for None, retorna tp/(tp+fn), a proporção das observações que
+        realmente pertencem a class_k e que foram corretamente identificadas pelo
+        classificador. Se class_k for None, retorna macro_recall, a média aritmética
         dos valores de Recall de todas as classes.
-    
+
     Raises
     ------
     ValueError
@@ -325,8 +343,8 @@ def recall_score(c_matrix: list[list[int]], class_k: int | None = None) -> float
         return macro_recall(c_matrix)
     tp = true_positives(c_matrix, class_k)
     fn = false_negatives(c_matrix, class_k)
-    if tp+fn != 0:
-        return tp/(tp+fn)
+    if tp + fn != 0:
+        return tp / (tp + fn)
     else:
         warnings.warn(
             "Recall indefinido: tp + fn é zero; retornando 0.0.",
@@ -334,6 +352,7 @@ def recall_score(c_matrix: list[list[int]], class_k: int | None = None) -> float
             stacklevel=2,
         )
         return 0.0
+
 
 def specificity_score(c_matrix: list[list[int]], class_k: int | None = None) -> float:
     """Calcula o Specificity Score para uma matriz de confusão.
@@ -343,7 +362,7 @@ def specificity_score(c_matrix: list[list[int]], class_k: int | None = None) -> 
     c_matrix: list[list[int]]
         Uma matriz quadrada de dimensões (n_classes, n_classes), na qual cada elemento
         na posição [i][j] representa o número de observações tais que a verdadeira classe
-        é i e a classe prevista é j.    
+        é i e a classe prevista é j.
     class_k: int | None
         O índice da classe para qual o Specificity score será calculado. O padrão valor padrão
         de class_k é None, e para tal caso, o Specificity é calculado através de seu macro.
@@ -351,8 +370,8 @@ def specificity_score(c_matrix: list[list[int]], class_k: int | None = None) -> 
     Returns
     -------
     float
-        Se class_k não for None, retorna tn/(tn+fp), a proporção das observações 
-        que não pertencem a class_k e que foram corretamente identificadas como 
+        Se class_k não for None, retorna tn/(tn+fp), a proporção das observações
+        que não pertencem a class_k e que foram corretamente identificadas como
         negativas. Se class_k for None, retorna macro_specificity, a média
         aritmética dos valores de Specificity de todas as classes.
 
@@ -369,11 +388,11 @@ def specificity_score(c_matrix: list[list[int]], class_k: int | None = None) -> 
         Se tn + fp for igual a zero, retornando 0.0.
     """
     if class_k == None:
-        return macro_specificity(c_matrix)    
+        return macro_specificity(c_matrix)
     tn = true_negatives(c_matrix, class_k)
     fp = false_positives(c_matrix, class_k)
-    if tn+fp != 0:
-        return tn/(tn+fp)
+    if tn + fp != 0:
+        return tn / (tn + fp)
     else:
         warnings.warn(
             "Specificity indefinida: tn + fp é zero; retornando 0.0.",
@@ -381,6 +400,7 @@ def specificity_score(c_matrix: list[list[int]], class_k: int | None = None) -> 
             stacklevel=2,
         )
         return 0.0
+
 
 def f1_score(c_matrix: list[list[int]], class_k: int | None = None) -> float:
     """Calcula o F1 Score para uma matriz de confusão.
@@ -390,7 +410,7 @@ def f1_score(c_matrix: list[list[int]], class_k: int | None = None) -> float:
     c_matrix: list[list[int]]
         Uma matriz quadrada de dimensões (n_classes, n_classes), na qual cada elemento
         na posição [i][j] representa o número de observações tais que a verdadeira classe
-        é i e a classe prevista é j.    
+        é i e a classe prevista é j.
     class_k: int | None
         O índice da classe para qual o f1 score será calculado. O padrão valor padrão
         de class_k é None, e para tal caso, o f1 é calculado através de seu macro.
@@ -398,11 +418,11 @@ def f1_score(c_matrix: list[list[int]], class_k: int | None = None) -> float:
     Returns
     -------
     float
-        Se class_k não for None, retorna 2*tp/(2*tp+fn+fp), o F1 Score da classe 
+        Se class_k não for None, retorna 2*tp/(2*tp+fn+fp), o F1 Score da classe
         especificada, calculado como a média harmônica entre Precision e Recall.
         Se class_k for None, retorna macro_f1, a média aritmética dos valores de
         F1 Score de todas as classes.
-    
+
     Raises
     ------
     ValueError
@@ -420,9 +440,9 @@ def f1_score(c_matrix: list[list[int]], class_k: int | None = None) -> float:
     tp = true_positives(c_matrix, class_k)
     fp = false_positives(c_matrix, class_k)
     fn = false_negatives(c_matrix, class_k)
-    if 2*tp + fn + fp != 0:
-        return 2*tp/(2*tp + fn + fp)
-    else: 
+    if 2 * tp + fn + fp != 0:
+        return 2 * tp / (2 * tp + fn + fp)
+    else:
         warnings.warn(
             "F1 indefinido: o denominador é zero; retornando 0.0.",
             UserWarning,
@@ -430,9 +450,9 @@ def f1_score(c_matrix: list[list[int]], class_k: int | None = None) -> float:
         )
         return 0.0
 
+
 def macro_metric(
-    c_matrix: list[list[int]],
-    metric: Callable[[list[list[int]], int], float]
+    c_matrix: list[list[int]], metric: Callable[[list[list[int]], int], float]
 ) -> float:
     """Calcula a média macro para uma métrica específica.
 
@@ -458,7 +478,7 @@ def macro_metric(
     Warns
     -----
     UserWarning
-        Se uma ou mais classes forem ignoradas por terem provocado 
+        Se uma ou mais classes forem ignoradas por terem provocado
         ValueError durante o cálculo.
     """
     total_metric = 0.0
@@ -481,10 +501,11 @@ def macro_metric(
             f"{ignored_classes} classe(s) desconsiderada(s) "
             "porque a métrica lançou ValueError.",
             UserWarning,
-            stacklevel=2
+            stacklevel=2,
         )
 
     return total_metric / n_valid
+
 
 def macro_f1(c_matrix: list[list[int]]) -> float:
     """Calcula a média macro do F1 Score.
@@ -494,15 +515,15 @@ def macro_f1(c_matrix: list[list[int]]) -> float:
     c_matrix: list[list[int]]
         Uma matriz quadrada de dimensões (n_classes, n_classes), na qual cada elemento
         na posição [i][j] representa o número de observações tais que a verdadeira classe
-        é i e a classe prevista é j.    
+        é i e a classe prevista é j.
 
     Returns
     -------
     float
-        O macro F1 Score, que é a média aritmética do f1_score para todas as classes. 
-        Classes cuja métrica apresenta denominador zero recebem valor 0.0, acompanhado 
+        O macro F1 Score, que é a média aritmética do f1_score para todas as classes.
+        Classes cuja métrica apresenta denominador zero recebem valor 0.0, acompanhado
         de UserWarning. Esse valor é incluído na média macro.
-    
+
     Raises
     ------
     ValueError
@@ -517,6 +538,7 @@ def macro_f1(c_matrix: list[list[int]]) -> float:
     """
     return macro_metric(c_matrix, f1_score)
 
+
 def macro_specificity(c_matrix: list[list[int]]) -> float:
     """Calcula a média macro do Specificity Score.
 
@@ -525,21 +547,21 @@ def macro_specificity(c_matrix: list[list[int]]) -> float:
     c_matrix: list[list[int]]
         Uma matriz quadrada de dimensões (n_classes, n_classes), na qual cada elemento
         na posição [i][j] representa o número de observações tais que a verdadeira classe
-        é i e a classe prevista é j.    
+        é i e a classe prevista é j.
 
     Returns
     -------
     float
-        O macro Specificity Score, que é a média aritmética do specificity_score para todas as classes. 
-        Classes cuja métrica apresenta denominador zero recebem valor 0.0, acompanhado de 
+        O macro Specificity Score, que é a média aritmética do specificity_score para todas as classes.
+        Classes cuja métrica apresenta denominador zero recebem valor 0.0, acompanhado de
         UserWarning. Esse valor é incluído na média macro.
-    
+
     Raises
     ------
     ValueError
         Se c_matrix for vazia ou inválida, impedindo a avaliação
         de todas as classes.
-        
+
     Warns
     -----
     UserWarning
@@ -547,6 +569,7 @@ def macro_specificity(c_matrix: list[list[int]]) -> float:
         valor 0.0 incluído na média macro.
     """
     return macro_metric(c_matrix, specificity_score)
+
 
 def macro_recall(c_matrix: list[list[int]]) -> float:
     """Calcula a média macro do Recall Score.
@@ -556,15 +579,15 @@ def macro_recall(c_matrix: list[list[int]]) -> float:
     c_matrix: list[list[int]]
         Uma matriz quadrada de dimensões (n_classes, n_classes), na qual cada elemento
         na posição [i][j] representa o número de observações tais que a verdadeira classe
-        é i e a classe prevista é j.    
+        é i e a classe prevista é j.
 
     Returns
     -------
     float
-        O macro Recall Score, que é a média aritmética do recall_score para todas as classes. 
-        Classes cuja métrica apresenta denominador zero recebem valor 0.0, acompanhado de 
+        O macro Recall Score, que é a média aritmética do recall_score para todas as classes.
+        Classes cuja métrica apresenta denominador zero recebem valor 0.0, acompanhado de
         UserWarning. Esse valor é incluído na média macro.
-    
+
     Raises
     ------
     ValueError
@@ -579,6 +602,7 @@ def macro_recall(c_matrix: list[list[int]]) -> float:
     """
     return macro_metric(c_matrix, recall_score)
 
+
 def macro_precision(c_matrix: list[list[int]]) -> float:
     """Calcula a média macro do Precision Score.
 
@@ -587,15 +611,15 @@ def macro_precision(c_matrix: list[list[int]]) -> float:
     c_matrix: list[list[int]]
         Uma matriz quadrada de dimensões (n_classes, n_classes), na qual cada elemento
         na posição [i][j] representa o número de observações tais que a verdadeira classe
-        é i e a classe prevista é j.    
+        é i e a classe prevista é j.
 
     Returns
     -------
     float
-        O macro Precision Score, que é a média aritmética do precision_score para todas as classes. 
-        Classes cuja métrica apresenta denominador zero recebem valor 0.0, acompanhado de 
+        O macro Precision Score, que é a média aritmética do precision_score para todas as classes.
+        Classes cuja métrica apresenta denominador zero recebem valor 0.0, acompanhado de
         UserWarning. Esse valor é incluído na média macro.
-    
+
     Raises
     ------
     ValueError
@@ -610,7 +634,13 @@ def macro_precision(c_matrix: list[list[int]]) -> float:
     """
     return macro_metric(c_matrix, precision_score)
 
-def log_loss(y_true: npt.ArrayLike, p_matrix: npt.ArrayLike, classes: list | None = None, epsilon: float=1e-10) -> float:
+
+def log_loss(
+    y_true: npt.ArrayLike,
+    p_matrix: npt.ArrayLike,
+    classes: list | None = None,
+    epsilon: float = 1e-10,
+) -> float:
     """Calcula a perda logarítmica de um classificador.
 
     Parameters
@@ -657,7 +687,9 @@ def log_loss(y_true: npt.ArrayLike, p_matrix: npt.ArrayLike, classes: list | Non
 
     if classes is not None:
         if len(classes) != n_classes:
-            raise ValueError("O número de classes deve ser igual ao número de colunas de p_matrix.")
+            raise ValueError(
+                "O número de classes deve ser igual ao número de colunas de p_matrix."
+            )
         if len(set(classes)) != len(classes):
             raise ValueError("classes não pode conter duplicatas.")
 
@@ -683,7 +715,9 @@ def log_loss(y_true: npt.ArrayLike, p_matrix: npt.ArrayLike, classes: list | Non
 
     for i in range(len(y_true)):
         if y_true[i] not in dict_classes:
-            raise ValueError("y_true contém classes que não estão presentes em classes.")
+            raise ValueError(
+                "y_true contém classes que não estão presentes em classes."
+            )
         ind = dict_classes[y_true[i]]
         prob = np.clip(p_matrix[i, ind], epsilon, 1.0)
         total += np.log(prob)
@@ -691,7 +725,8 @@ def log_loss(y_true: npt.ArrayLike, p_matrix: npt.ArrayLike, classes: list | Non
     l_loss = -total / len(y_true)
     return float(l_loss)
 
-def binary_roc_auc(y_true: npt.ArrayLike, y_score: npt.ArrayLike) -> float:        
+
+def binary_roc_auc(y_true: npt.ArrayLike, y_score: npt.ArrayLike) -> float:
     """Calcula a área sob a curva ROC para classificação binária.
 
     Parameters
@@ -761,17 +796,20 @@ def binary_roc_auc(y_true: npt.ArrayLike, y_score: npt.ArrayLike) -> float:
     tp = tp[distinct]
     fp = fp[distinct]
 
-    tpr = tp/n_positive
-    fpr = fp/n_negative
+    tpr = tp / n_positive
+    fpr = fp / n_negative
 
     tpr = np.insert(tpr, 0, 0.0)
     fpr = np.insert(fpr, 0, 0.0)
 
-    auc = np.sum((tpr[1:]+tpr[:-1])*(fpr[1:]-fpr[:-1])/2.0)
+    auc = np.sum((tpr[1:] + tpr[:-1]) * (fpr[1:] - fpr[:-1]) / 2.0)
 
     return float(auc)
 
-def roc_auc_score(y_true: npt.ArrayLike, y_score: npt.ArrayLike, class_k: int | None = None) -> float:
+
+def roc_auc_score(
+    y_true: npt.ArrayLike, y_score: npt.ArrayLike, class_k: int | None = None
+) -> float:
     """Calcula a área sob a curva ROC para classificação binária
     ou para uma classe específica em classificação multiclasse.
 
@@ -820,13 +858,13 @@ def roc_auc_score(y_true: npt.ArrayLike, y_score: npt.ArrayLike, class_k: int | 
     y_true = np.asarray(y_true)
     y_score = np.asarray(y_score, dtype=float)
 
-    if y_true.ndim != 1: 
+    if y_true.ndim != 1:
         raise ValueError("y_true deve ser unidimensional.")
 
     if y_score.ndim == 1:
         if class_k is not None:
             raise ValueError("class_k deve ser None para classificação binária.")
-        
+
         return binary_roc_auc(y_true, y_score)
 
     if y_score.ndim != 2:
@@ -844,7 +882,9 @@ def roc_auc_score(y_true: npt.ArrayLike, y_score: npt.ArrayLike, class_k: int | 
     if class_k is None:
         raise ValueError("class_k é exigida para classificações multiclasse.")
 
-    if isinstance(class_k, (bool, np.bool_)) or not isinstance(class_k, (int, np.integer)):
+    if isinstance(class_k, (bool, np.bool_)) or not isinstance(
+        class_k, (int, np.integer)
+    ):
         raise ValueError("class_k deve ser um inteiro.")
 
     n_classes = y_score.shape[1]
@@ -853,7 +893,9 @@ def roc_auc_score(y_true: npt.ArrayLike, y_score: npt.ArrayLike, class_k: int | 
         raise ValueError("class_k está fora do intervalo válido.")
 
     if not np.all(np.isin(y_true, np.arange(n_classes))):
-        raise ValueError("Os labels de y_true devem corresponder aos índices das colunas de y_score.")
+        raise ValueError(
+            "Os labels de y_true devem corresponder aos índices das colunas de y_score."
+        )
 
     y_true_bin = (y_true == class_k).astype(int)
     y_score_bin = y_score[:, class_k]

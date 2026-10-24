@@ -1,17 +1,20 @@
 """Exemplo: análise discriminante quadrática para classificação."""
 
 import numpy as np
+
 from statstech.discriminant_analysis.qda import QuadraticDiscriminantAnalysis
 
 # Dados
-X = np.array([
-    [1.0, 1.0],
-    [1.0, 2.0],
-    [2.0, 1.0],
-    [5.0, 5.0],
-    [5.0, 6.0],
-    [6.0, 5.0],
-])
+X = np.array(
+    [
+        [1.0, 1.0],
+        [1.0, 2.0],
+        [2.0, 1.0],
+        [5.0, 5.0],
+        [5.0, 6.0],
+        [6.0, 5.0],
+    ]
+)
 
 y = np.array([0, 0, 0, 1, 1, 1])
 

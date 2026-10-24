@@ -1,18 +1,20 @@
-
 """Exemplo: regressão logística para classificação."""
 
 import numpy as np
+
 from statstech.linear_model.logistic_regression import LogisticRegression
 
 # Dados
-X = np.array([
-    [1.0, 1.0],
-    [1.0, 2.0],
-    [2.0, 1.0],
-    [5.0, 5.0],
-    [5.0, 6.0],
-    [6.0, 5.0],
-])
+X = np.array(
+    [
+        [1.0, 1.0],
+        [1.0, 2.0],
+        [2.0, 1.0],
+        [5.0, 5.0],
+        [5.0, 6.0],
+        [6.0, 5.0],
+    ]
+)
 
 y = np.array([0, 0, 0, 1, 1, 1])
 
