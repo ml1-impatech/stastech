@@ -6,6 +6,7 @@ import pytest
 from statstech.base import BaseEstimator, RegressorMixin
 from statstech.linear_model.logistic_regression import LogisticRegression
 from statstech.model_selection.search import GridSearchCV, _expand_grid
+from statstech.model_selection.split import KFold
 from statstech.model_selection.validation import cross_val_score
 from statstech.utils.validation import NotFittedError, check_is_fitted
 
@@ -109,7 +110,7 @@ def test_cv_results_one_item_per_combination():
     grid = GridSearchCV(ShiftRegressor(), {"shift": [-5.0, 0.0, 5.0]}, cv=4).fit(X, y)
     assert len(grid.cv_results_) == 3
     for result in grid.cv_results_:
-        assert set(result.keys()) == {"params", "mean_score"}
+        assert set(result.keys()) == {"params", "mean_score", "std_score", "scores"}
     params_list = [result["params"] for result in grid.cv_results_]
     assert params_list == [{"shift": -5.0}, {"shift": 0.0}, {"shift": 5.0}]
 
@@ -274,3 +275,76 @@ def test_grid_search_inside_cross_val_score_with_log_loss():
     assert scores.shape == (3,)
     assert np.all(np.isfinite(scores))
     assert np.all(scores > 0)
+
+
+# cv_results_ completo e best_index_
+# ----------------------------------
+def test_cv_results_has_all_keys():
+    X, y = make_data()
+    grid = GridSearchCV(ShiftRegressor(), {"shift": [0.0, 5.0]}, cv=4).fit(X, y)
+    for item in grid.cv_results_:
+        assert set(item) == {"params", "mean_score", "std_score", "scores"}
+
+
+def test_cv_results_one_score_per_fold():
+    X, y = make_data()
+    grid = GridSearchCV(ShiftRegressor(), {"shift": [0.0, 5.0]}, cv=4).fit(X, y)
+    for item in grid.cv_results_:
+        assert len(item["scores"]) == 4
+
+
+def make_noisy_data(n=40):
+    """Devolve X (n, 1) e y (n,) com ruído, para os folds terem notas diferentes."""
+    rng = np.random.default_rng(0)
+    X = np.arange(n, dtype=float).reshape(-1, 1)
+    y = X[:, 0] + rng.normal(size=n)
+    return X, y
+
+
+def test_cv_results_mean_and_std_match_scores():
+    X, y = make_noisy_data()
+    grid = GridSearchCV(
+        ShiftRegressor(), {"shift": [-5.0, 0.0, 5.0]}, cv=4, scoring="mse"
+    ).fit(X, y)
+    for item in grid.cv_results_:
+        assert item["std_score"] > 0
+        assert item["mean_score"] == pytest.approx(np.mean(item["scores"]))
+        assert item["std_score"] == pytest.approx(np.std(item["scores"], ddof=1))
+
+
+def test_cv_results_scores_match_cross_val_score():
+    X, y = make_data()
+    cv = KFold(n_splits=4, shuffle=True, random_state=0)
+    grid = GridSearchCV(
+        ShiftRegressor(), {"shift": [0.0, 5.0]}, cv=cv, scoring="mse"
+    ).fit(X, y)
+    for item in grid.cv_results_:
+        model = ShiftRegressor().set_params(**item["params"])
+        expected = cross_val_score(model, X, y, cv=cv, scoring="mse")
+        np.testing.assert_allclose(item["scores"], expected)
+
+
+@pytest.mark.parametrize("scoring", [None, "mse"])
+def test_best_index_points_to_best(scoring):
+    X, y = make_data()
+    grid = GridSearchCV(
+        ShiftRegressor(), {"shift": [-5.0, 0.0, 5.0]}, cv=4, scoring=scoring
+    ).fit(X, y)
+    best = grid.cv_results_[grid.best_index_]
+
+    assert isinstance(grid.best_index_, int)
+    assert best["params"] == grid.best_params_
+    assert best["mean_score"] == grid.best_score_
+
+
+def test_failed_combination_has_nan_std_and_no_scores():
+    X, y = make_data()
+    with pytest.warns(UserWarning, match="falhou"):
+        grid = GridSearchCV(
+            FailingRegressor(), {"fail": [True, False]}, cv=4, error_score=-1.0
+        ).fit(X, y)
+    failed = grid.cv_results_[0]
+
+    assert np.isnan(failed["std_score"])
+    assert failed["scores"] == []
+    assert grid.best_index_ == 1

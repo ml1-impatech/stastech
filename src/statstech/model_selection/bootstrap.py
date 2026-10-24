@@ -43,11 +43,15 @@ def bootstrap(
     Raises
     ------
     ValueError
+        Se n_bootstrap não for inteiro.
         Se nenhum dado for fornecido.
         Se os arrays não tiverem o mesmo tamanho.
         Se o tamanho do dado for 0.
         Se n_bootstrap for menor que 2.
     """
+
+    if isinstance(n_bootstrap, bool) or not isinstance(n_bootstrap, (int, np.integer)):
+        raise ValueError("n_bootstrap deve ser um número inteiro.")
 
     if not isinstance(data, tuple):
         data = (data,)

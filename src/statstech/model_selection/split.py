@@ -169,23 +169,14 @@ class KFold:
         Se False, os dados serão divididos na ordem original.
 
     random_state : int, Generator ou None, default=None
-        Seed para o gerador de números aleatórios.
-
-    Attributes
-    ----------
-    n_splits : int
-        Quantidade de partições configurada.
-
-    shuffle : bool
-        Indica se os dados são embaralhados antes da divisão.
-
-    random_state : int, Generator ou None
-        Objeto ou seed responsável pela aleatoriedade.
+        Semente do gerador aleatório. Use um inteiro para obter os
+        mesmos folds a cada chamada de split; com um Generator, cada
+        chamada consome o gerador e devolve folds diferentes.
 
     Raises
     ------
     ValueError
-        Se n_splits for menor que 2.
+        Se n_splits for menor que 2 ou se não for inteiro.
     """
 
     def __init__(
@@ -194,6 +185,8 @@ class KFold:
         shuffle: bool = False,
         random_state: int | np.random.Generator | None = None,
     ) -> None:
+        if isinstance(n_splits, bool) or not isinstance(n_splits, (int, np.integer)):
+            raise ValueError("n_splits deve ser um número inteiro.")
         if n_splits < 2:
             raise ValueError("n_splits deve ser pelo menos 2.")
         self.n_splits = n_splits
@@ -245,11 +238,12 @@ class KFold:
             yield train_idx, test_idx
 
 
-class LeaveOneOut(KFold):
+class LeaveOneOut():
     """Validação cruzada deixando uma amostra de fora (k = n).
 
     Em cada rodada, uma única amostra é usada como teste e as
     n - 1 restantes são usadas como treino, gerando n partições.
+    Não tem parâmetros: o número de partições é o número de amostras.
     """
 
     def split(
@@ -288,18 +282,32 @@ class LeaveOneOut(KFold):
         yield from KFold(n_splits=n).split(X)
 
 
-class StratifiedKFold:
-    def __init__(
-        self,
-        n_splits: int = 5,
-        shuffle: bool = False,
-        random_state: int | np.random.Generator | None = None,
-    ) -> None:
-        if n_splits < 2:
-            raise ValueError("n_splits deve ser pelo menos 2.")
-        self.n_splits = n_splits
-        self.shuffle = shuffle
-        self.random_state = random_state
+class StratifiedKFold(KFold):
+    """K folds que mantêm a proporção de cada classe de y.
+
+    Funciona como o KFold, mas cada classe é dividida igualmente
+    entre os folds. Cada classe precisa ter pelo menos n_splits
+    exemplos.
+
+    Parameters
+    ----------
+    n_splits : int, default=5
+        Quantidade de partições (k). Deve ser pelo menos 2.
+    
+    shuffle : bool, default=False
+        Se True, os dados serão embaralhados antes da divisão.
+        Se False, os dados serão divididos na ordem original.
+    
+    random_state : int, Generator ou None, default=None
+        Semente do gerador aleatório. Use um inteiro para obter os
+        mesmos folds a cada chamada de split; com um Generator, cada
+        chamada consome o gerador e devolve folds diferentes.
+    
+    Raises
+    ------
+    ValueError
+        Se n_splits for menor que 2 ou se nãofor inteiro.
+    """
 
     def split(
         self, X: ArrayLike, y: ArrayLike | None = None

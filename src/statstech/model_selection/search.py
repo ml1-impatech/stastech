@@ -76,10 +76,14 @@ class GridSearchCV(BaseEstimator):
     Attributes
     ----------
     cv_results_ : list of dict
-        Um item por combinação, com as chaves "params" e
-        "mean_score" (média dos scores dos folds).
-        Quando uma combinação falha, seu mean_score é o
-        valor de error_score.
+        Um item por combinação, com as chaves :
+        "params": a combinação de hiperparâmetros;
+        "mean_score": média das notas dos folds;
+        "std_score": desvio padrão amostral (ddof=1) das notas;
+        "scores": lista com a nota de cada fold.
+
+        Quando uma combinação falha, mean_score é o
+        valor de error_score, std_score é NaN e scores é uma lista vazia.
 
     best_score_ : float
         Média do score da melhor combinação.
@@ -94,6 +98,9 @@ class GridSearchCV(BaseEstimator):
     classes_ : ndarray de formato (n_classes,)
         Classes do melhor modelo. Só existe se refit=True e o
         estimador for um classificador.
+
+    best_index : int
+        Posição da melhor combinação em cv_results_.
 
     Warns
     -----
@@ -164,6 +171,8 @@ class GridSearchCV(BaseEstimator):
             try:
                 scores = cross_val_score(model, X, y, cv=self.cv, scoring=self.scoring)
                 scores_mean = float(np.mean(scores))
+                scores_std = float(np.std(scores, ddof=1))
+                fold_scores = scores.tolist()
             except Exception as error:
                 if is_raise:
                     raise
@@ -174,8 +183,17 @@ class GridSearchCV(BaseEstimator):
                     stacklevel=2,
                 )
                 scores_mean = float(self.error_score)
+                scores_std = float("nan")
+                fold_scores = []
             means.append(scores_mean)
-            self.cv_results_.append({"params": params, "mean_score": scores_mean})
+            self.cv_results_.append(
+                {
+                    "params": params,
+                    "mean_score": scores_mean,
+                    "std_score": scores_std,
+                    "scores": fold_scores,
+                }
+            )
 
         if np.all(np.isnan(means)):
             raise ValueError("Todas as combinações de parâmetros falharam.")
@@ -183,6 +201,7 @@ class GridSearchCV(BaseEstimator):
             best_idx = np.nanargmin(means)
         else:
             best_idx = np.nanargmax(means)
+        self.best_index_: int = int(best_idx)
         self.best_score_: float = means[best_idx]
         self.best_params_: dict[str, Any] = combinations[best_idx]
 
