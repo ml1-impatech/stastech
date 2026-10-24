@@ -78,7 +78,7 @@ class GridSearchCV(BaseEstimator):
     cv_results_ : list of dict
         Um item por combinação, com as chaves "params" e
         "mean_score" (média dos scores dos folds).
-        Quando uma combinação falha, seu mean_score é o 
+        Quando uma combinação falha, seu mean_score é o
         valor de error_score.
 
     best_score_ : float
@@ -122,7 +122,7 @@ class GridSearchCV(BaseEstimator):
         model = clone(self.estimator)
         return model.set_params(**params)
 
-    def fit(self, X: ArrayLike, y: ArrayLike) -> "GridSearchCV":
+    def fit(self, X: ArrayLike, y: ArrayLike) -> Self:
         """Busca a melhor combinação de hiperparâmetros.
 
         Parameters
@@ -135,6 +135,7 @@ class GridSearchCV(BaseEstimator):
         Returns
         -------
         self : GridSearchCV
+            O próprio objeto, com os resultados da busca.
 
         Raises
         ------
@@ -152,9 +153,8 @@ class GridSearchCV(BaseEstimator):
         means: list[float] = []
 
         is_raise = isinstance(self.error_score, str) and self.error_score == "raise"
-        is_number = (
-            isinstance(self.error_score, (int, float))
-            and not isinstance(self.error_score, bool)
+        is_number = isinstance(self.error_score, (int, float)) and not isinstance(
+            self.error_score, bool
         )
         if not (is_raise or is_number):
             raise ValueError("error_score deve ser 'raise' ou um número.")
@@ -162,9 +162,7 @@ class GridSearchCV(BaseEstimator):
         for params in combinations:
             model = self._clone_with(params)
             try:
-                scores = cross_val_score(
-                    model, X, y, cv=self.cv, scoring=self.scoring
-                )
+                scores = cross_val_score(model, X, y, cv=self.cv, scoring=self.scoring)
                 scores_mean = float(np.mean(scores))
             except Exception as error:
                 if is_raise:
@@ -178,7 +176,7 @@ class GridSearchCV(BaseEstimator):
                 scores_mean = float(self.error_score)
             means.append(scores_mean)
             self.cv_results_.append({"params": params, "mean_score": scores_mean})
-    
+
         if np.all(np.isnan(means)):
             raise ValueError("Todas as combinações de parâmetros falharam.")
         if isinstance(self.scoring, str) and lower_is_better(self.scoring):

@@ -201,7 +201,7 @@ class KFold:
         self.random_state = random_state
 
     def split(
-        self, X: ArrayLike
+        self, X: ArrayLike, y: ArrayLike | None = None
     ) -> Iterator[tuple[NDArray[np.intp], NDArray[np.intp]]]:
         """Gera os índices de treino e teste de cada partição.
 
@@ -213,6 +213,10 @@ class KFold:
         ----------
         X : array-like
             Dados de entrada (features). Apenas os índices são utilizados.
+
+        y : array-like de formato (n_amostras,), default=None
+            Ignorado. Existe para manter a mesma interface do
+            StratifiedKFold.
 
         Yields
         ------
@@ -249,7 +253,7 @@ class LeaveOneOut(KFold):
     """
 
     def split(
-        self, X: ArrayLike
+        self, X: ArrayLike, y: ArrayLike | None = None
     ) -> Iterator[tuple[NDArray[np.intp], NDArray[np.intp]]]:
         """Gera os índices de treino e teste de cada partição.
 
@@ -257,6 +261,10 @@ class LeaveOneOut(KFold):
         ----------
         X : array-like
             Dados de entrada. Apenas o número de amostras é utilizado.
+
+        y : array-like de formato (n_amostras,), default=None
+            Ignorado. Existe para manter a mesma interface do
+            StratifiedKFold
 
         Yields
         ------
@@ -278,3 +286,79 @@ class LeaveOneOut(KFold):
                 f"LeaveOneOut precisa de pelo menos 2 amostras (recebido {n})."
             )
         yield from KFold(n_splits=n).split(X)
+
+
+class StratifiedKFold:
+    def __init__(
+        self,
+        n_splits: int = 5,
+        shuffle: bool = False,
+        random_state: int | np.random.Generator | None = None,
+    ) -> None:
+        if n_splits < 2:
+            raise ValueError("n_splits deve ser pelo menos 2.")
+        self.n_splits = n_splits
+        self.shuffle = shuffle
+        self.random_state = random_state
+
+    def split(
+        self, X: ArrayLike, y: ArrayLike | None = None
+    ) -> Iterator[tuple[NDArray[np.intp], NDArray[np.intp]]]:
+        """Gera os índices de treino e teste de cada partição.
+
+        Para cada uma das n_splits partições, devolve os índices
+        das amostras de treino e de teste.
+        Cada amostra aparece no conjunto de teste exatamente uma vez.
+
+        Parameters
+        ----------
+        X : array-like
+            Dados de entrada (features). Apenas os índices são utilizados.
+
+        y : array-like de formato (n_amostras,), default=None
+            Ignorado. Existe para manter a mesma interface do
+            StratifiedKFold.
+
+        Yields
+        ------
+        train_idx : ndarray
+            Índices das amostras de treino da partição.
+
+        test_idx : ndarray
+            Índices das amostras de teste da partição.
+
+        Raises
+        ------
+        ValueError
+            Se y for None.
+            Se X e y não tiverem o mesmo tamanho.
+            Se alguma classe de y tiver menos que n_splits exemplos.
+        """
+        if y is None:
+            raise ValueError("StratifiedKFold precisa de y.")
+        y = np.asarray(y)
+        if len(X) != len(y):
+            raise ValueError(f"X e y devem ter o mesmo tamanho ({len(X)} != {len(y)}).")
+
+        classes, counts = np.unique(y, return_counts=True)
+        for label, count in zip(classes, counts):
+            if count < self.n_splits:
+                raise ValueError(
+                    f"A classe {label!r} tem só {count} exemplo(s); "
+                    f"são necessários pelo menos n_splits={self.n_splits}."
+                )
+
+        rng = np.random.default_rng(self.random_state)
+
+        pieces = []
+        for label in classes:
+            idx = np.flatnonzero(y == label)
+            if self.shuffle:
+                idx = rng.permutation(idx)
+            pieces.append(np.array_split(idx, self.n_splits))
+
+        for i in range(self.n_splits):
+            test_idx = np.concatenate([p[i] for p in pieces])
+            mask = np.ones(len(y), dtype=bool)
+            mask[test_idx] = False
+            yield np.flatnonzero(mask), test_idx
