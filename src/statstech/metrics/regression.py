@@ -47,6 +47,7 @@ def _validate_regression_inputs(
 
     return y_true, y_pred
 
+    
 
 def residual_sum_squares(y_true: npt.ArrayLike, y_pred: npt.ArrayLike) -> float:
     """Calcula a Soma dos Quadrados dos Resíduos.
