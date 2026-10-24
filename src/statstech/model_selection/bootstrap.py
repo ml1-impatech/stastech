@@ -105,7 +105,7 @@ def bootstrap_ci(
     Returns
     -------
     estimate : ndarray
-        Estimativas da estatística calculadas a partir das amostras bootstrap.
+        Estatística calculada nos dados originais.
 
     low : float ou ndarray
         Limite inferior do intervalo de confiança.
@@ -116,7 +116,8 @@ def bootstrap_ci(
     Raises
     ------
     ValueError
-        Se level não for um float estrtitamente entre 0 e 1.
+        Se n_bootstrap não for inteiro.
+        Se level não for um float estritamente entre 0 e 1.
         Se nenhum dado for fornecido.
         Se os arrays não tiverem o mesmo tamanho.
         Se o tamanho do dado for 0.

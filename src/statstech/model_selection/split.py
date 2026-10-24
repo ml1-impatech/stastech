@@ -238,7 +238,7 @@ class KFold:
             yield train_idx, test_idx
 
 
-class LeaveOneOut():
+class LeaveOneOut:
     """Validação cruzada deixando uma amostra de fora (k = n).
 
     Em cada rodada, uma única amostra é usada como teste e as
@@ -258,7 +258,7 @@ class LeaveOneOut():
 
         y : array-like de formato (n_amostras,), default=None
             Ignorado. Existe para manter a mesma interface do
-            StratifiedKFold
+            StratifiedKFold.
 
         Yields
         ------
@@ -293,20 +293,20 @@ class StratifiedKFold(KFold):
     ----------
     n_splits : int, default=5
         Quantidade de partições (k). Deve ser pelo menos 2.
-    
+
     shuffle : bool, default=False
         Se True, os dados serão embaralhados antes da divisão.
         Se False, os dados serão divididos na ordem original.
-    
+
     random_state : int, Generator ou None, default=None
         Semente do gerador aleatório. Use um inteiro para obter os
         mesmos folds a cada chamada de split; com um Generator, cada
         chamada consome o gerador e devolve folds diferentes.
-    
+
     Raises
     ------
     ValueError
-        Se n_splits for menor que 2 ou se nãofor inteiro.
+        Se n_splits for menor que 2 ou se não for inteiro.
     """
 
     def split(
@@ -323,9 +323,8 @@ class StratifiedKFold(KFold):
         X : array-like
             Dados de entrada (features). Apenas os índices são utilizados.
 
-        y : array-like de formato (n_amostras,), default=None
-            Ignorado. Existe para manter a mesma interface do
-            StratifiedKFold.
+        y : array-like de formato (n_amostras,)
+            Classes de cada amostra, usadas para estratificar. Obrigatório.
 
         Yields
         ------

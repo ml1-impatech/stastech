@@ -76,7 +76,7 @@ class GridSearchCV(BaseEstimator):
     Attributes
     ----------
     cv_results_ : list of dict
-        Um item por combinação, com as chaves :
+        Um item por combinação, com as chaves:
         "params": a combinação de hiperparâmetros;
         "mean_score": média das notas dos folds;
         "std_score": desvio padrão amostral (ddof=1) das notas;
@@ -99,7 +99,7 @@ class GridSearchCV(BaseEstimator):
         Classes do melhor modelo. Só existe se refit=True e o
         estimador for um classificador.
 
-    best_index : int
+    best_index_ : int
         Posição da melhor combinação em cv_results_.
 
     Warns
