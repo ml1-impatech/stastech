@@ -1,16 +1,24 @@
+"""Funções de validação usadas por todos os módulos da biblioteca.
+
+Conferem formato, tipo e valores de X e y, e se um modelo já foi
+treinado, para que todos os modelos usem as mesmas checagens e as
+mesmas mensagens de erro.
+"""
+
 import numpy as np
+from numpy.typing import ArrayLike
 
 
 class NotFittedError(ValueError, AttributeError):
     """Erro levantado quando o modelo é usado antes do fit."""
 
 
-def _is_numeric(a):
+def _is_numeric(a: np.ndarray) -> bool:
     """Diz se o array é numérico (inteiro, float ou bool)."""
     return np.issubdtype(a.dtype, np.number) or np.issubdtype(a.dtype, np.bool_)
 
 
-def _check_finite(a, name, allow_nan=False):
+def _check_finite(a: np.ndarray, name: str, allow_nan: bool = False) -> None:
     """Erro se um array tiver NaN ou algum valor infinito."""
     if allow_nan:
         if np.isinf(a).any():
@@ -19,7 +27,9 @@ def _check_finite(a, name, allow_nan=False):
         raise ValueError(f"{name} contém NaN ou valores infinitos.")
 
 
-def check_array(X, allow_nan=False, ensure_numeric=True):
+def check_array(
+    X: ArrayLike, allow_nan: bool = False, ensure_numeric: bool = True
+) -> np.ndarray:
     """Verifica se X é um array 2D.
 
     Converte X para array, confere se é 2D, se não está vazio, se é
@@ -65,7 +75,7 @@ def check_array(X, allow_nan=False, ensure_numeric=True):
     return X
 
 
-def check_X_y(X, y):
+def check_X_y(X: ArrayLike, y: ArrayLike) -> tuple[np.ndarray, np.ndarray]:
     """
     Verifica se X e y são arrays válidos e se têm o mesmo tamanho.
 
@@ -114,7 +124,7 @@ def check_X_y(X, y):
     return X, y
 
 
-def check_is_fitted(model, attributes=None):
+def check_is_fitted(model: object, attributes: str | list[str] | None = None) -> None:
     """Verifica se o modelo já foi treinado.
 
     Se não for passada uma lista de atributos, verifica os atributos
@@ -145,3 +155,12 @@ def check_is_fitted(model, attributes=None):
     missing = [a for a in attributes if not hasattr(model, a)]
     if missing:
         raise NotFittedError(f"{name} ainda não foi treinado, faltam {missing}")
+
+
+def check_n_features(X: np.ndarray, n_features: int, name: str = "X") -> None:
+    """Erro se X não tiver o número de features visto no fit."""
+    if X.shape[1] != n_features:
+        raise ValueError(
+            f"{name} tem {X.shape[1]} features, mas o modelo foi "
+            f"treinado com {n_features}."
+        )

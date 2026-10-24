@@ -1,10 +1,10 @@
+"""Divisão em treino e teste, KFold e LeaveOneOut."""
+
 from collections.abc import Iterator
 from typing import Any
 
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
-
-from ..utils.validation import check_X_y
 
 
 def _resolve_n_test(test_size: float | int, n: int) -> int:
@@ -70,7 +70,8 @@ def train_test_split(
     Parameters
     ----------
     X : array-like de formato (n_amostras, n_features)
-        Dados de entrada. Deve ser 2D e numérico, sem NaN ou inf.
+        Dados de entrada. Aceita qualquer tipo de dado,
+        inclusive texto e NaN.
         Para uma única feature, use X.reshape(-1, 1).
 
     y : array-like de formato (n_amostras,)
@@ -112,9 +113,8 @@ def train_test_split(
     Raises
     ------
     ValueError
-        Se X ou y forem inválidos (ver check_X_y): X que não seja 2D
-        ou numérico, y que não seja 1D, valores não finitos ou
-        tamanhos diferentes.
+        Se X ou y forem inválidos: X que não seja 2D, y que não
+        seja 1D, ou tamanhos diferentes.
         Se test_size não for um float entre 0 e 1 ou um inteiro
         entre 0 e n.
         Se train_size for menor ou igual a 0.
@@ -122,7 +122,16 @@ def train_test_split(
         Se stratify for fornecido com shuffle=False.
         Se alguma classe de stratify tiver menos de 2 amostras.
     """
-    X_arr, y_arr = check_X_y(X, y)
+    X_arr, y_arr = np.asarray(X), np.asarray(y)
+
+    if X_arr.ndim != 2:
+        raise ValueError("X precisa ser 2D (n_amostras, n_features).")
+    if y_arr.ndim != 1:
+        raise ValueError("y deve ser 1D (n_amostras,).")
+    if len(X_arr) != len(y_arr):
+        raise ValueError(
+            f"X e y devem ter o mesmo tamanho ({len(X_arr)} != {len(y_arr)})."
+        )
     n = len(X_arr)
 
     rng = np.random.default_rng(random_state)
@@ -216,11 +225,8 @@ class KFold:
         Raises
         ------
         ValueError
-            Se a quantidade de folds for menor que 2.
             Se n_splits for maior que n.
         """
-        if self.n_splits < 2:
-            raise ValueError("n_splits deve ser pelo menos 2.")
 
         n = len(np.asarray(X))
         if self.n_splits > n:
@@ -265,6 +271,7 @@ class LeaveOneOut(KFold):
         ValueError
             Se X tiver menos de 2 amostras.
         """
+        n = len(np.asarray(X))
         n = len(np.asarray(X))
         if n < 2:
             raise ValueError(

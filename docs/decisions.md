@@ -1,4 +1,4 @@
-# Decisões 
+# Decisões
 
 Este documento registra as decisões tomadas na construção da biblioteca `statstech`.
 
@@ -22,30 +22,47 @@ Este documento registra as decisões tomadas na construção da biblioteca `stat
 
 Funcionalidades usadas por vários módulos ficam localizadas em um mesmo arquivo para evitar repetições de funções.
 
-- **`base.py`**
-- **`utils/validation.py`** (Todos os modelos validam entradas do mesmo jeito e levantam as mesmas mensagens de erro).
+- **`base.py`**: classe base dos modelos, mixins e `clone`.
+- **`utils/validation.py`**: todos os modelos validam entradas do mesmo jeito e
+  levantam as mesmas mensagens de erro (`check_X_y`, `check_array`,
+  `check_is_fitted`, `check_n_features`).
 
+## 4. Validação de hiperparâmetros
+ 
+- O `__init__` só guarda os hiperparâmetros, sem validar nada.
+- A validação fica em um método `_check_params()`, chamado no início do `fit`.
+  Assim, um valor passado por `set_params` também é validado.
 
-## 3. Pré-processamento 
+## 5. Pré-processamento 
 
 - O modelo **não padroniza** os dados por dentro. Quem usa padroniza antes,
 com o `StandardScaler` do módulo `preprocessing`.
 - Motivos: evita vazamento de dados na validação cruzada, evita repetir
 código em cada modelo e mantém cada módulo com uma responsabilidade.
 
-## 4. Estilo de código
+## 6. Estilo de código
 
-- **PEP 8**.
-- **Docstrings no padrão NumPy** (`Parameters`, `Returns`, `Raises`) em português.
+- **PEP 8**, verificado com `ruff check` e `ruff format`.
+- **Código em inglês** (nomes de classes, funções e variáveis) e **docstrings
+  e comentários em português**.
+- **Docstrings no padrão NumPy** (`Parameters`, `Returns`, `Raises`).
+- **Type hints** nos parâmetros e no retorno de todas as funções e métodos.
 
-## 5. Fluxo de trabalho no Git
+## 7. Fluxo de trabalho no Git
 
 - A `main` é **protegida**.
   Mudança por Pull Request.
 - Uma branch por tarefa.
 - Problemas e propostas de mudança são registrados como *issues*.
 
-## 6. Instalação
+## 8. Instalação
 
+- Requer Python 3.11 ou mais recente.
 - Instalável por `pip install git+https://github.com/ml1-impatech/statstech.git`.
+
+## 7. Análise discriminante (LDA e QDA)
+
+- **Regularização:** `LDA` e `QDA` utilizam `reg_param=1e-6` como valor padrão.
+- **Validação de `reg_param`:** ambos os classificadores rejeitam valores negativos, não finitos e booleanos.
+- **Priors personalizadas:** `QDA` aceita o parâmetro `priors`, assim como `LDA`. Quando `priors=None`, as probabilidades a priori são estimadas pelas frequências das classes no conjunto de treinamento. 
 
