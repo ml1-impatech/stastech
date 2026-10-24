@@ -1,8 +1,12 @@
+import warnings
+
 import numpy as np
 import pytest
 
 from statstech.base import BaseEstimator, RegressorMixin
+from statstech.linear_model.logistic_regression import LogisticRegression
 from statstech.model_selection.search import GridSearchCV, _expand_grid
+from statstech.model_selection.validation import cross_val_score
 from statstech.utils.validation import NotFittedError, check_is_fitted
 
 
@@ -20,6 +24,30 @@ class ShiftRegressor(RegressorMixin, BaseEstimator):
 
     def predict(self, X):
         return X[:, 0] + self.shift
+
+
+class FailingRegressor(RegressorMixin, BaseEstimator):
+    """Modelo de teste: falha no fit quando fail=True."""
+
+    def __init__(self, fail=False):
+        self.fail = fail
+
+    def fit(self, X, y):
+        if self.fail:
+            raise ValueError("falha de propósito")
+        self.fitted_ = True
+        return self
+
+    def predict(self, X):
+        return X[:, 0]
+
+
+def make_classification_data(n=60):
+    """Devolve X (n, 2) e y (n,) com duas classes separáveis."""
+    rng = np.random.default_rng(0)
+    X = rng.normal(size=(n, 2))
+    y = (X[:, 0] > 0).astype(int)
+    return X, y
 
 
 def make_data(n=20):
@@ -130,3 +158,119 @@ def test_predict_before_fit_raises():
         grid.predict(X)
     with pytest.raises(NotFittedError):
         grid.score(X, y)
+
+
+# error_score
+# -----------
+@pytest.mark.parametrize("scoring", [None, "mse"])
+def test_failing_combination_gets_nan_and_is_not_chosen(scoring):
+    X, y = make_data()
+    with pytest.warns(UserWarning, match="falhou"):
+        grid = GridSearchCV(
+            FailingRegressor(), {"fail": [True, False]}, cv=4, scoring=scoring
+        ).fit(X, y)
+
+    assert grid.best_params_ == {"fail": False}
+    assert np.isnan(grid.cv_results_[0]["mean_score"])
+    assert not np.isnan(grid.best_score_)
+
+
+def test_error_score_number_is_used_as_score():
+    X, y = make_data()
+    with pytest.warns(UserWarning, match="falhou"):
+        grid = GridSearchCV(
+            FailingRegressor(), {"fail": [True, False]}, cv=4, error_score=-1.0
+        ).fit(X, y)
+
+    assert grid.cv_results_[0]["mean_score"] == -1.0
+    assert grid.best_params_ == {"fail": False}
+
+
+def test_error_score_raise_reraises_original_error():
+    X, y = make_data()
+    grid = GridSearchCV(
+        FailingRegressor(), {"fail": [True, False]}, cv=4, error_score="raise"
+    )
+    with pytest.raises(ValueError, match="falha de propósito"):
+        grid.fit(X, y)
+
+
+@pytest.mark.filterwarnings("ignore::UserWarning")
+def test_all_combinations_failing_raises():
+    X, y = make_data()
+    grid = GridSearchCV(FailingRegressor(), {"fail": [True]}, cv=4)
+    with pytest.raises(ValueError, match="Todas"):
+        grid.fit(X, y)
+
+
+@pytest.mark.parametrize("error_score", ["abc", True, None, [1.0]])
+def test_invalid_error_score_raises(error_score):
+    X, y = make_data()
+    grid = GridSearchCV(
+        ShiftRegressor(), {"shift": [0.0]}, cv=4, error_score=error_score
+    )
+    with pytest.raises(ValueError, match="error_score"):
+        grid.fit(X, y)
+
+
+def test_no_warning_when_nothing_fails():
+    X, y = make_data()
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        GridSearchCV(ShiftRegressor(), {"shift": [-5.0, 0.0]}, cv=4).fit(X, y)
+
+
+# predict_proba e classes_
+# ------------------------
+def test_predict_proba_uses_best_estimator():
+    X, y = make_classification_data()
+    grid = GridSearchCV(LogisticRegression(), {"alpha": [0.1, 1.0]}, cv=3).fit(X, y)
+    proba = grid.predict_proba(X)
+
+    assert proba.shape == (len(X), 2)
+    np.testing.assert_allclose(proba, grid.best_estimator_.predict_proba(X))
+    np.testing.assert_allclose(proba.sum(axis=1), 1.0)
+
+
+def test_classes_copied_from_best_estimator():
+    X, y = make_classification_data()
+    labels = np.array(["a", "b"])[y]
+    grid = GridSearchCV(LogisticRegression(), {"alpha": [1.0]}, cv=3).fit(X, labels)
+
+    np.testing.assert_array_equal(grid.classes_, ["a", "b"])
+    np.testing.assert_array_equal(grid.classes_, grid.best_estimator_.classes_)
+
+
+def test_regressor_has_no_classes_nor_predict_proba():
+    X, y = make_data()
+    grid = GridSearchCV(ShiftRegressor(), {"shift": [0.0]}, cv=4).fit(X, y)
+
+    assert not hasattr(grid, "classes_")
+    with pytest.raises(AttributeError):
+        grid.predict_proba(X)
+
+
+def test_predict_proba_before_fit_raises():
+    X, _ = make_classification_data()
+    grid = GridSearchCV(LogisticRegression(), {"alpha": [1.0]})
+    with pytest.raises(NotFittedError):
+        grid.predict_proba(X)
+
+
+def test_predict_proba_with_refit_false_raises():
+    X, y = make_classification_data()
+    grid = GridSearchCV(LogisticRegression(), {"alpha": [1.0]}, cv=3, refit=False).fit(
+        X, y
+    )
+    with pytest.raises(NotFittedError):
+        grid.predict_proba(X)
+
+
+def test_grid_search_inside_cross_val_score_with_log_loss():
+    X, y = make_classification_data()
+    grid = GridSearchCV(LogisticRegression(), {"alpha": [0.1, 1.0]}, cv=3)
+    scores = cross_val_score(grid, X, y, cv=3, scoring="log_loss")
+
+    assert scores.shape == (3,)
+    assert np.all(np.isfinite(scores))
+    assert np.all(scores > 0)
