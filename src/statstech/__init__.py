@@ -10,7 +10,8 @@ from statstech import (
     neighbors,
     neural_network,
     preprocessing,
-    tree,
+    tree, 
+    pipeline
 )
 
 __version__ = "0.1.0"
@@ -26,4 +27,5 @@ __all__ = [
     "neural_network",
     "preprocessing",
     "tree",
+    "pipeline"
 ]
