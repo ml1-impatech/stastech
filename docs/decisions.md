@@ -124,7 +124,8 @@ Funcionalidades usadas por vários módulos ficam num lugar só, para evitar rep
   ponto mais distante do seu centro. Para quando o deslocamento dos centros
   fica menor ou igual a `tol`.
 - **`StandardScaler`:** desvio-padrão com divisão por n. Uma coluna constante é
-  dividida por 1, em vez de gerar NaN.
+  dividida por 1, em vez de gerar NaN. O parâmetro `columns` padroniza só as colunas 
+  escolhidas e deixa as outras intactas, com média 0 e escala 1 guardadas.
 
 ### 15. Validação, busca e bootstrap
 

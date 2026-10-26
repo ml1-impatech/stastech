@@ -26,22 +26,49 @@ class StandardScaler(BaseEstimator, TransformerMixin):
         Se True, subtrai a média de cada coluna.
     with_std : bool, default=True
         Se True, divide cada coluna pelo desvio padrão.
+    columns : list de int ou None, default=None
+        Índices das colunas a padronizar. As demais são devolvidas sem
+        mudança. Se None, todas as colunas são padronizadas.
+
 
     Attributes
     ----------
     mean_ : ndarray de formato (n_features,)
-        Média de cada coluna no treino.
+        Média de cada coluna no treino. Nas colunas fora de columns,
+        vale 0.
     scale_ : ndarray de formato (n_features,)
-        Desvio padrão de cada coluna. Colunas constantes (desvio 0)
-        recebem 1, para evitar divisão por zero.
+        Desvio padrão de cada coluna. Colunas constantes (desvio 0) e
+        colunas fora de columns recebem 1.
     n_features_in_ : int
         Número de colunas vistas no fit.
     """
 
-    def __init__(self, with_mean: bool = True, with_std: bool = True) -> None:
+    def __init__(self,
+                 with_mean: bool = True,
+                 with_std: bool = True,
+                 columns: list[int] | None = None) -> None:
         """Guarda os hiperparâmetros."""
         self.with_mean = with_mean
         self.with_std = with_std
+        self.columns = columns
+
+
+    def _column_mask(self, n_features: int) -> NDArray[np.bool_]:
+        """Máscara booleana das colunas a padronizar."""
+        if self.columns is None:
+            return np.ones(n_features, dtype=bool)
+        columns = np.asarray(self.columns)
+        if columns.ndim != 1 or columns.size == 0:
+            raise ValueError("columns deve ser None ou uma lista não vazia de índices.")
+        if columns.dtype == bool or not np.issubdtype(columns.dtype, np.integer):
+            raise ValueError("columns deve conter só índices inteiros.")
+        if np.any(columns < 0) or np.any(columns >= n_features):
+            raise ValueError(f"columns deve ter índices entre 0 e {n_features - 1}.")
+        if len(np.unique(columns)) != len(columns):
+            raise ValueError("columns não pode ter índices repetidos.")
+        mask = np.zeros(n_features, dtype=bool)
+        mask[columns] = True
+        return mask
 
     def fit(self, X: ArrayLike, y: None = None) -> Self:
         """Calcula a média e o desvio padrão de cada coluna.
@@ -64,13 +91,15 @@ class StandardScaler(BaseEstimator, TransformerMixin):
         ValueError
             Se X for inválido (não 2D, vazio, não numérico, com NaN
             ou infinito).
+            Se columns não for None nem uma lista não vazia de índices
+            inteiros, distintos e entre 0 e n_features - 1.
         """
         X = check_array(X).astype(float)
+        mask = self._column_mask(X.shape[1])
 
-        self.mean_ = X.mean(axis=0)
+        self.mean_ = np.where(mask, X.mean(axis=0), 0.0)
         std = X.std(axis=0)
-        # Coluna constante: dividir por 0 daria NaN. Dividimos por 1.
-        self.scale_ = np.where(std == 0, 1.0, std)
+        self.scale_ = np.where(mask & (std != 0), std, 1.0)
         self.n_features_in_ = X.shape[1]
         return self
 
