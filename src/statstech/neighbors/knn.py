@@ -17,6 +17,7 @@ from statstech.utils.validation import (
 # Número de linhas de X processadas de cada vez no cálculo das distâncias.
 _BLOCK_SIZE = 256
 
+
 class _BaseKNN(BaseEstimator):
     """Parte comum do KNN: guardar o treino e achar os vizinhos.
 
@@ -74,6 +75,7 @@ class _BaseKNN(BaseEstimator):
             order = np.argsort(distances, axis=1, kind="stable")
             neighbors.append(order[:, : self.n_neighbors])
         return np.vstack(neighbors)
+
 
 class KNeighborsClassifier(_BaseKNN, ClassifierMixin):
     """Classificador dos k vizinhos mais próximos.

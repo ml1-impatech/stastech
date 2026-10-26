@@ -138,7 +138,7 @@ class MLPRegressor(BaseEstimator, RegressorMixin):
         max_iter: int = 200,
         batch_size: int = 32,
         random_state: int | np.random.Generator | None = None,
-        scale_y: bool = False
+        scale_y: bool = False,
     ) -> None:
         self.hidden_layer_sizes = hidden_layer_sizes
         self.activation = activation
@@ -255,7 +255,7 @@ class MLPRegressor(BaseEstimator, RegressorMixin):
             _, activations = self._forward(X)
             loss = np.mean((activations[-1][:, 0] - y) ** 2)
             if not np.isfinite(loss):
-                self.weights_= last_weights
+                self.weights_ = last_weights
                 self.biases_ = last_biases
                 warnings.warn(
                     "A loss virou NaN ou infinito; treino interrompido e "
