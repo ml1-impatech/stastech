@@ -3,6 +3,7 @@
 import numpy as np
 import pytest
 
+from statstech.base import clone
 from statstech.preprocessing.scalers import MinMaxScaler, StandardScaler
 from statstech.utils.validation import NotFittedError
 
@@ -90,6 +91,106 @@ def test_standard_invalid_input():
         StandardScaler().fit([1.0, 2.0, 3.0])
     with pytest.raises(ValueError, match="NaN"):
         StandardScaler().fit([[1.0], [np.nan]])
+
+
+# ---------------- StandardScaler com columns ----------------
+
+
+def test_standard_columns_only_scales_chosen_columns(X):
+    Z = StandardScaler(columns=[0, 2]).fit_transform(X)
+    np.testing.assert_allclose(Z[:, [0, 2]].mean(axis=0), 0.0, atol=1e-12)
+    np.testing.assert_allclose(Z[:, [0, 2]].std(axis=0), 1.0)
+    np.testing.assert_array_equal(Z[:, 1], X[:, 1])
+
+
+def test_standard_columns_keeps_dummy_as_0_and_1():
+    rng = np.random.default_rng(0)
+    X = np.c_[rng.normal(50.0, 10.0, size=40), rng.integers(0, 2, size=40)]
+    Z = StandardScaler(columns=[0]).fit_transform(X)
+    np.testing.assert_array_equal(Z[:, 1], X[:, 1])
+    assert set(Z[:, 1]) == {0.0, 1.0}
+
+
+def test_standard_columns_none_is_the_default(X):
+    np.testing.assert_allclose(
+        StandardScaler(columns=None).fit_transform(X),
+        StandardScaler().fit_transform(X),
+    )
+
+
+def test_standard_columns_with_all_columns_is_the_default(X):
+    np.testing.assert_allclose(
+        StandardScaler(columns=[0, 1, 2]).fit_transform(X),
+        StandardScaler().fit_transform(X),
+    )
+
+
+def test_standard_columns_order_does_not_matter(X):
+    np.testing.assert_allclose(
+        StandardScaler(columns=[2, 0]).fit_transform(X),
+        StandardScaler(columns=[0, 2]).fit_transform(X),
+    )
+
+
+def test_standard_columns_accepts_numpy_array(X):
+    np.testing.assert_allclose(
+        StandardScaler(columns=np.array([0, 2])).fit_transform(X),
+        StandardScaler(columns=[0, 2]).fit_transform(X),
+    )
+
+
+def test_standard_columns_attributes(X):
+    scaler = StandardScaler(columns=[0]).fit(X)
+    assert scaler.mean_[0] == pytest.approx(X[:, 0].mean())
+    assert scaler.scale_[0] == pytest.approx(X[:, 0].std())
+    np.testing.assert_array_equal(scaler.mean_[1:], 0.0)
+    np.testing.assert_array_equal(scaler.scale_[1:], 1.0)
+
+
+def test_standard_columns_inverse_transform(X):
+    scaler = StandardScaler(columns=[1]).fit(X)
+    np.testing.assert_allclose(scaler.inverse_transform(scaler.transform(X)), X)
+
+
+def test_standard_columns_uses_training_statistics_on_test():
+    train = np.array([[0.0, 1.0], [10.0, 0.0]])  # coluna 0: média 5, desvio 5
+    test = np.array([[20.0, 1.0]])
+    scaler = StandardScaler(columns=[0]).fit(train)
+    np.testing.assert_allclose(scaler.transform(test), [[3.0, 1.0]])
+
+
+def test_standard_columns_constant_column_does_not_give_nan():
+    X = np.array([[1.0, 7.0], [2.0, 7.0], [3.0, 7.0]])
+    Z = StandardScaler(columns=[0, 1]).fit_transform(X)
+    assert not np.isnan(Z).any()
+    np.testing.assert_allclose(Z[:, 1], 0.0)
+
+
+def test_standard_columns_with_mean_false():
+    X = np.array([[1.0, 5.0], [3.0, 6.0]])  # coluna 0: desvio 1
+    Z = StandardScaler(columns=[0], with_mean=False).fit_transform(X)
+    np.testing.assert_allclose(Z, [[1.0, 5.0], [3.0, 6.0]])
+
+
+def test_standard_columns_not_changed_by_fit(X):
+    columns = [2, 0]
+    scaler = StandardScaler(columns=columns).fit(X)
+    assert scaler.columns is columns
+    assert columns == [2, 0]
+
+
+def test_standard_columns_in_get_params_and_clone():
+    scaler = StandardScaler(columns=[0, 2])
+    assert scaler.get_params()["columns"] == [0, 2]
+    assert clone(scaler).columns == [0, 2]
+
+
+@pytest.mark.parametrize(
+    "columns", [[], [3], [-1], [0, 0], [0.0], [True], "abc", [[0]]]
+)
+def test_standard_invalid_columns(X, columns):
+    with pytest.raises(ValueError, match="columns"):
+        StandardScaler(columns=columns).fit(X)
 
 
 # ---------------- MinMaxScaler ----------------
