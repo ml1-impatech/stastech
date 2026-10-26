@@ -9,9 +9,9 @@ from statstech import (
     model_selection,
     neighbors,
     neural_network,
+    pipeline,
     preprocessing,
-    tree, 
-    pipeline
+    tree,
 )
 
 __version__ = "0.1.0"
@@ -25,7 +25,7 @@ __all__ = [
     "model_selection",
     "neighbors",
     "neural_network",
+    "pipeline",
     "preprocessing",
     "tree",
-    "pipeline"
 ]

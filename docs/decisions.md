@@ -11,6 +11,9 @@ Este documento registra as decisões tomadas na construção da biblioteca `stat
 - **`src/statstech/`**: o código, uma pasta por módulo (`linear_model`, `tree`,
   `neural_network`, `metrics` etc.). O `__init__.py` de cada pasta define o que
   é público, para o uso ser `from statstech.linear_model import Ridge`.
+- **`pipeline.py`**: fica solto em `src/statstech/`, ao lado do `base.py`, e não
+  numa pasta, porque junta peças de vários módulos (um transformador do
+  `preprocessing` com um modelo de outro módulo).
 - **`tests/`**: a mesma estrutura de pastas de `src/`, com um arquivo de teste por arquivo de código.
 - **`examples/`**: um exemplo simples de uso para cada módulo.
 - **`docs/`**: este documento.
@@ -47,9 +50,10 @@ Funcionalidades usadas por vários módulos ficam num lugar só, para evitar rep
   `StandardScaler` do módulo `preprocessing`.
 - Motivos: evita repetir o mesmo código em cada modelo e mantém cada módulo com
   uma responsabilidade.
-- Cuidado na validação cruzada: o `StandardScaler` precisa ser ajustado só com
-  os dados de treino de cada fold. Padronizar a base inteira antes do
-  `cross_val_score` faz a média do fold de validação vazar para o treino.
+- Na validação cruzada, o `StandardScaler` precisa ser ajustado só com os dados
+  de treino de cada fold; padronizar a base inteira antes do `cross_val_score`
+  faz a média do fold de validação vazar para o treino. Para isso existe o
+  `Pipeline`: ele é clonado e reajustado em cada fold, junto com o modelo.
 
 ### 6. Reprodutibilidade
 
@@ -164,3 +168,20 @@ Funcionalidades usadas por vários módulos ficam num lugar só, para evitar rep
 - **Precisão, revocação, especificidade e F1** com denominador zero devolvem 0
   e emitem um `UserWarning`.
 - **R² com y constante:** devolve 1 se a previsão for perfeita e 0 caso contrário.
+
+### 16. Pipeline
+
+- **Passos:** uma lista de tuplas `(nome, objeto)`. Todos, menos o último,
+  precisam ter `fit` e `transform`; o último precisa ter `fit`. Os nomes são
+  únicos e não podem conter `__`.
+- **`passo__parâmetro`:** para alterar um parâmetro de um passo, usa-se o nome
+  do passo, dois sublinhados e o nome do parâmetro (`model__alpha`). É esse o
+  formato do `param_grid` do `GridSearchCV`.
+- **Cópias ajustadas:** o `fit` ajusta cópias dos passos (feitas com `clone`) e
+  as guarda em `steps_` e `named_steps_`. O `steps` passado pelo usuário nunca é
+  alterado, seguindo a regra de que o `__init__` só guarda os parâmetros e o
+  que é aprendido termina com `_`.
+- **Delegação ao último passo:** `predict`, `predict_proba` e `score`
+  transformam o X com os passos já ajustados e chamam o método do último
+  passo. Por isso o `score` dá acurácia num classificador e R² num regressor,
+  e o `classes_` é copiado do último passo quando ele for um classificador.
