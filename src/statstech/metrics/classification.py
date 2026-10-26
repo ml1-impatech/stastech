@@ -70,7 +70,7 @@ def confusion_matrix(
         raise ValueError("As listas de input devem ser não vazias.")
     n_classes = len(classes)
     dict_classes = {}
-    if not classes:
+    if len(classes) == 0:
         raise ValueError("classes deve ser não vazio.")
     for i in range(n_classes):
         dict_classes[classes[i]] = i

@@ -43,15 +43,16 @@ class StandardScaler(BaseEstimator, TransformerMixin):
         Número de colunas vistas no fit.
     """
 
-    def __init__(self,
-                 with_mean: bool = True,
-                 with_std: bool = True,
-                 columns: list[int] | None = None) -> None:
+    def __init__(
+        self,
+        with_mean: bool = True,
+        with_std: bool = True,
+        columns: list[int] | None = None,
+    ) -> None:
         """Guarda os hiperparâmetros."""
         self.with_mean = with_mean
         self.with_std = with_std
         self.columns = columns
-
 
     def _column_mask(self, n_features: int) -> NDArray[np.bool_]:
         """Máscara booleana das colunas a padronizar."""
