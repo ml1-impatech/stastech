@@ -97,7 +97,8 @@ Funcionalidades usadas por vários módulos ficam num lugar só, para evitar rep
 ### 11. Vizinhos e árvores
 
 - **KNN:** distância euclidiana. Empate de distância: vence o ponto que aparece
-  primeiro no treino. Empate no voto: vence a menor classe em `classes_`.
+  primeiro no treino. Empate no voto: vence a menor classe em `classes_`. 
+  As distâncias são calculadas em blocos de 256 linhas, para limitar a memória.
 - **Árvores:** critério de Gini (classificação) e variância (regressão). O corte
   é o ponto médio entre dois valores distintos consecutivos. Empate entre
   cortes: vence o primeiro encontrado.

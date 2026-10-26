@@ -209,3 +209,39 @@ def test_regressor_text_y_raises_error():
 def test_regressor_before_fit():
     with pytest.raises(NotFittedError):
         KNeighborsRegressor().predict(np.zeros((1, 1)))
+
+
+# ---------------- Cálculo em blocos ----------------
+
+
+@pytest.mark.parametrize("block_size", [1, 3, 7])
+def test_classifier_blocks_give_same_result(blobs, monkeypatch, block_size):
+    X, y = blobs
+    model = KNeighborsClassifier(n_neighbors=3).fit(X, y)
+    expected = model.predict_proba(X)
+
+    monkeypatch.setattr("statstech.neighbors.knn._BLOCK_SIZE", block_size)
+    np.testing.assert_allclose(model.predict_proba(X), expected)
+
+
+@pytest.mark.parametrize("block_size", [1, 3, 7])
+def test_regressor_blocks_give_same_result(monkeypatch, block_size):
+    rng = np.random.default_rng(0)
+    X = rng.normal(size=(20, 2))
+    y = rng.normal(size=20)
+    model = KNeighborsRegressor(n_neighbors=4).fit(X, y)
+    expected = model.predict(X)
+
+    monkeypatch.setattr("statstech.neighbors.knn._BLOCK_SIZE", block_size)
+    np.testing.assert_allclose(model.predict(X), expected)
+
+
+def test_blocks_keep_tie_rule(monkeypatch):
+    # Os pontos 0 e 1 estão à mesma distância de 0.5: vence o primeiro do treino.
+    X = np.array([[0.0], [1.0], [5.0], [6.0]])
+    y = np.array([10.0, 20.0, 30.0, 40.0])
+    X_new = np.array([[0.5], [5.5], [0.5]])
+
+    monkeypatch.setattr("statstech.neighbors.knn._BLOCK_SIZE", 1)
+    model = KNeighborsRegressor(n_neighbors=1).fit(X, y)
+    np.testing.assert_allclose(model.predict(X_new), [10.0, 30.0, 10.0])
