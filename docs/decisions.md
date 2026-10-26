@@ -116,6 +116,11 @@ Funcionalidades usadas por vários módulos ficam num lugar só, para evitar rep
 
 - `MLPRegressor` com saída linear, perda MSE, ativação ReLU nas camadas ocultas,
   inicialização He e gradiente descendente em mini-lotes.
+- O X não é padronizado por dentro (ver seção 5), mas o `y` pode ser, com
+  `scale_y=True`: a rede treina com y padronizado e o `predict` devolve as
+  previsões na escala original. Com y em centenas, sem isso o gradiente explode.
+- Se a perda virar NaN ou infinito, o treino para com um aviso e os pesos da
+  última época válida são restaurados.
 
 ### 14. Não supervisionado e pré-processamento
 

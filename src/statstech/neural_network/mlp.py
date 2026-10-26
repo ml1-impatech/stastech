@@ -105,6 +105,11 @@ class MLPRegressor(BaseEstimator, RegressorMixin):
         Tamanho dos mini-batches para o treinamento.
     random_state : int, Generator ou None, default=None
         Semente para o gerador de números aleatórios.
+    scale_y : bool, default=False
+        Se True, o fit padroniza y (média 0, desvio 1) antes de treinar,
+        e o predict devolve as previsões na escala original. Ajuda quando
+        y está numa escala grande (por exemplo, notas em centenas), que
+        faz o gradiente explodir.
 
     Attributes
     ----------
@@ -116,6 +121,13 @@ class MLPRegressor(BaseEstimator, RegressorMixin):
         Número de features vistas no fit.
     loss_curve_ : list de float
         MSE no conjunto de treino ao fim de cada época.
+        Se scale_y=True, a perda fica na escala padronizada.
+    y_mean_ : float
+        Se scale_y=True, é a média de y,
+        caso contrário é igual a 0.0.
+    y_scale_ : float
+        Se scale_y=True, é o desvio padrão de y,
+        caso contrário é igual a 1.0.
     """
 
     def __init__(
@@ -126,6 +138,7 @@ class MLPRegressor(BaseEstimator, RegressorMixin):
         max_iter: int = 200,
         batch_size: int = 32,
         random_state: int | np.random.Generator | None = None,
+        scale_y: bool = False
     ) -> None:
         self.hidden_layer_sizes = hidden_layer_sizes
         self.activation = activation
@@ -133,6 +146,7 @@ class MLPRegressor(BaseEstimator, RegressorMixin):
         self.max_iter = max_iter
         self.batch_size = batch_size
         self.random_state = random_state
+        self.scale_y = scale_y
 
     def _check_params(self) -> None:
         """Valida os hiperparâmetros.
@@ -142,6 +156,8 @@ class MLPRegressor(BaseEstimator, RegressorMixin):
         ValueError
             Se algum hiperparâmetro tiver um valor inválido.
         """
+        if not isinstance(self.scale_y, (bool, np.bool_)):
+            raise ValueError("scale_y deve ser booleano.")
         if self.activation not in ACTIVATIONS:
             raise ValueError(
                 f"Ativação inválida {self.activation!r}. "
@@ -203,11 +219,23 @@ class MLPRegressor(BaseEstimator, RegressorMixin):
         X = X.astype(float)
         y = y.astype(float)
 
+        if self.scale_y:
+            self.y_mean_ = float(np.mean(y))
+            std = float(np.std(y))
+            self.y_scale_ = std if std > 0 else 1.0
+        else:
+            self.y_mean_ = 0.0
+            self.y_scale_ = 1.0
+        y = (y - self.y_mean_) / self.y_scale_
+
         rng = np.random.default_rng(self.random_state)
         n_samples, n_features = X.shape
         self.n_features_in_ = n_features
         self._init_weights(n_features, rng)
         self.loss_curve_ = []
+
+        last_weights = [W.copy() for W in self.weights_]
+        last_biases = [b.copy() for b in self.biases_]
 
         for _ in range(self.max_iter):
             order = rng.permutation(n_samples)
@@ -227,14 +255,19 @@ class MLPRegressor(BaseEstimator, RegressorMixin):
             _, activations = self._forward(X)
             loss = np.mean((activations[-1][:, 0] - y) ** 2)
             if not np.isfinite(loss):
+                self.weights_= last_weights
+                self.biases_ = last_biases
                 warnings.warn(
-                    "A loss virou NaN ou infinito; treino interrompido. "
-                    "Diminua learning_rate ou padronize X e y.",
+                    "A loss virou NaN ou infinito; treino interrompido e "
+                    "pesos da última época válida restaurados. "
+                    "Diminua learning_rate, padronize X ou use scale_y=True.",
                     RuntimeWarning,
                     stacklevel=2,
                 )
                 break
             self.loss_curve_.append(loss)
+            last_weights = [W.copy() for W in self.weights_]
+            last_biases = [b.copy() for b in self.biases_]
         return self
 
     def predict(self, X: ArrayLike) -> np.ndarray:
@@ -263,7 +296,7 @@ class MLPRegressor(BaseEstimator, RegressorMixin):
         check_n_features(X, self.weights_[0].shape[0])
         _, activations = self._forward(X)
         y_pred = activations[-1][:, 0]
-        return y_pred
+        return y_pred * self.y_scale_ + self.y_mean_
 
     def _forward(self, X: np.ndarray) -> tuple[list[np.ndarray], list[np.ndarray]]:
         """Propaga X pela rede, camada por camada."""
