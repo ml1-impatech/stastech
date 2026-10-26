@@ -58,6 +58,7 @@ print(model.score(X_test, y_test))  # R² no teste
 | `model_selection` | Divisão treino/teste, k-fold, LOOCV, bootstrap, busca de hiperparâmetros |
 | `metrics` | Métricas de regressão e de classificação |
 | `preprocessing` | Padronização, codificação de categorias, imputação de valores faltantes, features polinomiais (para regressão polinomial) |
+| `pipeline` | Encadeamento de pré-processamento e modelo, reajustado em cada fold da validação cruzada |
 
 ## Testes
 

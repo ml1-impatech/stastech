@@ -32,9 +32,7 @@ def example_regression() -> None:
     print(f"R²:   {rg.r2_score(y_true, y_pred):.4f}")
 
 
-def example_classification() -> tuple[
-    list[int], list[int], list[int], np.ndarray
-]:
+def example_classification() -> tuple[list[int], list[int], list[int], np.ndarray]:
     """Demonstra a matriz de confusão e métricas derivadas dela."""
     print("\n" + "=" * 60)
     print("2. MÉTRICAS DE CLASSIFICAÇÃO")
@@ -61,20 +59,14 @@ def example_classification() -> tuple[
     print(f"FN: {cl.false_negatives(c_matrix, class_k)}")
     print(f"Precisão:       {cl.precision_score(c_matrix, class_k):.4f}")
     print(f"Revocação:      {cl.recall_score(c_matrix, class_k):.4f}")
-    print(
-        f"Especificidade: "
-        f"{cl.specificity_score(c_matrix, class_k):.4f}"
-    )
+    print(f"Especificidade: {cl.specificity_score(c_matrix, class_k):.4f}")
     print(f"F1:             {cl.f1_score(c_matrix, class_k):.4f}")
 
     print("\nMétricas gerais/macro (também recebem c_matrix):")
     print(f"Acurácia:             {cl.accuracy_score(c_matrix):.4f}")
     print(f"Precisão macro:       {cl.macro_precision(c_matrix):.4f}")
     print(f"Revocação macro:      {cl.macro_recall(c_matrix):.4f}")
-    print(
-        f"Especificidade macro: "
-        f"{cl.macro_specificity(c_matrix):.4f}"
-    )
+    print(f"Especificidade macro: {cl.macro_specificity(c_matrix):.4f}")
     print(f"F1 macro:             {cl.macro_f1(c_matrix):.4f}")
 
     # Para log loss, a entrada é uma matriz de probabilidades, não c_matrix.
@@ -94,28 +86,19 @@ def example_classification() -> tuple[
     )
 
     print("\nLog loss (usa probabilidades por observação):")
-    print(
-        f"Log loss: "
-        f"{cl.log_loss(y_true, p_matrix, classes=classes):.4f}"
-    )
+    print(f"Log loss: {cl.log_loss(y_true, p_matrix, classes=classes):.4f}")
 
     # ROC-AUC binária recebe scores da classe positiva.
     y_binary = [0, 0, 1, 1]
     positive_scores = [0.10, 0.40, 0.35, 0.80]
 
     print("\nROC-AUC binária:")
-    print(
-        f"ROC-AUC: "
-        f"{cl.roc_auc_score(y_binary, positive_scores):.4f}"
-    )
+    print(f"ROC-AUC: {cl.roc_auc_score(y_binary, positive_scores):.4f}")
 
     # Em multiclasse, a função recebe uma matriz de scores e class_k.
     # A classe escolhida é comparada com todas as outras (One-vs-Rest).
     print("\nROC-AUC multiclasse (classe 1 contra as demais):")
-    print(
-        f"ROC-AUC: "
-        f"{cl.roc_auc_score(y_true, p_matrix, class_k=1):.4f}"
-    )
+    print(f"ROC-AUC: {cl.roc_auc_score(y_true, p_matrix, class_k=1):.4f}")
 
     return classes, y_true, y_pred, p_matrix
 
@@ -138,36 +121,21 @@ def example_scorer_registry(
     accuracy_scorer = scoring.get_scorer("accuracy")
     log_loss_scorer = scoring.get_scorer("log_loss")
 
-    print(
-        f"Scorer 'rmse':     "
-        f"{rmse_scorer(y_reg_true, y_reg_pred):.4f}"
-    )
-    print(
-        f"Scorer 'accuracy': "
-        f"{accuracy_scorer(y_cls_true, y_cls_pred):.4f}"
-    )
+    print(f"Scorer 'rmse':     {rmse_scorer(y_reg_true, y_reg_pred):.4f}")
+    print(f"Scorer 'accuracy': {accuracy_scorer(y_cls_true, y_cls_pred):.4f}")
     print(
         "Scorer 'log_loss': "
         f"{log_loss_scorer(y_cls_true, p_matrix, classes=classes):.4f}"
     )
 
     print("\nMetadados do registro:")
-    print(
-        f"'rmse' tem menor valor como objetivo: "
-        f"{scoring.lower_is_better('rmse')}"
-    )
+    print(f"'rmse' tem menor valor como objetivo: {scoring.lower_is_better('rmse')}")
     print(
         f"'accuracy' tem menor valor como objetivo: "
         f"{scoring.lower_is_better('accuracy')}"
     )
-    print(
-        f"'log_loss' precisa de probabilidades: "
-        f"{scoring.needs_proba('log_loss')}"
-    )
-    print(
-        f"'accuracy' precisa de probabilidades: "
-        f"{scoring.needs_proba('accuracy')}"
-    )
+    print(f"'log_loss' precisa de probabilidades: {scoring.needs_proba('log_loss')}")
+    print(f"'accuracy' precisa de probabilidades: {scoring.needs_proba('accuracy')}")
 
     # O adaptador do registro transforma (y_true, y_pred) em c_matrix
     # antes de chamar accuracy_score. Por isso, não passamos c_matrix aqui.

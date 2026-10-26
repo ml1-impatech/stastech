@@ -9,6 +9,7 @@ from statstech import (
     model_selection,
     neighbors,
     neural_network,
+    pipeline,
     preprocessing,
     tree,
 )
@@ -24,6 +25,7 @@ __all__ = [
     "model_selection",
     "neighbors",
     "neural_network",
+    "pipeline",
     "preprocessing",
     "tree",
 ]
